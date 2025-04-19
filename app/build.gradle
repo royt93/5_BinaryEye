@@ -10,8 +10,8 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 35
         //lo tay du so 0 =))
-        versionCode 202500306
-        versionName '2025.03.06'
+        versionCode 202500419
+        versionName '2025.04.19'
     }
 
 //    signingConfigs {
@@ -118,7 +118,7 @@ dependencies {
     api 'com.github.markusfisch:CameraView:1.9.1'
     api 'com.github.markusfisch:ScalingImageView:1.4.1'
     api 'com.github.markusfisch:zxing-cpp:v2.1.0.0'
-    api 'com.applovin:applovin-sdk:13.1.0'
+    api 'com.applovin:applovin-sdk:13.2.0'
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
