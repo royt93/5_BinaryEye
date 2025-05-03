@@ -47,7 +47,6 @@ class ActivitySplash : BaseActivity() {
 
 
     private fun goToMain() {
-        return
         val intent = Intent(this@ActivitySplash, CameraActivity::class.java)
         startActivity(intent)
         overridePendingTransition(0, 0)
