@@ -18,8 +18,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
+import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
@@ -63,7 +65,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class CameraActivity : BaseActivity() {
+class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     private val frameRoi = Rect()
     private val matrix = Matrix()
 
@@ -215,6 +217,9 @@ class CameraActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.roy_a_camera)
 
+        AdMobManager.setCurrentActivity(this)
+        AdMobManager.interstitialListener = this
+
         // Necessary to get the right translation after setting a
         // custom locale.
         setTitle(R.string.scan_code)
@@ -252,8 +257,8 @@ class CameraActivity : BaseActivity() {
 //            isAdaptiveBanner = true,
 //        )
 
-        //TODO roy93~ admob inter
 //        createAdInter()
+        AdMobManager.loadInterstitial(this, BuildConfig.ADMOB_INTERSTITIAL_ID)
     }
 
     override fun onDestroy() {
@@ -386,18 +391,20 @@ class CameraActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.create -> {
-                //TODO roy93~ admob inter
 //                showAd {
 //                    createBarcode()
 //                }
+                createBarcode()
+                AdMobManager.showInterstitial(this)
                 true
             }
 
             R.id.history -> {
-                //TODO roy93~ admob inter
 //                showAd {
 //                    startActivity(ActivityMain.getHistoryIntent(this))
 //                }
+                startActivity(ActivityMain.getHistoryIntent(this))
+                AdMobManager.showInterstitial(this)
                 true
             }
 
@@ -432,10 +439,11 @@ class CameraActivity : BaseActivity() {
             }
 
             R.id.preferences -> {
-                //TODO roy93~ admob inter
 //                showAd {
 //                    startActivity(ActivityMain.getPreferencesIntent(this))
 //                }
+                startActivity(ActivityMain.getPreferencesIntent(this))
+                AdMobManager.showInterstitial(this)
                 true
             }
 
@@ -815,6 +823,27 @@ class CameraActivity : BaseActivity() {
                 }, prefs.bulkModeDelay.toLong())
             }
         }
+    }
+
+    override fun onAdLoaded() {
+    }
+
+    override fun onAdFailedToLoad(error: LoadAdError) {
+    }
+
+    override fun onAdShowed() {
+    }
+
+    override fun onAdDismissed() {
+    }
+
+    override fun onAdClicked() {
+    }
+
+    override fun onAdFailedToShow(error: AdError) {
+    }
+
+    override fun onAdNotAvailable() {
     }
 
     companion object {
