@@ -2,7 +2,6 @@ package com.mckimquyen.binaryeye
 
 import android.app.Application
 import com.mckimquyen.binaryeye.database.Db
-import com.mckimquyen.binaryeye.ext.setupApplovinAd
 import com.mckimquyen.binaryeye.pref.Pref
 
 //TODO firebase
@@ -34,6 +33,7 @@ class RApp : Application() {
         super.onCreate()
         db.open(this)
         prefs.init(this)
-        this.setupApplovinAd()
+//        this.setupApplovinAd()
+        //TODO roy93~ admob setup
     }
 }

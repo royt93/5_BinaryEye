@@ -10,8 +10,8 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 35
         //lo tay du so 0 =))
-        versionCode 202500419
-        versionName '2025.04.19'
+        versionCode 202500503
+        versionName '2025.05.03'
     }
 
 //    signingConfigs {
@@ -84,12 +84,11 @@ android {
             buildConfigField("String", "FLAVOR_buildEnv", '"dev"')
             resValue "string", "app_name", "Cat Scanner with history DEV"
 
-            resValue("string", "SDK_KEY", "e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt")
-            resValue("string", "BANNER", "84d187d1b08adc3d")
-            resValue("string", "INTER", "5ac61198c318d67b")
-//
-            resValue("string", "EnableAdInter", "true")
-            resValue("string", "EnableAdBanner", "true")
+//            resValue("string", "SDK_KEY", "e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt")
+//            resValue("string", "BANNER", "84d187d1b08adc3d")
+//            resValue("string", "INTER", "5ac61198c318d67b")
+//            resValue("string", "EnableAdInter", "true")
+//            resValue("string", "EnableAdBanner", "true")
         }
 
         production {
@@ -97,12 +96,11 @@ android {
             buildConfigField("String", "FLAVOR_buildEnv", '"prod"')
             resValue "string", "app_name", "Cat Scanner with history"
 
-            resValue("string", "SDK_KEY", "e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt")
-            resValue("string", "BANNER", "84d187d1b08adc3d")
-            resValue("string", "INTER", "5ac61198c318d67b")
-//
-            resValue("string", "EnableAdInter", "true")
-            resValue("string", "EnableAdBanner", "true")
+//            resValue("string", "SDK_KEY", "e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt")
+//            resValue("string", "BANNER", "84d187d1b08adc3d")
+//            resValue("string", "INTER", "5ac61198c318d67b")
+//            resValue("string", "EnableAdInter", "true")
+//            resValue("string", "EnableAdBanner", "true")
         }
 
     }
@@ -118,7 +116,7 @@ dependencies {
     api 'com.github.markusfisch:CameraView:1.9.1'
     api 'com.github.markusfisch:ScalingImageView:1.4.1'
     api 'com.github.markusfisch:zxing-cpp:v2.1.0.0'
-    api 'com.applovin:applovin-sdk:13.2.0'
+//    api 'com.applovin:applovin-sdk:13.2.0'
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
