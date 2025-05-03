@@ -55,6 +55,11 @@ android {
 
     buildTypes {
         release {
+            // nhớ check APPLICATION_ID trong manifest
+            buildConfigField "String", "ADMOB_BANNER_ID", "\"ca-app-pub-3612191981543807/9127422654\""
+            buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3612191981543807/7814340985\""
+            buildConfigField "String", "ADMOB_APP_OPEN_ID", "\"ca-app-pub-3612191981543807/3616361085\""
+
             debuggable false
             minifyEnabled true
             //used android.enableR8=true in gradle.properties
@@ -63,6 +68,10 @@ android {
 //            applicationIdSuffix ".release"
         }
         debug {
+            buildConfigField "String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/6300978111\""
+            buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3940256099942544/1033173712\""
+            buildConfigField "String", "ADMOB_APP_OPEN_ID", "\"ca-app-pub-3940256099942544/9257395921\""
+
             minifyEnabled false
             //used android.enableR8=true in gradle.properties
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -117,6 +126,7 @@ dependencies {
     api 'com.github.markusfisch:ScalingImageView:1.4.1'
     api 'com.github.markusfisch:zxing-cpp:v2.1.0.0'
 //    api 'com.applovin:applovin-sdk:13.2.0'
+    implementation("com.google.android.gms:play-services-ads:24.2.0")
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
