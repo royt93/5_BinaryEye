@@ -18,6 +18,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.Toast
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
@@ -34,6 +36,7 @@ import com.mckimquyen.binaryeye.ext.rateApp
 import com.mckimquyen.binaryeye.ext.rateAppInApp
 import com.mckimquyen.binaryeye.ext.shareApp
 import com.mckimquyen.binaryeye.prefs
+import com.mckimquyen.binaryeye.sdkadbmob.AdMobManager
 import com.mckimquyen.binaryeye.view.bluetooth.sendBluetoothAsync
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
 import com.mckimquyen.binaryeye.view.content.execShareIntent
@@ -81,11 +84,10 @@ class CameraActivity : BaseActivity() {
     private var ignoreNext: String? = null
     private var fallbackBuffer: IntArray? = null
 
-    //TODO roy93~ admob banner
-//    private var adView: MaxAdView? = null
+    //    private var adView: MaxAdView? = null
+    private var adView: AdView? = null
     private var flAd: ViewGroup? = null
 
-    //TODO roy93~ admob inter
 //    private var interstitialAd: MaxInterstitialAd? = null
 
 //    private fun createAdInter() {
@@ -236,7 +238,14 @@ class CameraActivity : BaseActivity() {
         }
 
         flAd = findViewById(R.id.flAd)
-        //TODO roy93~ admob banner
+        adView = flAd?.let {
+            AdMobManager.loadBanner(
+                context = this,
+                adUnitId = BuildConfig.ADMOB_BANNER_ID,
+                container = it,
+                adSize = AdSize.BANNER,
+            )
+        }
 //        adView = this.createAdBanner(
 //            logTag = CameraActivity::class.simpleName,
 //            viewGroup = flAd,
@@ -248,8 +257,8 @@ class CameraActivity : BaseActivity() {
     }
 
     override fun onDestroy() {
-        //TODO roy93~ admob banner
 //        flAd?.destroyAdBanner(adView)
+        adView?.destroy()
         super.onDestroy()
         fallbackBuffer = null
         saveZoom()
@@ -259,6 +268,7 @@ class CameraActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        adView?.resume()
         System.gc()
         updateHints()
         if (prefs.bulkMode && bulkMode != prefs.bulkMode) {
@@ -314,6 +324,7 @@ class CameraActivity : BaseActivity() {
     }
 
     override fun onPause() {
+        adView?.pause()
         super.onPause()
         closeCamera()
     }
