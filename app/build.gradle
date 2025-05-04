@@ -10,8 +10,8 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 35
         //lo tay du so 0 =))
-        versionCode 202500503
-        versionName '2025.05.03'
+        versionCode 202500505
+        versionName '2025.05.05'
     }
 
 //    signingConfigs {
