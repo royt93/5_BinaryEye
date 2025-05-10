@@ -19,48 +19,20 @@ class ActivitySplash : BaseActivity() {
         // because that would happen after the app is fully
         // initialized what is too late.
 
-        AdMobManager.loadAppOpenAd(
-            context = this@ActivitySplash,
-            adUnitId = BuildConfig.ADMOB_APP_OPEN_ID,
-            onAdLoaded = { result ->
-                Log.d("roy93~", "onAdLoaded result $result")
-                goToMain()
-                AdMobManager.showAppOpenAd(this@ActivitySplash)
-            },
-        )
-
-//        lifecycleScope.launch {
-//            var hasCalledGoToMain = false
-//            val job = launch {
-//                delay(3_000)
-//                if (!hasCalledGoToMain) {
-//                    hasCalledGoToMain = true
-//                    Log.d("roy93~", "goToMain #1")
-//                    goToMain()
-//                }
-//            }
-//            AdMobManager.loadAppOpenAd(
-//                context = this@ActivitySplash,
-//                adUnitId = BuildConfig.ADMOB_APP_OPEN_ID,
-//                onAdLoaded = {
-//                    if (!hasCalledGoToMain) {
-//                        hasCalledGoToMain = true
-//                        job.cancel()
-//                        Log.d("roy93~", "goToMain #2")
-//                        goToMain()
-//                        AdMobManager.showAppOpenAd(this@ActivitySplash)
-//                    }
-//                },
-//            )
-//        }
+        AdMobManager.initSplashScreen(activity = this, onAdLoaded = {
+            goToMain()
+        })
     }
 
 
     private fun goToMain() {
         val intent = Intent(this@ActivitySplash, CameraActivity::class.java)
         startActivity(intent)
-        overridePendingTransition(0, 0)
-        finishAffinity()
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        // Trì hoãn finish để đợi animation hoàn tất
+        window.decorView.postDelayed({
+            finish() // Finish sau animation
+        }, 300) // delay khoảng 300ms (hoặc đúng thời gian của animation)
     }
 }
 
