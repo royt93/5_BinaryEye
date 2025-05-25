@@ -10,8 +10,8 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 35
         //lo tay du so 0 =))
-        versionCode 202500510
-        versionName '2025.05.10'
+        versionCode 202500525
+        versionName '2025.05.25'
     }
 
 //    signingConfigs {
@@ -127,6 +127,8 @@ dependencies {
     api 'com.github.markusfisch:zxing-cpp:v2.1.0.0'
 //    api 'com.applovin:applovin-sdk:13.2.0'
     implementation("com.google.android.gms:play-services-ads:23.6.0")
+    implementation("com.google.ads.mediation:applovin:12.5.0.0")
+
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
