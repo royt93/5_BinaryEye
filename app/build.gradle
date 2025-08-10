@@ -3,15 +3,15 @@ apply plugin: 'kotlin-android'
 
 android {
     namespace 'com.mckimquyen.binaryeye'
-    compileSdk 35
+    compileSdk 36
     defaultConfig {
         applicationId "com.mckimquyen.binaryeye"
         minSdkVersion 23
         //noinspection EditedTargetSdkVersion
-        targetSdkVersion 35
+        targetSdkVersion 36
         //lo tay du so 0 =))
-        versionCode 202500525
-        versionName '2025.05.25'
+        versionCode 202500810
+        versionName '2025.08.10'
     }
 
 //    signingConfigs {
@@ -118,7 +118,7 @@ android {
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
-    api 'androidx.appcompat:appcompat:1.7.0'
+    api 'androidx.appcompat:appcompat:1.7.1'
     api 'com.google.android.material:material:1.12.0'
     api 'androidx.preference:preference-ktx:1.0.0'
     api 'androidx.legacy:legacy-preference-v14:1.0.0'
