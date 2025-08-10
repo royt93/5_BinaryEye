@@ -11,12 +11,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdSize
@@ -88,7 +90,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
     //    private var adView: MaxAdView? = null
     private var adView: AdView? = null
-    private var flAd: ViewGroup? = null
+//    private var flAd: ViewGroup? = null
 
 //    private var interstitialAd: MaxInterstitialAd? = null
 
@@ -181,9 +183,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            PERMISSION_CAMERA -> if (grantResults.isNotEmpty() &&
-                grantResults[0] != PackageManager.PERMISSION_GRANTED
-            ) {
+            PERMISSION_CAMERA -> if (grantResults.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 toast(R.string.cameraError)
             }
         }
@@ -236,21 +236,20 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         initZoomBar()
         initDetectorView()
 
-        if (intent?.action == Intent.ACTION_SEND &&
-            intent.type == "text/plain"
-        ) {
+        if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             handleSendText(intent)
         }
 
-        flAd = findViewById(R.id.flAd)
-        adView = flAd?.let {
-            AdMobManager.loadBanner(
-                context = this,
-                adUnitId = BuildConfig.ADMOB_BANNER_ID,
-                container = it,
-                adSize = AdSize.BANNER,
-            )
-        }
+//        flAd = findViewById(R.id.flAd)
+        val bannerContainer = findViewById<ViewGroup>(R.id.bannerContainer)
+        val tvLabelAd = findViewById<TextView>(R.id.tvLabelAd)
+        adView = AdMobManager.loadBanner(
+            context = this,
+            adUnitId = BuildConfig.ADMOB_BANNER_ID,
+            container = bannerContainer,
+            tvLabelAd = tvLabelAd,
+            adSize = AdSize.FULL_BANNER,
+        )
 //        adView = this.createAdBanner(
 //            logTag = CameraActivity::class.simpleName,
 //            viewGroup = flAd,
@@ -292,8 +291,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         val restriction = restrictFormat
         formatsToRead = if (restriction != null) {
             title = getString(
-                R.string.scan_format,
-                prettifyFormatName(restriction)
+                R.string.scan_format, prettifyFormatName(restriction)
             )
             setOf(restriction)
         } else {
@@ -318,8 +316,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     private fun openCamera() {
         cameraView.openAsync(
             CameraView.findCameraId(
-                @Suppress("DEPRECATION")
-                if (frontFacing) {
+                @Suppress("DEPRECATION") if (frontFacing) {
                     Camera.CameraInfo.CAMERA_FACING_FRONT
                 } else {
                     Camera.CameraInfo.CAMERA_FACING_BACK
@@ -391,20 +388,26 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.create -> {
-//                showAd {
-//                    createBarcode()
-//                }
-                createBarcode()
-                AdMobManager.showInterstitial(this)
+                AdMobManager.showInterstitial(this) { success ->
+                    if (success) {
+                        Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
+                    } else {
+                        Log.d("roy93~", "Ad không hiển thị được hoặc có lỗi")
+                    }
+                    createBarcode()
+                }
                 true
             }
 
             R.id.history -> {
-//                showAd {
-//                    startActivity(ActivityMain.getHistoryIntent(this))
-//                }
-                startActivity(ActivityMain.getHistoryIntent(this))
-                AdMobManager.showInterstitial(this)
+                AdMobManager.showInterstitial(this) { success ->
+                    if (success) {
+                        Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
+                    } else {
+                        Log.d("roy93~", "Ad không hiển thị được hoặc có lỗi")
+                    }
+                    startActivity(ActivityMain.getHistoryIntent(this))
+                }
                 true
             }
 
@@ -413,10 +416,8 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                     Intent.createChooser(
                         Intent(Intent.ACTION_GET_CONTENT).apply {
                             type = "image/*"
-                        },
-                        getString(R.string.pick_file)
-                    ),
-                    PICK_FILE_RESULT_CODE
+                        }, getString(R.string.pick_file)
+                    ), PICK_FILE_RESULT_CODE
                 )
                 true
             }
@@ -439,11 +440,14 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
             }
 
             R.id.preferences -> {
-//                showAd {
-//                    startActivity(ActivityMain.getPreferencesIntent(this))
-//                }
-                startActivity(ActivityMain.getPreferencesIntent(this))
-                AdMobManager.showInterstitial(this)
+                AdMobManager.showInterstitial(this) { success ->
+                    if (success) {
+                        Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
+                    } else {
+                        Log.d("roy93~", "Ad không hiển thị được hoặc có lỗi")
+                    }
+                    startActivity(ActivityMain.getPreferencesIntent(this))
+                }
                 true
             }
 
@@ -531,8 +535,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
     private fun initCameraView() {
         cameraView.setUseOrientationListener(true)
-        @Suppress("ClickableViewAccessibility")
-        cameraView.setOnTouchListener(object : View.OnTouchListener {
+        @Suppress("ClickableViewAccessibility") cameraView.setOnTouchListener(object : View.OnTouchListener {
             var focus = true
             var offset = -1f
             var progress = 0
@@ -554,8 +557,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                             val maxValue = zoomBar.max
                             val change = maxValue / v.height.toFloat() * 2f * dist
                             zoomBar.progress = min(
-                                maxValue,
-                                max(progress + change.roundToInt(), 0)
+                                maxValue, max(progress + change.roundToInt(), 0)
                             )
                             return true
                         }
@@ -576,8 +578,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                 return false
             }
         })
-        @Suppress("DEPRECATION")
-        cameraView.setOnCameraListener(object : CameraView.OnCameraListener {
+        @Suppress("DEPRECATION") cameraView.setOnCameraListener(object : CameraView.OnCameraListener {
             override fun onConfigureParameters(
                 parameters: Camera.Parameters,
             ) {
@@ -612,9 +613,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
             override fun onCameraReady(camera: Camera) {
                 frameMetrics = FrameMetrics(
-                    cameraView.frameWidth,
-                    cameraView.frameHeight,
-                    cameraView.frameOrientation
+                    cameraView.frameWidth, cameraView.frameHeight, cameraView.frameOrientation
                 )
                 updateFrameRoiAndMappingMatrix()
                 ignoreNext = null
@@ -634,8 +633,10 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                         ZxingCpp.readByteArray(
                             yuvData = frameData,
                             rowStride = frameMetrics.width,
-                            left = frameRoi.left, top = frameRoi.top,
-                            width = frameRoi.width(), height = frameRoi.height(),
+                            left = frameRoi.left,
+                            top = frameRoi.top,
+                            width = frameRoi.width(),
+                            height = frameRoi.height(),
                             rotation = frameMetrics.orientation,
                             decodeHints = decodeHints.apply {
                                 // By default, ZXing uses LOCAL_AVERAGE, but
@@ -647,8 +648,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                                     Binarizer.GLOBAL_HISTOGRAM
                                 }
                                 formats = formatsToRead.joinToString()
-                            }
-                        )?.let { results ->
+                            })?.let { results ->
                             val result = results.first()
                             if (result.text != ignoreNext) {
                                 postResult(result)
@@ -669,8 +669,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     }
 
     private fun initZoomBar() {
-        zoomBar.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
+        zoomBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(
                 seekBar: SeekBar,
                 progress: Int,
@@ -707,9 +706,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
     private fun restoreZoom() {
         zoomBar.max = prefs.preferences.getInt(ZOOM_MAX, zoomBar.max)
-        zoomBar.progress = prefs.preferences.getInt(
-            /* key = */ ZOOM_LEVEL,
-            /* defValue = */ zoomBar.progress
+        zoomBar.progress = prefs.preferences.getInt(/* key = */ ZOOM_LEVEL,/* defValue = */ zoomBar.progress
         )
     }
 
@@ -733,14 +730,10 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
             detectorView.roi
         }
         frameRoi.setFrameRoi(
-            frameMetrics = frameMetrics,
-            viewRect = viewRect,
-            viewRoi = viewRoi
+            frameMetrics = frameMetrics, viewRect = viewRect, viewRoi = viewRoi
         )
         matrix.setFrameToView(
-            frameMetrics = frameMetrics,
-            viewRect = viewRect,
-            viewRoi = viewRoi
+            frameMetrics = frameMetrics, viewRect = viewRect, viewRoi = viewRoi
         )
     }
 
@@ -758,9 +751,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     private fun toggleTorchMode() {
         val camera = cameraView.camera ?: return
         val parameters = camera.parameters ?: return
-        parameters.flashMode = if (
-            parameters.flashMode != Camera.Parameters.FLASH_MODE_OFF
-        ) {
+        parameters.flashMode = if (parameters.flashMode != Camera.Parameters.FLASH_MODE_OFF) {
             Camera.Parameters.FLASH_MODE_OFF
         } else {
             Camera.Parameters.FLASH_MODE_TORCH
@@ -776,8 +767,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         cameraView.post {
             detectorView.update(
                 matrix.mapPosition(
-                    position = result.position,
-                    coords = detectorView.coordinates
+                    position = result.position, coords = detectorView.coordinates
                 )
             )
             scanFeedback()
@@ -876,8 +866,7 @@ fun Activity.showResult(
             return
         }
         scan.sendAsync(
-            prefs.sendScanUrl,
-            prefs.sendScanType
+            prefs.sendScanUrl, prefs.sendScanType
         ) { code, body ->
             if (code == null || code < 200 || code > 299) {
                 errorFeedback()
@@ -889,10 +878,7 @@ fun Activity.showResult(
             }
         }
     }
-    if (prefs.sendScanBluetooth &&
-        prefs.sendScanBluetoothHost.isNotEmpty() &&
-        hasBluetoothPermission()
-    ) {
+    if (prefs.sendScanBluetooth && prefs.sendScanBluetoothHost.isNotEmpty() && hasBluetoothPermission()) {
         scan.sendBluetoothAsync(
             prefs.sendScanBluetoothHost
         ) { connected, sent ->
@@ -931,16 +917,12 @@ private fun getReturnIntent(result: Result) = Intent().apply {
 }
 
 private fun String.isReturnUrl() = listOf(
-    "binaryeye://scan",
-    "http://markusfisch.de/BinaryEye",
-    "https://markusfisch.de/BinaryEye"
+    "binaryeye://scan", "http://markusfisch.de/BinaryEye", "https://markusfisch.de/BinaryEye"
 ).firstOrNull { startsWith(it) } != null
 
 @OptIn(ExperimentalStdlibApi::class)
 private fun completeUrl(urlTemplate: String, result: Result) = Uri.parse(
-    urlTemplate
-        .replace("{RESULT}", result.text.urlEncode())
-        .replace("{RESULT_BYTES}", result.rawBytes.toHexString())
+    urlTemplate.replace("{RESULT}", result.text.urlEncode()).replace("{RESULT_BYTES}", result.rawBytes.toHexString())
         .replace(
             "{FORMAT}", result.format.urlEncode()
         )

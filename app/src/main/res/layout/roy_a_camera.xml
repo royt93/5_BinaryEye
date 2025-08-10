@@ -45,14 +45,17 @@
                     android:src="@drawable/ic_action_flash" />
             </LinearLayout>
 
-            <FrameLayout
-                android:id="@+id/flAd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp">
+<!--            <FrameLayout-->
+<!--                android:id="@+id/flAd"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:paddingTop="8dp"-->
+<!--                android:paddingBottom="8dp">-->
 
-            </FrameLayout>
+<!--            </FrameLayout>-->
+            <include
+                android:id="@+id/layoutAdBanner"
+                layout="@layout/layout_ad_banner" />
         </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
