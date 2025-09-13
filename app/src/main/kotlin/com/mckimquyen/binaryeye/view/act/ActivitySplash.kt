@@ -2,19 +2,17 @@ package com.mckimquyen.binaryeye.view.act
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import androidx.lifecycle.lifecycleScope
 import com.mckimquyen.binaryeye.BaseActivity
-import com.mckimquyen.binaryeye.BuildConfig
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.sdkadbmob.AdMobManager
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.mckimquyen.binaryeye.sdkadbmob.UIUtils
 
 class ActivitySplash : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        UIUtils.setupEdgeToEdge1(window)
         setContentView(R.layout.roy_a_splash)
+        UIUtils.setupEdgeToEdge2(findViewById(R.id.layoutRoot))
         // It's important _not_ to inflate a layout file here
         // because that would happen after the app is fully
         // initialized what is too late.
