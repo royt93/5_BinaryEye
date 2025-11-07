@@ -23,13 +23,22 @@
             android:layout_gravity="bottom"
             android:orientation="vertical">
 
+            <!-- Glass container for controls only -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingEnd="0dp">
+                android:gravity="center"
+                android:background="@drawable/bg_liquid_glass_dark"
+                android:padding="12dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="0dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
+                android:elevation="12dp">
 
                 <SeekBar
                     android:id="@+id/zoom"
@@ -45,14 +54,6 @@
                     android:src="@drawable/ic_action_flash" />
             </LinearLayout>
 
-<!--            <FrameLayout-->
-<!--                android:id="@+id/flAd"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:paddingTop="8dp"-->
-<!--                android:paddingBottom="8dp">-->
-
-<!--            </FrameLayout>-->
             <include
                 android:id="@+id/layoutAdBanner"
                 layout="@layout/layout_ad_banner" />

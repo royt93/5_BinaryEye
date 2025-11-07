@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Liquid Glass / Glassmorphism background for iOS-style frosted effect -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Semi-transparent white background with blur hint -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#26FFFFFF" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+
+    <!-- Subtle border for glass edge effect -->
+    <item>
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="0.5dp"
+                android:color="#33FFFFFF" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+</layer-list>

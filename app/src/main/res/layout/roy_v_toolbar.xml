@@ -3,5 +3,9 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="@android:color/transparent"
+    android:background="@drawable/bg_liquid_glass_dark"
+    android:elevation="8dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="16dp"
     tools:ignore="Overdraw" />
