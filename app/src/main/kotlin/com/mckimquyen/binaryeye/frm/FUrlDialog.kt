@@ -14,11 +14,11 @@ class FUrlDialog : PreferenceDialogFragmentCompat() {
     private var urlView: TextView? = null
     private var testButton: TextView? = null
 
-    override fun onBindDialogView(view: View?) {
+    override fun onBindDialogView(view: View) {
         super.onBindDialogView(view)
 
-        urlView = view?.findViewById(R.id.url)
-        testButton = view?.findViewById(R.id.testUrl)
+        urlView = view.findViewById(R.id.url)
+        testButton = view.findViewById(R.id.testUrl)
         testButton?.setOnClickListener {
             testUrl(testButton)
         }

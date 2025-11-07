@@ -63,7 +63,7 @@ android {
             debuggable false
             minifyEnabled true
             //used android.enableR8=true in gradle.properties
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
 //            applicationIdSuffix ".release"
         }
@@ -74,7 +74,7 @@ android {
 
             minifyEnabled false
             //used android.enableR8=true in gradle.properties
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 //            applicationIdSuffix ".debug"
         }
     }
@@ -116,11 +116,11 @@ android {
 }
 
 dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib:2.0.21"
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+    api "org.jetbrains.kotlin:kotlin-stdlib:2.2.20"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
     api 'androidx.appcompat:appcompat:1.7.1'
     api 'com.google.android.material:material:1.12.0'
-    api 'androidx.preference:preference-ktx:1.0.0'
+    api 'androidx.preference:preference-ktx:1.2.1'
     api 'androidx.legacy:legacy-preference-v14:1.0.0'
     api 'com.github.markusfisch:CameraView:1.9.1'
     api 'com.github.markusfisch:ScalingImageView:1.4.1'

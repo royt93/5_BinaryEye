@@ -33,7 +33,7 @@ class FPreferences : PreferenceFragmentCompat() {
             sharedPreferences: SharedPreferences,
             key: String?,
         ) {
-            val preference = findPreference(key) ?: return
+            val preference = findPreference<Preference>(key ?: return) ?: return
             prefs.update()
             when (preference.key) {
                 "custom_locale" -> activity?.restartApp()
@@ -66,14 +66,14 @@ class FPreferences : PreferenceFragmentCompat() {
         if (prefs.sendScanBluetooth &&
             activity?.hasBluetoothPermission() == true
         ) {
-            setBluetoothHosts(
-                findPreference("send_scan_bluetooth_host") as ListPreference
-            )
+            findPreference<ListPreference>("send_scan_bluetooth_host")?.let {
+                setBluetoothHosts(it)
+            }
         }
     }
 
     private fun wireClearNetworkPreferences() {
-        findPreference("clear_network_suggestions").apply {
+        findPreference<Preference>("clear_network_suggestions")?.apply {
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
                 // From R+ we can query past network suggestions and
                 // make them editable.
@@ -87,7 +87,7 @@ class FPreferences : PreferenceFragmentCompat() {
                 // adding network suggestions on Q as well, so we
                 // need to keep this option.
                 setOnPreferenceClickListener {
-                    context.askToClearNetworkSuggestions()
+                    context?.askToClearNetworkSuggestions()
                     true
                 }
             } else {
@@ -128,14 +128,14 @@ class FPreferences : PreferenceFragmentCompat() {
         listView.removeOnScrollListener(systemBarRecyclerViewScrollListener)
         listView.addOnScrollListener(systemBarRecyclerViewScrollListener)
         preferenceScreen.sharedPreferences
-            .registerOnSharedPreferenceChangeListener(changeListener)
+            ?.registerOnSharedPreferenceChangeListener(changeListener)
         setSummaries(preferenceScreen)
     }
 
     override fun onPause() {
         super.onPause()
         preferenceScreen.sharedPreferences
-            .unregisterOnSharedPreferenceChangeListener(changeListener)
+            ?.unregisterOnSharedPreferenceChangeListener(changeListener)
     }
 
     override fun onDisplayPreferenceDialog(preference: Preference) {

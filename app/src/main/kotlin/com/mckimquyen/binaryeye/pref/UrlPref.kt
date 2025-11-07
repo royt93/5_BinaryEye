@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import com.mckimquyen.binaryeye.R
 
 class UrlPref(
-    context: Context?,
+    context: Context,
     attrs: AttributeSet?,
 ) : DialogPreference(context, attrs) {
     private var url: String? = null

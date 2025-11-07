@@ -7,8 +7,6 @@ import android.view.Display
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.mckimquyen.binaryeye.ext.app.applyLocale
-import kotlin.apply
-import kotlin.collections.maxByOrNull
 
 open class BaseActivity : AppCompatActivity() {
 
