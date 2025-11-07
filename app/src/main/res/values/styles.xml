@@ -32,15 +32,16 @@
     </style>
 
     <style name="FAB" parent="Widget.Design.FloatingActionButton">
-        <!-- Liquid Glass / Glassmorphism style for iOS-like appearance -->
+        <!-- High contrast FAB with solid color for better visibility -->
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">20dp</item>
         <item name="android:layout_gravity">bottom|end</item>
-        <item name="elevation">8dp</item>
-        <item name="backgroundTint">@android:color/transparent</item>
-        <item name="android:background">@drawable/bg_liquid_glass_fab</item>
+        <item name="elevation">12dp</item>
+        <item name="backgroundTint">@color/accent</item>
         <item name="tint">@android:color/white</item>
+        <item name="rippleColor">@color/accentDark</item>
+        <item name="fabSize">normal</item>
     </style>
 
     <style name="CustomSwitch" parent="ThemeOverlay.AppCompat.Light">
