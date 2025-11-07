@@ -8,47 +8,60 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
 
-        <!--        <androidx.appcompat.widget.AppCompatImageView-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_gravity="center"-->
-        <!--            app:srcCompat="@drawable/ic_launcher_round" />-->
+        <!-- App logo and name in center -->
+        <LinearLayout
+            android:id="@+id/layoutCenter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
 
-        <!--        <ProgressBar-->
-        <!--            android:id="@+id/circleProgressBar"-->
-        <!--            android:layout_width="48dp"-->
-        <!--            android:layout_height="48dp"-->
-        <!--            android:layout_gravity="center|bottom"-->
-        <!--            android:indeterminate="true"-->
-        <!--            android:indeterminateTint="@color/white" />-->
+            <!-- App version at top -->
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|center_horizontal"
+                android:layout_marginTop="48dp"
+                android:textColor="#99FFFFFF"
+                android:textSize="12sp"
+                tools:text="v2025.11.07" />
 
-        <!--                <com.google.android.material.progressindicator.CircularProgressIndicator-->
-        <!--                    android:layout_width="wrap_content"-->
-        <!--                    android:layout_height="wrap_content"-->
-        <!--                    android:layout_gravity="center"-->
-        <!--                    android:layout_margin="16dp"-->
-        <!--                    android:indeterminate="true"-->
-        <!--                    app:indicatorColor="@android:color/white"-->
-        <!--                    app:indicatorDirectionCircular="clockwise"-->
-        <!--                    app:indicatorInset="4dp"-->
-        <!--                    app:indicatorSize="56dp"-->
-        <!--                    app:trackColor="@android:color/transparent"-->
-        <!--                    app:trackCornerRadius="16dp"-->
-        <!--                    app:trackThickness="4dp"-->
-        <!--                    tools:progress="25" />-->
+            <!--            <com.google.android.material.imageview.ShapeableImageView-->
+            <!--                android:id="@+id/ivLogo"-->
+            <!--                android:layout_width="120dp"-->
+            <!--                android:layout_height="120dp"-->
+            <!--                android:layout_gravity="center"-->
+            <!--                android:scaleType="centerCrop"-->
+            <!--                app:shapeAppearanceOverlay="@style/RoundedLogoShape"-->
+            <!--                app:srcCompat="@mipmap/ic_launcher_round" />-->
+
+            <TextView
+                android:id="@+id/tvAppName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="@string/app_name"
+                android:textColor="#FFFFFF"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/layoutBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center|bottom"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:background="@drawable/bg_liquid_glass_dark"
-            android:padding="24dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="32dp"
-            android:elevation="12dp">
+            android:background="@drawable/bg_liquid_glass_dark"
+            android:elevation="12dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp">
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:layout_width="wrap_content"

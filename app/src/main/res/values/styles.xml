@@ -47,4 +47,10 @@
         <item name="android:thumb">@drawable/sw_thumb_selector</item>
         <item name="android:track">@drawable/sw_track_selector</item>
     </style>
+
+    <!-- Rounded corners for logo on splash screen -->
+    <style name="RoundedLogoShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
 </resources>
