@@ -61,7 +61,7 @@ import com.mckimquyen.binaryeye.view.widget.toast
 import de.markusfisch.android.cameraview.widget.CameraView
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import de.markusfisch.android.zxingcpp.ZxingCpp.Binarizer
-import de.markusfisch.android.zxingcpp.ZxingCpp.DecodeHints
+import de.markusfisch.android.zxingcpp.ZxingCpp.ReaderOptions
 import de.markusfisch.android.zxingcpp.ZxingCpp.Result
 import kotlin.math.max
 import kotlin.math.min
@@ -198,7 +198,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         super.onActivityResult(requestCode, resultCode, resultData)
         when (requestCode) {
             PICK_FILE_RESULT_CODE -> {
-                if (resultCode == Activity.RESULT_OK && resultData != null) {
+                if (resultCode == RESULT_OK && resultData != null) {
                     val pick = Intent(this, ActivityPick::class.java)
                     pick.action = Intent.ACTION_VIEW
                     pick.setDataAndType(resultData.data, "image/*")
@@ -619,17 +619,33 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                 ignoreNext = null
                 decoding = true
                 // These settings can't change while the camera is open.
-                val decodeHints = DecodeHints(
-                    tryHarder = prefs.tryHarder,
-                    tryRotate = prefs.autoRotate,
-                    tryInvert = true,
-                    tryDownscale = true,
-                    maxNumberOfSymbols = 1
-                )
+                val readerOptions = ReaderOptions()
+                readerOptions.tryHarder = prefs.tryHarder
+                readerOptions.tryRotate = prefs.autoRotate
+                readerOptions.tryInvert = true
+                readerOptions.tryDownscale = true
+                readerOptions.maxNumberOfSymbols = 1
+                readerOptions.formats = formatsToRead.mapNotNull {
+                    try {
+                        ZxingCpp.BarcodeFormat.valueOf(it)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }.toSet()
+
                 var useLocalAverage = false
                 camera.setPreviewCallback { frameData, _ ->
                     if (decoding) {
                         useLocalAverage = useLocalAverage xor true
+                        // By default, ZXing uses LOCAL_AVERAGE, but
+                        // this does not work well with inverted
+                        // barcodes on low-contrast backgrounds.
+                        readerOptions.binarizer = if (useLocalAverage) {
+                            Binarizer.LOCAL_AVERAGE
+                        } else {
+                            Binarizer.GLOBAL_HISTOGRAM
+                        }
+
                         ZxingCpp.readByteArray(
                             yuvData = frameData,
                             rowStride = frameMetrics.width,
@@ -638,17 +654,8 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                             width = frameRoi.width(),
                             height = frameRoi.height(),
                             rotation = frameMetrics.orientation,
-                            decodeHints = decodeHints.apply {
-                                // By default, ZXing uses LOCAL_AVERAGE, but
-                                // this does not work well with inverted
-                                // barcodes on low-contrast backgrounds.
-                                binarizer = if (useLocalAverage) {
-                                    Binarizer.LOCAL_AVERAGE
-                                } else {
-                                    Binarizer.GLOBAL_HISTOGRAM
-                                }
-                                formats = formatsToRead.joinToString()
-                            })?.let { results ->
+                            options = readerOptions
+                        )?.let { results ->
                             val result = results.first()
                             if (result.text != ignoreNext) {
                                 postResult(result)
@@ -783,7 +790,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
             }
             when {
                 returnResult -> {
-                    setResult(Activity.RESULT_OK, getReturnIntent(result))
+                    setResult(RESULT_OK, getReturnIntent(result))
                     finish()
                 }
 
@@ -924,7 +931,7 @@ private fun String.isReturnUrl() = listOf(
 private fun completeUrl(urlTemplate: String, result: Result) = Uri.parse(
     urlTemplate.replace("{RESULT}", result.text.urlEncode()).replace("{RESULT_BYTES}", result.rawBytes.toHexString())
         .replace(
-            "{FORMAT}", result.format.urlEncode()
+            "{FORMAT}", result.format.name.urlEncode()
         )
         // And support {CODE} from the old ZXing app, too.
         .replace("{CODE}", result.text.urlEncode())

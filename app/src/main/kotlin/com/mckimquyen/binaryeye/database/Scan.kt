@@ -5,8 +5,8 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.text.format.DateFormat
 import de.markusfisch.android.zxingcpp.ZxingCpp
+import de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat
 import de.markusfisch.android.zxingcpp.ZxingCpp.ContentType
-import de.markusfisch.android.zxingcpp.ZxingCpp.Format
 import de.markusfisch.android.zxingcpp.ZxingCpp.Result
 
 data class Scan(
@@ -142,7 +142,7 @@ fun Result.toScan(): Scan {
     return Scan(
         content,
         raw,
-        format,
+        format.name,
         ecLevel,
         version,
         sequenceSize,
@@ -156,7 +156,7 @@ fun Result.toScan(): Scan {
 }
 
 data class Recreation(
-    val format: Format,
+    val format: BarcodeFormat,
     val ecLevel: Int,
     val size: Int,
     val margin: Int,
@@ -177,7 +177,7 @@ fun Scan.toRecreation(
     null
 } else {
     Recreation(
-        Format.valueOf(format),
+        BarcodeFormat.valueOf(format),
         when (errorCorrectionLevel) {
             "L" -> 0
             "M" -> 4

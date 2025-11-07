@@ -24,7 +24,7 @@ import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.ConfinedScalingImageView
 import com.mckimquyen.binaryeye.view.widget.toast
 import de.markusfisch.android.zxingcpp.ZxingCpp
-import de.markusfisch.android.zxingcpp.ZxingCpp.Format
+import de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
@@ -109,7 +109,7 @@ class FBarcode : Fragment() {
     private fun Bundle.toBarcode() = Barcode(
         getString(CONTENT) ?: throw IllegalArgumentException(
             "content cannot be null"
-        ), Format.valueOf(
+        ), BarcodeFormat.valueOf(
             getString(FORMAT) ?: throw IllegalArgumentException(
                 "format cannot be null"
             )
@@ -256,7 +256,7 @@ class FBarcode : Fragment() {
 
         fun newInstance(
             content: String,
-            format: Format,
+            format: BarcodeFormat,
             size: Int,
             ecLevel: Int = -1,
             colors: Int = 0,
@@ -276,7 +276,7 @@ class FBarcode : Fragment() {
 
 private data class Barcode(
     val content: String,
-    val format: Format,
+    val format: BarcodeFormat,
     val size: Int,
     val ecLevel: Int,
     val colors: Colors,
@@ -284,7 +284,7 @@ private data class Barcode(
     private var _bitmap: Bitmap? = null
     fun bitmap(): Bitmap {
         val b = _bitmap ?: ZxingCpp.encodeAsBitmap(
-            text = content,
+            content = content,
             format = format,
             width = size,
             height = size,
@@ -309,7 +309,7 @@ private data class Barcode(
     private var _text: String? = null
     fun text(): String {
         val t = _text ?: ZxingCpp.encodeAsText(
-            text = content,
+            content = content,
             format = format,
             margin = -1,
             ecLevel = ecLevel,

@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(./gradlew build:*)",
-      "Bash(./gradlew:*)"
+      "Bash(./gradlew:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:jitpack.io)",
+      "Bash(unzip:*)",
+      "Bash(readelf:*)",
+      "WebFetch(domain:mvnrepository.com)"
     ],
     "deny": [],
     "ask": []

@@ -30,7 +30,7 @@ import com.mckimquyen.binaryeye.view.widget.DetectorView
 import com.mckimquyen.binaryeye.view.widget.toast
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import de.markusfisch.android.zxingcpp.ZxingCpp.Binarizer
-import de.markusfisch.android.zxingcpp.ZxingCpp.DecodeHints
+import de.markusfisch.android.zxingcpp.ZxingCpp.ReaderOptions
 import de.markusfisch.android.zxingcpp.ZxingCpp.Result
 import kotlinx.coroutines.*
 import kotlin.math.max
@@ -41,14 +41,20 @@ class ActivityPick : BaseActivity() {
     private val matrix = Matrix()
     private val parentJob = Job()
     private val scope = CoroutineScope(Dispatchers.IO + parentJob)
-    private val decodeHints = DecodeHints(
-        tryHarder = true,
-        tryRotate = true,
-        tryInvert = true,
-        tryDownscale = true,
-        maxNumberOfSymbols = 1,
-        formats = prefs.barcodeFormats.joinToString()
-    )
+    private val readerOptions = ReaderOptions().apply {
+        tryHarder = true
+        tryRotate = true
+        tryInvert = true
+        tryDownscale = true
+        maxNumberOfSymbols = 1
+        formats = prefs.barcodeFormats.mapNotNull {
+            try {
+                de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat.valueOf(it)
+            } catch (e: Exception) {
+                null
+            }
+        }.toSet()
+    }
 
     private lateinit var cropImageView: CropImageView
     private lateinit var detectorView: DetectorView
@@ -169,23 +175,23 @@ class ActivityPick : BaseActivity() {
 
     // By default, ZXing uses LOCAL_AVERAGE, but this does not work
     // well with inverted barcodes on low-contrast backgrounds.
-    private fun Bitmap.decode() = ZxingCpp.readBitmap(
-        bitmap = this,
-        left = 0, top = 0,
-        width = width, height = height,
-        rotation = 0,
-        decodeHints = decodeHints.apply {
-            binarizer = Binarizer.LOCAL_AVERAGE
+    private fun Bitmap.decode(): List<Result>? {
+        readerOptions.binarizer = Binarizer.LOCAL_AVERAGE
+        return ZxingCpp.readBitmap(
+            bitmap = this,
+            cropRect = android.graphics.Rect(0, 0, width, height),
+            rotation = 0,
+            options = readerOptions
+        ) ?: run {
+            readerOptions.binarizer = Binarizer.GLOBAL_HISTOGRAM
+            ZxingCpp.readBitmap(
+                bitmap = this,
+                cropRect = android.graphics.Rect(0, 0, width, height),
+                rotation = 0,
+                options = readerOptions
+            )
         }
-    ) ?: ZxingCpp.readBitmap(
-        bitmap = this,
-        left = 0, top = 0,
-        width = width, height = height,
-        rotation = 0,
-        decodeHints = decodeHints.apply {
-            binarizer = Binarizer.GLOBAL_HISTOGRAM
-        }
-    )
+    }
 
     override fun onDestroy() {
         super.onDestroy()

@@ -124,7 +124,8 @@ dependencies {
     api 'androidx.legacy:legacy-preference-v14:1.0.0'
     api 'com.github.markusfisch:CameraView:1.9.1'
     api 'com.github.markusfisch:ScalingImageView:1.4.1'
-    api 'com.github.markusfisch:zxing-cpp:v2.1.0.0'
+    // ZXing-CPP v2.3.0.4 with 16KB page size support (Oct 8, 2025)
+    api 'com.github.markusfisch:zxing-cpp:v2.3.0.4'
 //    api 'com.applovin:applovin-sdk:13.2.0'
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     implementation("com.google.ads.mediation:applovin:13.1.0.0")
