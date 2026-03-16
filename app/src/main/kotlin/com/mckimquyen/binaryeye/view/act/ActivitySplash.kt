@@ -2,8 +2,9 @@ package com.mckimquyen.binaryeye.view.act
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.animation.AnimationUtils
-import android.widget.ImageView
 import android.widget.TextView
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
@@ -12,6 +13,10 @@ import com.mckimquyen.binaryeye.sdkadbmob.AdMobManager
 import com.mckimquyen.binaryeye.sdkadbmob.UIUtils
 
 class ActivitySplash : BaseActivity() {
+    // [FIX L2] Dùng Handler có thể cancel để tránh giữ Activity reference
+    private val handler = Handler(Looper.getMainLooper())
+    private val finishRunnable = Runnable { finish() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         UIUtils.setupEdgeToEdge1(window)
@@ -24,6 +29,12 @@ class ActivitySplash : BaseActivity() {
         AdMobManager.initSplashScreen(activity = this, onAdLoaded = {
             goToMain()
         })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // [FIX L2] Cancel pending callbacks để tránh memory leak
+        handler.removeCallbacks(finishRunnable)
     }
 
     private fun applySplashAnimations() {
@@ -49,15 +60,12 @@ class ActivitySplash : BaseActivity() {
         }
     }
 
-
     private fun goToMain() {
         val intent = Intent(this@ActivitySplash, CameraActivity::class.java)
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        // Trì hoãn finish để đợi animation hoàn tất
-        window.decorView.postDelayed({
-            finish() // Finish sau animation
-        }, 300) // delay khoảng 300ms (hoặc đúng thời gian của animation)
+        // [FIX L2] Dùng handler có thể cancel thay vì decorView.postDelayed
+        handler.postDelayed(finishRunnable, 300)
     }
 }
 

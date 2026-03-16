@@ -88,6 +88,10 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     private var ignoreNext: String? = null
     private var fallbackBuffer: IntArray? = null
 
+    // [FIX M1] Handler + Runnable có thể cancel cho double-back
+    private val doubleBackHandler = Handler(Looper.getMainLooper())
+    private val resetDoubleBack = Runnable { doubleBackToExitPressedOnce = false }
+
     //    private var adView: MaxAdView? = null
     private var adView: AdView? = null
 //    private var flAd: ViewGroup? = null
@@ -268,6 +272,10 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         saveZoom()
         detectorView.saveCropHandlePos()
         releaseToneGenerators()
+        // [FIX M1] Cancel pending Handler callback để tránh leak
+        doubleBackHandler.removeCallbacks(resetDoubleBack)
+        // [FIX M2] Null out listener để singleton không giữ Activity reference
+        AdMobManager.interstitialListener = null
     }
 
     override fun onResume() {
@@ -343,9 +351,9 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         this.doubleBackToExitPressedOnce = true
         Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show()
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            doubleBackToExitPressedOnce = false
-        }, 2000)
+        // [FIX M1] Dùng Runnable đã lưu sẵn, có thể cancel trong onDestroy
+        doubleBackHandler.removeCallbacks(resetDoubleBack)
+        doubleBackHandler.postDelayed(resetDoubleBack, 2000)
     }
 
     private fun closeCamera() {

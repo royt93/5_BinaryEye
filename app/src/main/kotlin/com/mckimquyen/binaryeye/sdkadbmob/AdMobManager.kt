@@ -37,10 +37,13 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.mckimquyen.binaryeye.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
 //version 20250803
@@ -81,6 +84,12 @@ object AdMobManager {
     private var lastInterstitialErrorTime: Long = 0
     private var lastAppOpenErrorTime: Long = 0
     private val ERROR_COOLDOWN = 15 * 60 * 1000L // 15 phút dưới dạng milliseconds
+
+    // [FIX M3] Single shared mainHandler thay vì tạo nhiều Handler ẩn danh
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    // [FIX H2] Single cancellable scope cho initSplashScreen
+    private var splashScope: CoroutineScope? = null
 
     fun init(
         app: Application?,
@@ -366,24 +375,21 @@ object AdMobManager {
         Log.d(TAG, "~~~~~ loadAppOpenAd isVIPMember $isVIPMember")
         if (isVIPMember) {
             Log.d(TAG, "App Open Ad skipped due to whitelist device")
-            Handler(Looper.getMainLooper()).postDelayed({
-                onAdLoaded.invoke(false)
-            }, 1_000)
+            // [FIX M3] Dùng mainHandler chung thay vì tạo Handler ẩn danh mới
+            mainHandler.postDelayed({ onAdLoaded.invoke(false) }, 1_000)
             return
         }
         if (!NetworkUtils.isDeviceConnected(context)) {
             Log.d(TAG, "loadAppOpenAd no internet")
-            Handler(Looper.getMainLooper()).postDelayed({
-                onAdLoaded.invoke(false)
-            }, 1_000)
+            // [FIX M3]
+            mainHandler.postDelayed({ onAdLoaded.invoke(false) }, 1_000)
             return
         }
         // Kiểm tra thời gian cooldown cho App Open
         if (System.currentTimeMillis() - lastAppOpenErrorTime < ERROR_COOLDOWN) {
             Log.d(TAG, "App Open Ad skipped due to recent error")
-            Handler(Looper.getMainLooper()).postDelayed({
-                onAdLoaded(false)
-            }, 1_000)
+            // [FIX M3]
+            mainHandler.postDelayed({ onAdLoaded(false) }, 1_000)
             return
         }
         if (isAppOpenLoading) {
@@ -392,9 +398,8 @@ object AdMobManager {
             } else {
                 if ((System.currentTimeMillis() - lastAppOpenLoadTime) < APP_OPEN_AD_TIME_OUT) {
                     Log.d(TAG, "App Open Ad is still valid or loading")
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        onAdLoaded.invoke(false)
-                    }, 1_000)
+                    // [FIX M3]
+                    mainHandler.postDelayed({ onAdLoaded.invoke(false) }, 1_000)
                     return
                 }
             }
@@ -409,18 +414,16 @@ object AdMobManager {
                     appOpenAd = ad
                     lastAppOpenLoadTime = System.currentTimeMillis()
                     isAppOpenLoading = false
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        onAdLoaded.invoke(true)
-                    }, 500)
+                    // [FIX M3]
+                    mainHandler.postDelayed({ onAdLoaded.invoke(true) }, 500)
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     lastAppOpenErrorTime = System.currentTimeMillis() // Cập nhật thời điểm lỗi
                     Log.d(TAG, "App Open Ad Failed to load: ${error.message}. Cooldown started.")
                     isAppOpenLoading = false
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        onAdLoaded.invoke(false)
-                    }, 1_000)
+                    // [FIX M3]
+                    mainHandler.postDelayed({ onAdLoaded.invoke(false) }, 1_000)
                 }
             },
         )
@@ -502,18 +505,28 @@ object AdMobManager {
         if (countInitSplashScreen > 1) {
             onAdLoaded.invoke()
         } else {
-            CoroutineScope(Dispatchers.Default).launch {
+            // [FIX H2] Dùng WeakReference<Activity> để tránh giữ strong ref
+            // Dùng single scope có Job để có thể cancel
+            val weakActivity = WeakReference(activity)
+            splashScope?.cancel()
+            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+            splashScope = scope
+            scope.launch {
                 Log.d(TAG, "~~~initSplashScreen launch")
                 EventBus.eventFlow.collectLatest { value ->
                     Log.d(TAG, "initSplashScreen collectLatest: $value")
-                    CoroutineScope(Dispatchers.Main).launch {
+                    val act = weakActivity.get() ?: run {
+                        Log.d(TAG, "initSplashScreen Activity already destroyed, skip")
+                        return@collectLatest
+                    }
+                    withContext(Dispatchers.Main) {
                         loadAppOpenAd(
-                            context = activity,
+                            context = act,
                             adUnitId = BuildConfig.ADMOB_APP_OPEN_ID,
                             onAdLoaded = { result ->
                                 Log.d(TAG, "onAdLoaded result $result")
                                 if (result) {
-                                    showAppOpenAd(activity) {
+                                    showAppOpenAd(act) {
                                         onAdLoaded.invoke()
                                     }
                                 } else {

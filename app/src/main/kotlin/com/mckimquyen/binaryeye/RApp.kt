@@ -8,6 +8,8 @@ import com.mckimquyen.binaryeye.pref.Pref
 import com.mckimquyen.binaryeye.sdkadbmob.AdMobManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 //TODO firebase
@@ -35,6 +37,9 @@ val db = Db()
 val prefs = Pref()
 
 class RApp : Application() {
+    // [FIX H1] Scope có lifecycle — dùng SupervisorJob để có thể cancel
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
         db.open(this)
@@ -43,8 +48,15 @@ class RApp : Application() {
         setupAdmob()
     }
 
+    override fun onTerminate() {
+        super.onTerminate()
+        // [FIX H1] Cancel scope khi app kết thúc
+        appScope.cancel()
+    }
+
     private fun setupAdmob() {
-        CoroutineScope(Dispatchers.IO).launch {
+        // [FIX H1] Dùng appScope thay vì CoroutineScope(Dispatchers.IO) vô danh
+        appScope.launch {
             MobileAds.initialize(this@RApp) {}
             AdMobManager.init(this@RApp) { success, gaidCurrent ->
                 Log.d("roy93~", "AdMobManager init success $success, gaidCurrent $gaidCurrent")
