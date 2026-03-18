@@ -82,18 +82,38 @@
                 android:layout_marginBottom="8dp"
                 android:text="@string/content" />
 
-            <androidx.appcompat.widget.AppCompatEditText
-                android:id="@+id/content"
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:gravity="start|top"
-                android:hint="@string/inputContentHere"
-                android:imeOptions="flagNoExtractUi"
-                android:importantForAutofill="no"
-                android:inputType="textMultiLine"
-                android:typeface="monospace"
-                tools:targetApi="o" />
+                android:layout_marginBottom="16dp">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/btnPaste"
+                    android:gravity="start|top"
+                    android:hint="@string/inputContentHere"
+                    android:imeOptions="flagNoExtractUi"
+                    android:importantForAutofill="no"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:typeface="monospace"
+                    tools:targetApi="o" />
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/btnPaste"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentTop="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/paste_from_clipboard"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_action_copy"
+                    android:tint="?attr/colorControlNormal" />
+            </RelativeLayout>
 
             <androidx.appcompat.widget.AppCompatCheckBox
                 android:id="@+id/unescape"

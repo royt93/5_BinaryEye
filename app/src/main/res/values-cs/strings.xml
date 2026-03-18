@@ -194,4 +194,10 @@
     <string name="wifi_phase2">Ověření Phase 2</string>
     <string name="network_suggestions">Návrhy sítí</string>
     <string name="remove_suggestion">Odebrat návrh</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Zobrazit jako QR</string>
+    <string name="cannot_show_as_qr">Nelze zobrazit jako QR</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Vložit ze schránky</string>
+    <string name="clipboard_empty">Schránka je prázdná</string>
 </resources>

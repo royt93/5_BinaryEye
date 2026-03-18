@@ -39,6 +39,7 @@ import com.mckimquyen.binaryeye.view.systemBarListViewScrollListener
 import com.mckimquyen.binaryeye.view.unlockStatusBarColor
 import com.mckimquyen.binaryeye.view.useVisibility
 import com.mckimquyen.binaryeye.view.widget.toast
+import de.markusfisch.android.zxingcpp.ZxingCpp
 import kotlinx.coroutines.*
 
 class FHistory : Fragment() {
@@ -108,6 +109,33 @@ class FHistory : Fragment() {
                         if (it.isNotEmpty()) {
                             ac.askToRemoveScans(it)
                         }
+                    }
+                    closeActionMode()
+                    true
+                }
+
+                R.id.showScanAsQr -> {
+                    // [Feature 2] Only works with single selection
+                    val selectedIds = scansAdapter?.getSelectedIds() ?: emptyList()
+                    if (selectedIds.size == 1) {
+                        val scan = db.getScan(selectedIds[0])
+                        if (scan != null && scan.content.isNotEmpty()) {
+                            try {
+                                fragmentManager?.addFragment(
+                                    FBarcode.newInstance(
+                                        content = scan.content,
+                                        format = de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat.valueOf(scan.format),
+                                        size = 640, // default size
+                                    )
+                                )
+                            } catch (e: IllegalArgumentException) {
+                                ac.toast(R.string.cannot_show_as_qr)
+                            }
+                        } else {
+                            ac.toast(R.string.cannot_show_as_qr)
+                        }
+                    } else {
+                        ac.toast(R.string.cannot_show_as_qr)
                     }
                     closeActionMode()
                     true

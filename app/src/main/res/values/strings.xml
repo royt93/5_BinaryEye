@@ -197,4 +197,10 @@
     <string name="share_app">Share app</string>
     <string name="term_policy"><![CDATA[Term & policy]]></string>
     <string name="join_beta_tester">Join beta tester</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Show as QR</string>
+    <string name="cannot_show_as_qr">Cannot show as QR</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Paste from clipboard</string>
+    <string name="clipboard_empty">Clipboard is empty</string>
 </resources>

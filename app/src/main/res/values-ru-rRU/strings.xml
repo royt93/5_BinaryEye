@@ -194,4 +194,10 @@
     <string name="wifi_phase2">Двухэтапный метод</string>
     <string name="network_suggestions">Сетевые предложения</string>
     <string name="remove_suggestion">Удалить предложение</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Показать как QR</string>
+    <string name="cannot_show_as_qr">Невозможно показать как QR</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Вставить из буфера обмена</string>
+    <string name="clipboard_empty">Буфер обмена пуст</string>
 </resources>

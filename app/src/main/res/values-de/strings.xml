@@ -192,4 +192,10 @@
     <string name="wifi_phase2">Phase 2 Methode</string>
     <string name="network_suggestions">WiFi Netzwerkvorschläge</string>
     <string name="remove_suggestion">Vorschlag entfernen</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Als QR anzeigen</string>
+    <string name="cannot_show_as_qr">Kann nicht als QR angezeigt werden</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Aus Zwischenablage einfügen</string>
+    <string name="clipboard_empty">Zwischenablage ist leer</string>
 </resources>

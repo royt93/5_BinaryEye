@@ -192,4 +192,10 @@
     <string name="wifi_phase2">Phase 2 methode</string>
     <string name="network_suggestions">Network suggestions</string>
     <string name="remove_suggestion">Remove suggestion</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Toon als QR</string>
+    <string name="cannot_show_as_qr">Kan niet als QR worden getoond</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Plakken uit klembord</string>
+    <string name="clipboard_empty">Klembord is leeg</string>
 </resources>

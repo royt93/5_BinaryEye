@@ -192,4 +192,10 @@
     <string name="wifi_phase2">2. aşama yöntemi</string>
     <string name="network_suggestions">Network suggestions</string>
     <string name="remove_suggestion">Remove suggestion</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">QR olarak göster</string>
+    <string name="cannot_show_as_qr">QR olarak gösterilemiyor</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Panodan yapıştır</string>
+    <string name="clipboard_empty">Pano boş</string>
 </resources>

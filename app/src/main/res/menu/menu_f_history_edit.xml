@@ -6,6 +6,11 @@
         android:title="@string/copy_scan"
         material:showAsAction="always" />
     <item
+        android:id="@+id/showScanAsQr"
+        android:icon="@drawable/ic_action_create"
+        android:title="@string/show_scan_as_qr"
+        material:showAsAction="ifRoom" />
+    <item
         android:id="@+id/editScan"
         android:icon="@drawable/ic_action_edit"
         android:title="@string/edit_scan"

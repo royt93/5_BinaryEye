@@ -193,4 +193,10 @@
     <string name="wifi_phase2">Méthode de la phase 2</string>
     <string name="network_suggestions">Network suggestions</string>
     <string name="remove_suggestion">Remove suggestion</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Afficher en QR</string>
+    <string name="cannot_show_as_qr">Impossible d\'afficher en QR</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Coller depuis le presse-papiers</string>
+    <string name="clipboard_empty">Le presse-papiers est vide</string>
 </resources>

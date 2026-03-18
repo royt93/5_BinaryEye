@@ -1,5 +1,6 @@
 package com.mckimquyen.binaryeye.frm
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -148,6 +149,18 @@ class FEncode : Fragment() {
 
         view.findViewById<View>(R.id.encode).setOnClickListener {
             it.context.encode()
+        }
+
+        // [Feature 3] Paste from clipboard
+        view.findViewById<android.widget.ImageButton>(R.id.btnPaste).setOnClickListener {
+            val clipboard = it.context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            val text = clipboard?.primaryClip?.getItemAt(0)?.coerceToText(it.context)?.toString() ?: ""
+            if (text.isNotEmpty()) {
+                contentView.setText(text)
+                contentView.setSelection(text.length)
+            } else {
+                it.context.toast(R.string.clipboard_empty)
+            }
         }
 
         (view.findViewById<View>(R.id.insetLayout)).setPaddingFromWindowInsets()

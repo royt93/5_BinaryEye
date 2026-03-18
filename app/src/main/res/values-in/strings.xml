@@ -191,4 +191,10 @@
     <string name="wifi_phase2">Metode fase 2</string>
     <string name="network_suggestions">Network suggestions</string>
     <string name="remove_suggestion">Remove suggestion</string>
+    <!-- Feature 2: Show scan as QR -->
+    <string name="show_scan_as_qr">Tampilkan sebagai QR</string>
+    <string name="cannot_show_as_qr">Tidak dapat ditampilkan sebagai QR</string>
+    <!-- Feature 3: Paste from clipboard -->
+    <string name="paste_from_clipboard">Tempel dari papan klip</string>
+    <string name="clipboard_empty">Papan klip kosong</string>
 </resources>
