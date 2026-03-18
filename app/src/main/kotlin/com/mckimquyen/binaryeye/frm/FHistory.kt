@@ -118,21 +118,27 @@ class FHistory : Fragment() {
                     // [Feature 2] Only works with single selection
                     val selectedIds = scansAdapter?.getSelectedIds() ?: emptyList()
                     if (selectedIds.size == 1) {
-                        val scan = db.getScan(selectedIds[0])
-                        if (scan != null && scan.content.isNotEmpty()) {
-                            try {
-                                fragmentManager?.addFragment(
-                                    FBarcode.newInstance(
-                                        content = scan.content,
-                                        format = de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat.valueOf(scan.format),
-                                        size = 640, // default size
-                                    )
-                                )
-                            } catch (e: IllegalArgumentException) {
-                                ac.toast(R.string.cannot_show_as_qr)
+                        scope.launch {
+                            // Run DB query off Main thread
+                            val scan = db.getScan(selectedIds[0])
+                            withContext(Dispatchers.Main) {
+                                val ac2 = activity ?: return@withContext
+                                if (scan != null && scan.content.isNotEmpty()) {
+                                    try {
+                                        fragmentManager?.addFragment(
+                                            FBarcode.newInstance(
+                                                content = scan.content,
+                                                format = ZxingCpp.BarcodeFormat.valueOf(scan.format),
+                                                size = 640,
+                                            )
+                                        )
+                                    } catch (e: IllegalArgumentException) {
+                                        ac2.toast(R.string.cannot_show_as_qr)
+                                    }
+                                } else {
+                                    ac2.toast(R.string.cannot_show_as_qr)
+                                }
                             }
-                        } else {
-                            ac.toast(R.string.cannot_show_as_qr)
                         }
                     } else {
                         ac.toast(R.string.cannot_show_as_qr)

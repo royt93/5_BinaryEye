@@ -1,8 +1,9 @@
 package com.mckimquyen.binaryeye.view.net
 
 import com.mckimquyen.binaryeye.database.Scan
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -14,12 +15,13 @@ import java.net.HttpURLConnection
 import java.net.ProtocolException
 import java.net.URL
 
+@OptIn(DelicateCoroutinesApi::class)
 fun Scan.sendAsync(
     url: String,
     type: String,
     callback: (Int?, String?) -> Unit,
 ) {
-    CoroutineScope(Dispatchers.IO).launch(Dispatchers.IO) {
+    GlobalScope.launch(Dispatchers.IO) {
         val response = send(url, type)
         withContext(Dispatchers.Main) {
             callback(

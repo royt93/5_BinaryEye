@@ -68,13 +68,10 @@ class FBarcode : Fragment() {
             // Catch exceptions from encoding.
             bitmap = barcode.bitmap()
         } catch (e: Exception) {
-            var message = e.message
-            if (message.isNullOrEmpty()) {
-                message = getString(R.string.error_encoding_barcode)
-            }
-            message.let {
-                ac.toast(message)
-            }
+            ac.toast(
+                e.message.takeUnless { it.isNullOrEmpty() }
+                    ?: getString(R.string.error_encoding_barcode)
+            )
             fragmentManager?.popBackStack()
             return null
         }

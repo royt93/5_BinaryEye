@@ -62,10 +62,6 @@ class ActivityPick : BaseActivity() {
 
     private var result: Result? = null
 
-//    override fun attachBaseContext(base: Context?) {
-//        base?.applyLocale(prefs.customLocale)
-//        super.attachBaseContext(base)
-//    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -237,7 +233,7 @@ class ActivityPick : BaseActivity() {
     }
 
     private fun rotateClockwise() {
-        cropImageView.imageRotation += 90 % 360
+        cropImageView.imageRotation = (cropImageView.imageRotation + 90) % 360
     }
 
     private fun loadSentImage(intent: Intent): Bitmap? {

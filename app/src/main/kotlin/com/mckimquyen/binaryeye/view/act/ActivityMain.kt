@@ -46,10 +46,6 @@ class ActivityMain : BaseActivity() {
         return true
     }
 
-//    override fun attachBaseContext(base: Context?) {
-//        base?.applyLocale(prefs.customLocale)
-//        super.attachBaseContext(base)
-//    }
 
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -87,7 +83,7 @@ class ActivityMain : BaseActivity() {
                 )
 
                 intent.hasExtra(DECODED) -> FDecode.newInstance(
-                    intent.getParcelableExtra(DECODED)!!
+                    intent.getParcelableExtra(DECODED) ?: return FPreferences()
                 )
 
                 else -> FPreferences()

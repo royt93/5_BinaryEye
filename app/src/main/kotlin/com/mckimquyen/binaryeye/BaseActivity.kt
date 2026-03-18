@@ -26,24 +26,15 @@ open class BaseActivity : AppCompatActivity() {
     }
 
     private fun enableAdaptiveRefreshRate() {
-        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        val display: Display? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            display // Sử dụng API mới
-        } else {
-            @Suppress("DEPRECATION")
-            wm.defaultDisplay // Fallback cho API thấp hơn
-        }
-
-        if (display != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val supportedModes = display.supportedModes
-                val highestRefreshRateMode = supportedModes.maxByOrNull { it.refreshRate }
-                if (highestRefreshRateMode != null) {
-                    window.attributes = window.attributes.apply {
-                        preferredDisplayModeId = highestRefreshRateMode.modeId
-                    }
-                    println("Adaptive refresh rate applied: ${highestRefreshRateMode.refreshRate} Hz")
+        // W2: `display` property is always non-null when SDK >= R (enforced by caller)
+        val display = display ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val highestRefreshRateMode = display.supportedModes.maxByOrNull { it.refreshRate }
+            if (highestRefreshRateMode != null) {
+                window.attributes = window.attributes.apply {
+                    preferredDisplayModeId = highestRefreshRateMode.modeId
                 }
+                // W1: Removed debug println
             }
         }
     }
