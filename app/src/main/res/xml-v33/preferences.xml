@@ -160,4 +160,12 @@
             android:summary="@string/clear_network_suggestions_summary"
             android:title="@string/clear_network_suggestions" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/locale_category">
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/localeNames"
+            android:entryValues="@array/localeValues"
+            android:key="custom_locale"
+            android:title="@string/custom_locale" />
+    </PreferenceCategory>
 </PreferenceScreen>
