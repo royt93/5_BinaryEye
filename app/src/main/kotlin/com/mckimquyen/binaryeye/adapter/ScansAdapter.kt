@@ -114,10 +114,9 @@ class ScansAdapter(context: Context, cursor: Cursor) :
             formatView.text = prettifyFormatName(cursor.getString(formatIndex))
         }
         val selected = selections[cursor.getLong(idIndex)] != null
-        view.post {
-            // Needs to be put on the queue to work.
-            view.select(selected)
-        }
+        // [FIX BUG-8] Goi truc tiep thay vi view.post {} de tranh stale execution
+        // sau khi view da bi detach khoi adapter
+        view.select(selected)
     }
 
     private fun View.select(selected: Boolean) {

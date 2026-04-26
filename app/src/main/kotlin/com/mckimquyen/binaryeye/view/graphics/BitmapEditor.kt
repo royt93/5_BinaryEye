@@ -64,13 +64,19 @@ fun Bitmap.crop(
     val h = erected.height
     val x = max(0, (rect.left * w).roundToInt())
     val y = max(0, (rect.top * h).roundToInt())
-    Bitmap.createBitmap(
-        /* source = */ erected,
-        /* x = */ x,
-        /* y = */ y,
-        /* width = */ min(w - x, (rect.right * w).roundToInt() - x),
-        /* height = */ min(h - y, (rect.bottom * h).roundToInt() - y)
-    )
+    try {
+        Bitmap.createBitmap(
+            /* source = */ erected,
+            /* x = */ x,
+            /* y = */ y,
+            /* width = */ min(w - x, (rect.right * w).roundToInt() - x),
+            /* height = */ min(h - y, (rect.bottom * h).roundToInt() - y)
+        )
+    } finally {
+        // [FIX BUG-9] Recycle intermediate bitmap neu no khac original
+        // Tranh OOM voi anh lon tu gallery
+        if (erected !== this) erected.recycle()
+    }
 } catch (e: OutOfMemoryError) {
     null
 } catch (e: IllegalArgumentException) {

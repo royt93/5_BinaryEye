@@ -1,6 +1,7 @@
 package com.mckimquyen.binaryeye.frm
 
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceDialogFragmentCompat
 import android.view.View
 import android.widget.TextView
@@ -52,7 +53,7 @@ class FUrlDialog : PreferenceDialogFragmentCompat() {
             content = "test",
             raw = null,
             format = "none"
-        ).sendAsync(url, prefs.sendScanType) { code, body ->
+        ).sendAsync(url, prefs.sendScanType, lifecycleScope) { code, body ->
             textView.text = when {
                 code != null -> "$code"
                 body != null -> body

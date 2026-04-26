@@ -3,7 +3,6 @@ package com.mckimquyen.binaryeye.pref
 import android.content.Context
 import android.content.SharedPreferences
 import android.media.ToneGenerator
-import android.preference.PreferenceManager
 import de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat
 
 class Pref {
@@ -238,7 +237,12 @@ class Pref {
         }
 
     fun init(context: Context) {
-        preferences = PreferenceManager.getDefaultSharedPreferences(context)
+        // [FIX MED-1] PreferenceManager.getDefaultSharedPreferences deprecated tu API 29
+        // Dung context.getSharedPreferences() thay the, ket qua tuong duong
+        preferences = context.getSharedPreferences(
+            "${context.packageName}_preferences",
+            android.content.Context.MODE_PRIVATE
+        )
         update()
     }
 

@@ -335,12 +335,20 @@ class FHistory : Fragment() {
         scansAdapter?.notifyDataSetChanged()
     }
 
-    private fun showScan(id: Long) = db.getScan(id)?.also { scan ->
+    // [FIX BUG-3] db.getScan() la SQLite IO, khong duoc goi tren Main thread
+    // Chuyen sang background thread de tranh ANR
+    private fun showScan(id: Long) {
         closeActionMode()
-        try {
-            fragmentManager?.addFragment(FDecode.newInstance(scan))
-        } catch (e: IllegalArgumentException) {
-            e.printStackTrace()
+        scope.launch {
+            val scan = db.getScan(id) ?: return@launch
+            withContext(Dispatchers.Main) {
+                val ac = activity ?: return@withContext
+                try {
+                    fragmentManager?.addFragment(FDecode.newInstance(scan))
+                } catch (e: IllegalArgumentException) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 

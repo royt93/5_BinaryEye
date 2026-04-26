@@ -1,9 +1,8 @@
 package com.mckimquyen.binaryeye.view.net
 
 import com.mckimquyen.binaryeye.database.Scan
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -15,13 +14,15 @@ import java.net.HttpURLConnection
 import java.net.ProtocolException
 import java.net.URL
 
-@OptIn(DelicateCoroutinesApi::class)
+// [FIX ML-4] Nhan CoroutineScope tu caller thay vi dung GlobalScope
+// Scope cua caller (Activity/Fragment) se tu dong cancel request khi bi destroy
 fun Scan.sendAsync(
     url: String,
     type: String,
+    scope: CoroutineScope,
     callback: (Int?, String?) -> Unit,
 ) {
-    GlobalScope.launch(Dispatchers.IO) {
+    scope.launch(Dispatchers.IO) {
         val response = send(url, type)
         withContext(Dispatchers.Main) {
             callback(
@@ -31,6 +32,7 @@ fun Scan.sendAsync(
         }
     }
 }
+
 
 private fun Scan.send(url: String, type: String): Response {
     return when (type) {

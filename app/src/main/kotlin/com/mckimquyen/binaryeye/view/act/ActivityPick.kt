@@ -61,7 +61,8 @@ class ActivityPick : BaseActivity() {
     private lateinit var freeRotationItem: MenuItem
 
     private var result: Result? = null
-
+    // [FIX BUG-10] Luu bitmap vao field de recycle trong onDestroy
+    private var loadedBitmap: android.graphics.Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +87,8 @@ class ActivityPick : BaseActivity() {
             finish()
             return
         }
+        // [FIX BUG-10] Luu tham chieu de recycle sau
+        loadedBitmap = bitmap
 
         cropImageView = findViewById(R.id.image)
         cropImageView.restrictTranslation = false
@@ -194,6 +197,10 @@ class ActivityPick : BaseActivity() {
         detectorView.saveCropHandlePos()
         parentJob.cancel()
         releaseToneGenerators()
+        // [FIX BUG-10] Recycle bitmap sau khi Activity bi destroy
+        // Tranh OOM voi anh lon tu gallery
+        loadedBitmap?.recycle()
+        loadedBitmap = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

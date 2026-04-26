@@ -50,8 +50,10 @@ class RApp : Application() {
 
     override fun onTerminate() {
         super.onTerminate()
-        // [FIX H1] Cancel scope khi app kết thúc
+        // [FIX H1] Cancel scope khi app ket thuc
         appScope.cancel()
+        // [FIX BUG-7] Dong SQLiteDatabase de flush WAL journal
+        db.close()
     }
 
     private fun setupAdmob() {

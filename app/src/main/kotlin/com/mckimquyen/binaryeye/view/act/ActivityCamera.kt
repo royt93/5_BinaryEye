@@ -20,6 +20,8 @@ import android.view.ViewGroup
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -88,9 +90,9 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     private var ignoreNext: String? = null
     private var fallbackBuffer: IntArray? = null
 
-    // [FIX M1] Handler + Runnable có thể cancel cho double-back
+    // [FIX M1] Handler de cancel pending back-press reset
+    // resetDoubleBack da duoc inline vao setupDoubleBackToExit lambda
     private val doubleBackHandler = Handler(Looper.getMainLooper())
-    private val resetDoubleBack = Runnable { doubleBackToExitPressedOnce = false }
 
     //    private var adView: MaxAdView? = null
     private var adView: AdView? = null
@@ -262,6 +264,27 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
 //        createAdInter()
         AdMobManager.loadInterstitial(this, BuildConfig.ADMOB_INTERSTITIAL_ID)
+
+        // [FIX BUG-6] Migrate tu deprecated onBackPressed sang OnBackPressedDispatcher
+        setupDoubleBackToExit()
+    }
+
+    // [FIX BUG-6] Double-back to exit dung OnBackPressedCallback
+    private fun setupDoubleBackToExit() {
+        var doubleBackToExitPressedOnce = false
+        onBackPressedDispatcher.addCallback(this) {
+            if (doubleBackToExitPressedOnce) {
+                finish()
+                return@addCallback
+            }
+            doubleBackToExitPressedOnce = true
+            // [FIX BUG-6] Dung R.string thay vi hard-coded string
+            toast(R.string.press_back_again_to_exit)
+            doubleBackHandler.removeCallbacksAndMessages(null)
+            doubleBackHandler.postDelayed({
+                doubleBackToExitPressedOnce = false
+            }, 2000)
+        }
     }
 
     override fun onDestroy() {
@@ -272,9 +295,9 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         saveZoom()
         detectorView.saveCropHandlePos()
         releaseToneGenerators()
-        // [FIX M1] Cancel pending Handler callback để tránh leak
-        doubleBackHandler.removeCallbacks(resetDoubleBack)
-        // [FIX M2] Null out listener để singleton không giữ Activity reference
+        // [FIX M1] Cancel tat ca pending Handler callbacks de tranh leak
+        doubleBackHandler.removeCallbacksAndMessages(null)
+        // [FIX ML-2] Null out listener de singleton khong giu Activity reference
         AdMobManager.interstitialListener = null
     }
 
@@ -339,24 +362,12 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         closeCamera()
     }
 
-    private var doubleBackToExitPressedOnce = false
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
-            super.onBackPressed()
-            return
-        }
-
-        this.doubleBackToExitPressedOnce = true
-        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show()
-
-        // [FIX M1] Dùng Runnable đã lưu sẵn, có thể cancel trong onDestroy
-        doubleBackHandler.removeCallbacks(resetDoubleBack)
-        doubleBackHandler.postDelayed(resetDoubleBack, 2000)
-    }
+    // [FIX BUG-6] Da xu ly qua setupDoubleBackToExit() – xoa deprecated override
 
     private fun closeCamera() {
+        // [FIX BUG-4] Explicit null callback truoc khi dong camera
+        // Tranh camera thread giu strong ref cua Activity sau onDestroy
+        cameraView.camera?.setPreviewCallback(null)
         cameraView.close()
     }
 
@@ -880,8 +891,12 @@ fun Activity.showResult(
             )
             return
         }
+        // [FIX ML-4] Dung lifecycleScope thay vi GlobalScope
+        // Request se bi cancel khi Activity bi destroy
+        val scope = (this as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope
+            ?: kotlinx.coroutines.MainScope()
         scan.sendAsync(
-            prefs.sendScanUrl, prefs.sendScanType
+            prefs.sendScanUrl, prefs.sendScanType, scope
         ) { code, body ->
             if (code == null || code < 200 || code > 299) {
                 errorFeedback()
@@ -894,8 +909,10 @@ fun Activity.showResult(
         }
     }
     if (prefs.sendScanBluetooth && prefs.sendScanBluetoothHost.isNotEmpty() && hasBluetoothPermission()) {
+        val scope = (this as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope
+            ?: kotlinx.coroutines.MainScope()
         scan.sendBluetoothAsync(
-            prefs.sendScanBluetoothHost
+            prefs.sendScanBluetoothHost, scope
         ) { connected, sent ->
             toast(
                 when {

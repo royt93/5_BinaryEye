@@ -14,6 +14,13 @@ class Db {
         db = OpenHelper(context).writableDatabase
     }
 
+    // [FIX BUG-7] Dong SQLiteDatabase tuong minh de flush WAL journal
+    // Dam bao data integrity khi process ket thuc bat ngo
+    fun close() {
+        if (::db.isInitialized && db.isOpen) {
+            db.close()
+        }
+    }
     fun getScans(query: String? = null): Cursor? = db.rawQuery(
         """SELECT
 			$SCANS_ID,

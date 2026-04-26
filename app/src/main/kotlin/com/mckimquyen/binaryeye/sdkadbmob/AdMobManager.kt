@@ -79,7 +79,13 @@ object AdMobManager {
     private var appPreferences: AppPreferences? = null
     private var currentActivity: WeakReference<Activity>? = null
 
-    var interstitialListener: InterstitialAdListener? = null
+    // [FIX ML-2] Dùng WeakReference để tránh singleton giữ strong ref vào Activity
+    private var interstitialListenerRef: WeakReference<InterstitialAdListener>? = null
+    var interstitialListener: InterstitialAdListener?
+        get() = interstitialListenerRef?.get()
+        set(value) {
+            interstitialListenerRef = if (value != null) WeakReference(value) else null
+        }
 
     private var lastInterstitialErrorTime: Long = 0
     private var lastAppOpenErrorTime: Long = 0
@@ -88,7 +94,7 @@ object AdMobManager {
     // [FIX M3] Single shared mainHandler thay vì tạo nhiều Handler ẩn danh
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    // [FIX H2] Single cancellable scope cho initSplashScreen
+    // [FIX ML-1] Single cancellable scope cho initSplashScreen
     private var splashScope: CoroutineScope? = null
 
     fun init(
@@ -128,8 +134,13 @@ object AdMobManager {
                 }
             }
             onComplete(true, gaidCurrent)
-            CoroutineScope(Dispatchers.Default).launch {
-                EventBus.sendEvent(true)
+            // [FIX BUG-2] Dùng scope có SupervisorJob thay vì anonymous scope vô danh
+            CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+                try {
+                    EventBus.sendEvent(true)
+                } catch (e: Exception) {
+                    Log.e(TAG, "EventBus.sendEvent error", e)
+                }
             }
         }
     }
@@ -160,17 +171,21 @@ object AdMobManager {
         return list
     }
 
+    // [FIX MED-4] Dung coroutine thay vi raw Thread
+    // Callback duoc dam bao goi tren Main thread, co error handling ro rang
     fun getGAID(context: Context, callback: (String) -> Unit) {
-        Thread {
-            try {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            val id = try {
                 val info = AdvertisingIdClient.getAdvertisingIdInfo(context)
-                val id = info.id ?: ""
-                callback(id)
+                info.id ?: ""
             } catch (e: Exception) {
-                callback("")
-                Log.d("AdMobManager", "getGAID error $e")
+                Log.d(TAG, "getGAID error $e")
+                ""
             }
-        }.start()
+            withContext(Dispatchers.Main) {
+                callback(id)
+            }
+        }
     }
 
     fun setCurrentActivity(activity: Activity) {
@@ -497,26 +512,40 @@ object AdMobManager {
         Log.d(TAG, "deleteVIPMember listGaidDevice $listGaidDevice => isVIPMember $isVIPMember")
     }
 
-    var countInitSplashScreen = 0
+    // [FIX BUG-5] Dùng timestamp-based check thay vì counter không reset được
+    // Nếu Splash bị recreate do config change trong vòng 10s, không load lại App Open Ad
+    private var splashInitTimeMs = 0L
+    private const val SPLASH_SESSION_THRESHOLD_MS = 10_000L // 10 giây
 
     fun initSplashScreen(activity: Activity, onAdLoaded: () -> Unit) {
-        countInitSplashScreen++
-        Log.d(TAG, "~~~initSplashScreen countInitSplashScreen $countInitSplashScreen")
-        if (countInitSplashScreen > 1) {
+        val now = System.currentTimeMillis()
+        val isNewSession = (now - splashInitTimeMs) > SPLASH_SESSION_THRESHOLD_MS
+        Log.d(TAG, "~~~initSplashScreen isNewSession=$isNewSession, elapsed=${now - splashInitTimeMs}ms")
+
+        if (!isNewSession) {
+            // Config change hoặc recreate ngắn hạn – không load App Open Ad lại
+            Log.d(TAG, "~~~initSplashScreen skipping – same session")
             onAdLoaded.invoke()
-        } else {
-            // [FIX H2] Dùng WeakReference<Activity> để tránh giữ strong ref
-            // Dùng single scope có Job để có thể cancel
-            val weakActivity = WeakReference(activity)
-            splashScope?.cancel()
-            val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-            splashScope = scope
-            scope.launch {
-                Log.d(TAG, "~~~initSplashScreen launch")
+            return
+        }
+
+        splashInitTimeMs = now
+
+        // [FIX ML-1] Dùng WeakReference<Activity> để tránh giữ strong ref
+        val weakActivity = WeakReference(activity)
+        splashScope?.cancel()
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        splashScope = scope
+        scope.launch {
+            Log.d(TAG, "~~~initSplashScreen launch")
+            try {
                 EventBus.eventFlow.collectLatest { value ->
                     Log.d(TAG, "initSplashScreen collectLatest: $value")
                     val act = weakActivity.get() ?: run {
                         Log.d(TAG, "initSplashScreen Activity already destroyed, skip")
+                        // [FIX ML-1] Cancel scope khi Activity đã bị destroy
+                        splashScope?.cancel()
+                        splashScope = null
                         return@collectLatest
                     }
                     withContext(Dispatchers.Main) {
@@ -525,6 +554,9 @@ object AdMobManager {
                             adUnitId = BuildConfig.ADMOB_APP_OPEN_ID,
                             onAdLoaded = { result ->
                                 Log.d(TAG, "onAdLoaded result $result")
+                                // [FIX ML-1] Cancel scope sau khi đã dùng xong
+                                splashScope?.cancel()
+                                splashScope = null
                                 if (result) {
                                     showAppOpenAd(act) {
                                         onAdLoaded.invoke()
@@ -536,6 +568,9 @@ object AdMobManager {
                         )
                     }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "initSplashScreen coroutine error", e)
+                withContext(Dispatchers.Main) { onAdLoaded.invoke() }
             }
         }
     }
