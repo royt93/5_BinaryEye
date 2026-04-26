@@ -60,6 +60,7 @@ import com.mckimquyen.binaryeye.view.scanFeedback
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.DetectorView
 import com.mckimquyen.binaryeye.view.widget.toast
+import com.mckimquyen.binaryeye.frm.FLanguageDialog
 import de.markusfisch.android.cameraview.widget.CameraView
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import de.markusfisch.android.zxingcpp.ZxingCpp.Binarizer
@@ -316,6 +317,16 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
             openCamera()
         }
         rateAppInApp(BuildConfig.DEBUG)
+        // Show language selection dialog on first launch only
+        showLanguageDialogIfNeeded()
+    }
+
+    private fun showLanguageDialogIfNeeded() {
+        if (prefs.hasShownLanguageDialog) return
+        // Check dialog chua duoc show truoc do (tranh duplicate khi recreate)
+        val existing = supportFragmentManager.findFragmentByTag(FLanguageDialog.TAG)
+        if (existing != null) return
+        FLanguageDialog().show(supportFragmentManager, FLanguageDialog.TAG)
     }
 
     private fun updateHints() {

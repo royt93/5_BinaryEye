@@ -115,6 +115,9 @@ fun colorSystemAndToolBars(
             0
         }
     }
+    // We no longer overwrite the Action Bar background with ColorDrawable
+    // because it ruins the custom frosted glass (bg_liquid_glass_dark) and margin styling.
+    /*
     activity.supportActionBar?.setBackgroundDrawable(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             // Avoid allocation on Honeycomb and better.
@@ -125,6 +128,7 @@ fun colorSystemAndToolBars(
             ColorDrawable(topColor)
         }
     )
+    */
 }
 
 private fun getAppCompatActivity(context: Context): AppCompatActivity? {

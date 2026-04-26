@@ -10,7 +10,9 @@ import android.view.View
 
 private var toolbarHeight = 0
 fun recordToolbarHeight(toolbar: Toolbar) {
-    toolbarHeight = toolbar.layoutParams.height
+    val lp = toolbar.layoutParams as? android.view.ViewGroup.MarginLayoutParams
+    val height = if (toolbar.layoutParams.height > 0) toolbar.layoutParams.height else 0
+    toolbarHeight = height + (lp?.topMargin ?: 0) + (lp?.bottomMargin ?: 0)
 }
 
 fun View.setPaddingFromWindowInsets() {

@@ -2,47 +2,87 @@
 	<string-array name="localeNames">
 		<item>@string/followSystemSettings</item>
 		<item>English</item>
-		<item>German</item>
-		<item>Spanish</item>
-		<item>French</item>
-		<item>Hungarian</item>
-		<item>Indonesian</item>
-		<item>Italian</item>
-		<item>Georgian</item>
-		<item>Dutch</item>
-		<item>Persian</item>
-		<item>Polski</item>
+		<item>Tiếng Việt</item>
+		<item>日本語</item>
+		<item>한국어</item>
+		<item>简体中文</item>
+		<item>繁體中文</item>
+		<item>Deutsch</item>
+		<item>Français</item>
+		<item>Español</item>
+		<item>Português</item>
 		<item>Português do Brasil</item>
-		<item>Russian</item>
-		<item>Turkish</item>
-		<item>Ukrainian</item>
-		<item>Chinese</item>
-		<item>Traditional Chinese</item>
-		<item>Chinese (Simplified Han, China)</item>
-		<item>Japanese</item>
-		<item>Czech</item>
+		<item>Русский</item>
+		<item>Українська</item>
+		<item>Italiano</item>
+		<item>Nederlands</item>
+		<item>Polski</item>
+		<item>Čeština</item>
+		<item>Magyar</item>
+		<item>Dansk</item>
+		<item>Türkçe</item>
+		<item>Bahasa Indonesia</item>
+		<item>العربية</item>
+		<item>हिन्दी</item>
+		<item>اردو</item>
+		<item>தமிழ்</item>
+		<item>తెలుగు</item>
+		<item>मराठी</item>
+		<item>ภาษาไทย</item>
+		<item>বাংলা</item>
+		<item>Bahasa Melayu</item>
+		<item>မြန်မာ</item>
+		<item>ខ្មែរ</item>
+		<item>ລາວ</item>
+		<item>فارسی</item>
+		<item>עברית</item>
+		<item>Ελληνικά</item>
+		<item>Română</item>
+		<item>Svenska</item>
+		<item>Suomi</item>
+		<item>ქართული</item>
 	</string-array>
 	<string-array name="localeValues">
 		<item></item>
 		<item>en</item>
+		<item>vi</item>
+		<item>ja</item>
+		<item>ko</item>
+		<item>zh-rCN</item>
+		<item>zh-TW</item>
 		<item>de</item>
-		<item>es</item>
 		<item>fr</item>
-		<item>hu</item>
-		<item>in</item>
-		<item>it</item>
-		<item>ka</item>
-		<item>nl</item>
-		<item>fa</item>
-		<item>pl</item>
+		<item>es</item>
+		<item>pt</item>
 		<item>pt-rBR</item>
 		<item>ru-rRU</item>
-		<item>tr</item>
 		<item>uk</item>
-		<item>zh</item>
-		<item>zh-TW</item>
-		<item>zh-rCN</item>
-		<item>ja</item>
+		<item>it</item>
+		<item>nl</item>
+		<item>pl</item>
 		<item>cs</item>
+		<item>hu</item>
+		<item>da</item>
+		<item>tr</item>
+		<item>in</item>
+		<item>ar</item>
+		<item>hi</item>
+		<item>ur</item>
+		<item>ta</item>
+		<item>te</item>
+		<item>mr</item>
+		<item>th</item>
+		<item>bn</item>
+		<item>ms</item>
+		<item>my</item>
+		<item>km</item>
+		<item>lo</item>
+		<item>fa</item>
+		<item>iw</item>
+		<item>el</item>
+		<item>ro</item>
+		<item>sv</item>
+		<item>fi</item>
+		<item>ka</item>
 	</string-array>
 </resources>

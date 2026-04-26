@@ -37,6 +37,7 @@ class Pref {
         private const val SEND_SCAN_BLUETOOTH = "send_scan_bluetooth"
         private const val SEND_SCAN_BLUETOOTH_HOST = "send_scan_bluetooth_host"
         private const val CUSTOM_LOCALE = "custom_locale"
+        private const val HAS_SHOWN_LANGUAGE_DIALOG = "has_shown_language_dialog"
         private const val INDEX_OF_LAST_SELECTED_FORMAT = "index_of_last_selected_format"
         private const val INDEX_OF_LAST_SELECTED_EC_LEVEL = "index_of_last_selected_ec_level"
         private const val FREE_ROTATION = "free_rotation"
@@ -215,6 +216,12 @@ class Pref {
             commit(CUSTOM_LOCALE, value)
             field = value
         }
+    // Flag: chỉ show language dialog 1 lần duy nhất khi cài app lần đầu
+    var hasShownLanguageDialog: Boolean = false
+        set(value) {
+            commit(HAS_SHOWN_LANGUAGE_DIALOG, value)
+            field = value
+        }
     var indexOfLastSelectedFormat: Int = 0
         set(value) {
             apply(INDEX_OF_LAST_SELECTED_FORMAT, value)
@@ -339,6 +346,10 @@ class Pref {
             EXPAND_ESCAPE_SEQUENCES,
             expandEscapeSequences
         )
+        hasShownLanguageDialog = preferences.getBoolean(
+            HAS_SHOWN_LANGUAGE_DIALOG,
+            hasShownLanguageDialog
+        )
     }
 
     fun beepTone() = when (beepToneName) {
@@ -366,6 +377,10 @@ class Pref {
 
     private fun apply(label: String, value: Int) {
         preferences.edit().putInt(label, value).apply()
+    }
+
+    private fun commit(label: String, value: Boolean) {
+        preferences.edit().putBoolean(label, value).commit()
     }
 
     private fun commit(label: String, value: String) {

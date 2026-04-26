@@ -36,7 +36,6 @@ class FPreferences : PreferenceFragmentCompat() {
             val preference = findPreference<Preference>(key ?: return) ?: return
             prefs.update()
             when (preference.key) {
-                "custom_locale" -> activity?.restartApp()
                 "beep_tone_name" -> {
                     beepConfirm()
                     setSummary(preference)
@@ -145,6 +144,8 @@ class FPreferences : PreferenceFragmentCompat() {
                 setTargetFragment(this@FPreferences, 0)
                 fm?.let { show(it, null) }
             }
+        } else if (preference.key == "custom_locale") {
+            FLanguageDialog().show(parentFragmentManager, "FLanguageDialog")
         } else if (preference.key == "send_scan_bluetooth_host") {
             val ac = activity ?: return
             if (ac.hasBluetoothPermission()) {

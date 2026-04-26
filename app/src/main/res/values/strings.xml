@@ -205,4 +205,9 @@
     <string name="clipboard_empty">Clipboard is empty</string>
     <!-- BUG-6: Double-back to exit i18n -->
     <string name="press_back_again_to_exit">Press BACK again to exit</string>
+    <!-- Language selection dialog -->
+    <string name="choose_language">Choose Language</string>
+    <string name="choose_language_subtitle">Select your preferred language. You can change it later in Settings.</string>
+    <string name="skip">Skip</string>
+    <string name="confirm">Confirm</string>
 </resources>
