@@ -268,14 +268,27 @@ class FVipManagement : Fragment() {
             val cardLoc = IntArray(2)
             keyCard.getLocationInWindow(cardLoc)
             val cardBottomOnScreen = cardLoc[1] + keyCard.height
-            val overlap = cardBottomOnScreen - imeTopY
-            SafeLogger.d(TAG, "roy93~ scrollKeyCard — cardTop=${cardLoc[1]} cardBottom=$cardBottomOnScreen imeTopY=$imeTopY overlap=$overlap currentScrollY=${scrollView.scrollY}")
-            if (overlap > 0) {
-                val targetY = scrollView.scrollY + overlap + 24 // +24dp padding để button không sát keyboard
-                scrollView.smoothScrollTo(0, targetY)
-                SafeLogger.d(TAG, "roy93~ scrollKeyCard → smoothScrollTo y=$targetY")
+
+            val bufferPx = (24f * resources.displayMetrics.density).toInt()
+            val targetBottomOnScreen = imeTopY - bufferPx
+            // delta > 0 = card đè lên IME → scroll content lên (scrollY tăng)
+            // delta < 0 = card cao hơn target → scroll content xuống (scrollY giảm) để đôn card sát IME
+            val delta = cardBottomOnScreen - targetBottomOnScreen
+            val newScrollY = (scrollView.scrollY + delta).coerceAtLeast(0)
+
+            // Log btn vị trí riêng để chắc chắn
+            val btnLoc = IntArray(2)
+            val btn = view?.findViewById<View>(R.id.btnSubmitKey)
+            btn?.getLocationInWindow(btnLoc)
+            val btnBottom = btnLoc[1] + (btn?.height ?: 0)
+
+            SafeLogger.d(TAG, "roy93~ scrollKeyCard — cardTop=${cardLoc[1]} cardBottom=$cardBottomOnScreen btnTop=${btnLoc[1]} btnBottom=$btnBottom imeTopY=$imeTopY targetBottom=$targetBottomOnScreen delta=$delta currentScrollY=${scrollView.scrollY} → newScrollY=$newScrollY")
+
+            if (kotlin.math.abs(delta) > 8) {
+                scrollView.smoothScrollTo(0, newScrollY)
+                SafeLogger.d(TAG, "roy93~ scrollKeyCard → smoothScrollTo y=$newScrollY")
             } else {
-                SafeLogger.d(TAG, "roy93~ scrollKeyCard — no overlap, skip")
+                SafeLogger.d(TAG, "roy93~ scrollKeyCard — already aligned, delta=$delta within tolerance")
             }
         }
     }
