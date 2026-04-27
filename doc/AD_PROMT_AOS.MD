@@ -171,6 +171,7 @@ Báo cáo: PASS/FAIL từng rule + `file:line` dẫn chứng.
 | 8 | Toolbar badge | Khi VIP active, hiển thị badge "VIP" (dạng chip nhỏ vàng/gold) trên toolbar của `MainActivity`. Khi free, ẩn badge |
 | 9 | Date format | Dùng `DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())` cho ngày, `DateFormat.SHORT` cho giờ |
 
+- Thanh progress bar count down nên có animation xịn sò để theo dõi số ngày vip real time
 - Phải có text box để cho phép user nhập key tuỳ ý, sdk đã support sẵn các dialog check valid/invalid rồi, hãy sử dụng chúng
 - Phải có list các option nhận thưởng bên dưới UI text box nhập key, list view reward này bao gồm
 + UI Xem quảng cáo nhận vip 3 ngày => user click => show quảng cáo reward (fallback inter) => xem ad success sẽ tự kích hoạt 3 ngày
