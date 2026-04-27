@@ -62,7 +62,7 @@ class ActivityMain : BaseActivity() {
         }
 
         if (state == null) {
-            supportFragmentManager?.setFragment(getFragmentForIntent(intent))
+            supportFragmentManager.setFragment(getFragmentForIntent(intent))
         }
     }
 
@@ -72,10 +72,12 @@ class ActivityMain : BaseActivity() {
         private const val HISTORY = "history"
         private const val ENCODE = "encode"
         const val DECODED = "decoded"
+        private const val VIP_MANAGEMENT = "vip_management"
 
         private fun getFragmentForIntent(intent: Intent?): Fragment {
             intent ?: return FPreferences()
             return when {
+                intent.hasExtra(VIP_MANAGEMENT) -> com.mckimquyen.binaryeye.frm.FVipManagement()
                 intent.hasExtra(PREFERENCES) -> FPreferences()
                 intent.hasExtra(HISTORY) -> FHistory()
                 intent.hasExtra(ENCODE) -> FEncode.newInstance(
@@ -88,6 +90,12 @@ class ActivityMain : BaseActivity() {
 
                 else -> FPreferences()
             }
+        }
+
+        fun getVipManagementIntent(context: Context): Intent {
+            val intent = Intent(context, ActivityMain::class.java)
+            intent.putExtra(VIP_MANAGEMENT, true)
+            return intent
         }
 
         fun getPreferencesIntent(context: Context): Intent {

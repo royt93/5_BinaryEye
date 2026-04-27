@@ -117,7 +117,8 @@
         </activity>
         <activity
             android:name=".view.act.ActivityMain"
-            android:exported="true" />
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize" />
 
         <service
             android:name=".sv.ScanTileService"

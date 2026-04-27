@@ -42,7 +42,8 @@ import com.mckimquyen.binaryeye.ext.rateApp
 import com.mckimquyen.binaryeye.ext.rateAppInApp
 import com.mckimquyen.binaryeye.ext.shareApp
 import com.mckimquyen.binaryeye.prefs
-import com.mckimquyen.binaryeye.sdkadbmob.AdMobManager
+import com.roy.sdkadbmob.AdManager
+import com.roy.sdkadbmob.AdSdkConfig
 import com.mckimquyen.binaryeye.view.bluetooth.sendBluetoothAsync
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
 import com.mckimquyen.binaryeye.view.content.execShareIntent
@@ -70,7 +71,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
+class CameraActivity : BaseActivity() {
     private val frameRoi = Rect()
     private val matrix = Matrix()
 
@@ -95,9 +96,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     // resetDoubleBack da duoc inline vao setupDoubleBackToExit lambda
     private val doubleBackHandler = Handler(Looper.getMainLooper())
 
-    //    private var adView: MaxAdView? = null
-    private var adView: AdView? = null
-//    private var flAd: ViewGroup? = null
+    private var adView: android.view.View? = null
 
 //    private var interstitialAd: MaxInterstitialAd? = null
 
@@ -224,8 +223,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.roy_a_camera)
 
-        AdMobManager.setCurrentActivity(this)
-        AdMobManager.interstitialListener = this
+        AdManager.setCurrentActivity(this)
 
         // Necessary to get the right translation after setting a
         // custom locale.
@@ -250,21 +248,14 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 //        flAd = findViewById(R.id.flAd)
         val bannerContainer = findViewById<ViewGroup>(R.id.bannerContainer)
         val tvLabelAd = findViewById<TextView>(R.id.tvLabelAd)
-        adView = AdMobManager.loadBanner(
+        adView = AdManager.loadBanner(
             context = this,
-            adUnitId = BuildConfig.ADMOB_BANNER_ID,
             container = bannerContainer,
             tvLabelAd = tvLabelAd,
-            adSize = AdSize.FULL_BANNER,
+            adSize = AdManager.getAdaptiveBannerSize(this),
         )
-//        adView = this.createAdBanner(
-//            logTag = CameraActivity::class.simpleName,
-//            viewGroup = flAd,
-//            isAdaptiveBanner = true,
-//        )
 
-//        createAdInter()
-        AdMobManager.loadInterstitial(this, BuildConfig.ADMOB_INTERSTITIAL_ID)
+        AdManager.loadInterstitial(this)
 
         // [FIX BUG-6] Migrate tu deprecated onBackPressed sang OnBackPressedDispatcher
         setupDoubleBackToExit()
@@ -290,7 +281,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
     override fun onDestroy() {
 //        flAd?.destroyAdBanner(adView)
-        adView?.destroy()
+//        adView?.destroy()
         super.onDestroy()
         fallbackBuffer = null
         saveZoom()
@@ -299,12 +290,12 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
         // [FIX M1] Cancel tat ca pending Handler callbacks de tranh leak
         doubleBackHandler.removeCallbacksAndMessages(null)
         // [FIX ML-2] Null out listener de singleton khong giu Activity reference
-        AdMobManager.interstitialListener = null
+//        AdMobManager.interstitialListener = null
     }
 
     override fun onResume() {
         super.onResume()
-        adView?.resume()
+//        adView?.resume()
         System.gc()
         updateHints()
         if (prefs.bulkMode && bulkMode != prefs.bulkMode) {
@@ -368,7 +359,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
     }
 
     override fun onPause() {
-        adView?.pause()
+//        adView?.pause()
         super.onPause()
         closeCamera()
     }
@@ -417,8 +408,13 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.menu_vip -> {
+                startActivity(ActivityMain.getVipManagementIntent(this))
+                true
+            }
+
             R.id.create -> {
-                AdMobManager.showInterstitial(this) { success ->
+                AdManager.showInterstitial(this) { success ->
                     if (success) {
                         Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
                     } else {
@@ -430,7 +426,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
             }
 
             R.id.history -> {
-                AdMobManager.showInterstitial(this) { success ->
+                AdManager.showInterstitial(this) { success ->
                     if (success) {
                         Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
                     } else {
@@ -470,7 +466,7 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
             }
 
             R.id.preferences -> {
-                AdMobManager.showInterstitial(this) { success ->
+                AdManager.showInterstitial(this) { success ->
                     if (success) {
                         Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
                     } else {
@@ -850,27 +846,6 @@ class CameraActivity : BaseActivity(), AdMobManager.InterstitialAdListener {
                 }, prefs.bulkModeDelay.toLong())
             }
         }
-    }
-
-    override fun onAdLoaded() {
-    }
-
-    override fun onAdFailedToLoad(error: LoadAdError) {
-    }
-
-    override fun onAdShowed() {
-    }
-
-    override fun onAdDismissed() {
-    }
-
-    override fun onAdClicked() {
-    }
-
-    override fun onAdFailedToShow(error: AdError) {
-    }
-
-    override fun onAdNotAvailable() {
     }
 
     companion object {

@@ -57,6 +57,22 @@ class FPreferences : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(state: Bundle?, rootKey: String?) {
         addPreferencesFromResource(R.xml.preferences)
+        findPreference<Preference>("vip_management")?.setOnPreferenceClickListener {
+            val containerId = (view?.parent as? android.view.ViewGroup)?.id ?: return@setOnPreferenceClickListener false
+            parentFragmentManager.beginTransaction()
+                .replace(containerId, FVipManagement())
+                .addToBackStack(null)
+                .commit()
+            true
+        }
+
+        findPreference<Preference>("privacy_consent")?.setOnPreferenceClickListener {
+            com.roy.sdkadbmob.AdManager.showConsentFormIfAvailable(requireActivity()) { 
+                // Xử lý sau khi đóng form nếu cần
+            }
+            true
+        }
+
         setBluetoothResources()
         wireClearNetworkPreferences()
     }

@@ -9,8 +9,8 @@ import android.widget.TextView
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
 import com.mckimquyen.binaryeye.R
-import com.mckimquyen.binaryeye.sdkadbmob.AdMobManager
-import com.mckimquyen.binaryeye.sdkadbmob.UIUtils
+import com.roy.sdkadbmob.awaitSplashComplete
+import kotlinx.coroutines.launch
 
 class ActivitySplash : BaseActivity() {
     // [FIX L2] Dùng Handler có thể cancel để tránh giữ Activity reference
@@ -19,21 +19,27 @@ class ActivitySplash : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        UIUtils.setupEdgeToEdge1(window)
         setContentView(R.layout.roy_a_splash)
-        UIUtils.setupEdgeToEdge2(findViewById(R.id.layoutRoot))
 
         // Apply animations to splash elements
         applySplashAnimations()
 
-        AdMobManager.initSplashScreen(activity = this, onAdLoaded = {
-            goToMain()
-        })
+        com.roy.sdkadbmob.AdManager.requestConsentInfoUpdate(
+            activity = this,
+            tagForUnderAgeOfConsent = false
+        ) { canRequestAds ->
+            if (canRequestAds) {
+                runSplashAdFlow()
+            } else {
+                goToMain()
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         // [FIX L2] Cancel pending callbacks để tránh memory leak
+        splashJob?.cancel()
         handler.removeCallbacks(finishRunnable)
     }
 
@@ -57,6 +63,18 @@ class ActivitySplash : BaseActivity() {
         // Bottom info slide up
         findViewById<android.view.View>(R.id.layoutBottom)?.apply {
             startAnimation(AnimationUtils.loadAnimation(context, R.anim.splash_slide_up))
+        }
+    }
+    
+    private var splashJob: kotlinx.coroutines.Job? = null
+
+    @OptIn(com.roy.sdkadbmob.ExperimentalAdApi::class)
+    private fun runSplashAdFlow() {
+        splashJob = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+            com.roy.sdkadbmob.AdManager.awaitSplashComplete(this@ActivitySplash)
+            if (!isDestroyed && !isFinishing) {
+                goToMain()
+            }
         }
     }
 

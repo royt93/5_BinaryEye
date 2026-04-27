@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="AlwaysShowAction">
     <item
+        android:id="@+id/menu_vip"
+        android:icon="@drawable/ic_crown"
+        android:title="VIP"
+        material:showAsAction="always" />
+    <item
         android:id="@+id/history"
         android:icon="@drawable/ic_action_history"
         android:title="@string/history"

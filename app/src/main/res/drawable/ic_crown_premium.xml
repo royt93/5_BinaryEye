@@ -1,0 +1,108 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="180dp"
+    android:height="180dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Crown body — gold gradient, transparent background -->
+    <path
+        android:pathData="M22,82 L98,82 L94,42 L78,58 L60,28 L42,58 L26,42 Z"
+        android:strokeWidth="0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="60" android:startY="28"
+                android:endX="60" android:endY="82">
+                <item android:offset="0.0" android:color="#FFF7C8"/>
+                <item android:offset="0.35" android:color="#FFD700"/>
+                <item android:offset="0.7" android:color="#F4A300"/>
+                <item android:offset="1.0" android:color="#B87100"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Crown base bar -->
+    <path
+        android:pathData="M20,86 L100,86 L100,96 Q100,100 96,100 L24,100 Q20,100 20,96 Z"
+        android:strokeWidth="0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="60" android:startY="86"
+                android:endX="60" android:endY="100">
+                <item android:offset="0.0" android:color="#FFD700"/>
+                <item android:offset="0.6" android:color="#D38600"/>
+                <item android:offset="1.0" android:color="#8C5300"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Highlight strip on body -->
+    <path
+        android:pathData="M30,68 L90,68 L88,76 L32,76 Z"
+        android:fillColor="#33FFFFFF"
+        android:strokeWidth="0"/>
+
+    <!-- Center jewel (red) -->
+    <path
+        android:pathData="M60,72 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0"
+        android:strokeWidth="0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="60" android:centerY="72"
+                android:gradientRadius="6">
+                <item android:offset="0.0" android:color="#FF8A80"/>
+                <item android:offset="0.6" android:color="#E53935"/>
+                <item android:offset="1.0" android:color="#8B0000"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Side jewel left (blue) -->
+    <path
+        android:pathData="M34,73 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:strokeWidth="0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="34" android:centerY="73"
+                android:gradientRadius="4">
+                <item android:offset="0.0" android:color="#82B1FF"/>
+                <item android:offset="0.6" android:color="#1976D2"/>
+                <item android:offset="1.0" android:color="#0D47A1"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Side jewel right (green) -->
+    <path
+        android:pathData="M86,73 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0"
+        android:strokeWidth="0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="86" android:centerY="73"
+                android:gradientRadius="4">
+                <item android:offset="0.0" android:color="#B9F6CA"/>
+                <item android:offset="0.6" android:color="#388E3C"/>
+                <item android:offset="1.0" android:color="#1B5E20"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Spire tip jewels (small white diamonds) -->
+    <path
+        android:pathData="M60,28 m-3,5 l3,-5 l3,5 l-3,3 z"
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="0"/>
+    <path
+        android:pathData="M26,42 m-2.5,4 l2.5,-4 l2.5,4 l-2.5,2.5 z"
+        android:fillColor="#FFF59D"
+        android:strokeWidth="0"/>
+    <path
+        android:pathData="M94,42 m-2.5,4 l2.5,-4 l2.5,4 l-2.5,2.5 z"
+        android:fillColor="#FFF59D"
+        android:strokeWidth="0"/>
+</vector>

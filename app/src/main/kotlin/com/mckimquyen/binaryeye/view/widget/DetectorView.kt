@@ -384,13 +384,13 @@ class DetectorView : View {
             out.writeInt(savedOrientation)
         }
 
-//        companion object {
-//            @JvmField
-//            val CREATOR = object : Parcelable.Creator<SavedState> {
-//                override fun createFromParcel(source: Parcel) = SavedState(source)
-//                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
-//            }
-//        }
+        companion object {
+            @JvmField
+            val CREATOR = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(source: Parcel) = SavedState(source)
+                override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
+            }
+        }
     }
 }
 

@@ -6,12 +6,18 @@ android {
     compileSdkVersion 36
     defaultConfig {
         applicationId "com.mckimquyen.binaryeye"
-        minSdkVersion 23
+        minSdkVersion 24
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 36
         //lo tay du so 0 =))
         versionCode 202601427
         versionName '2026.04.27'
+        
+        buildConfigField("String", "APPLOVIN_SDK_KEY", "\"e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt\"")
+        buildConfigField("String", "APPLOVIN_BANNER_ID", "\"84d187d1b08adc3d\"")
+        buildConfigField("String", "APPLOVIN_INTERSTITIAL_ID", "\"5ac61198c318d67b\"")
+        buildConfigField("String", "APPLOVIN_APP_OPEN_ID", "\"6569037b86c0256e\"")
+        buildConfigField("String", "APPLOVIN_REWARDED_ID", "\"671ca9067e78cc47\"")
     }
 
 //    signingConfigs {
@@ -59,6 +65,7 @@ android {
             buildConfigField "String", "ADMOB_BANNER_ID", "\"ca-app-pub-3612191981543807/9127422654\""
             buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3612191981543807/7814340985\""
             buildConfigField "String", "ADMOB_APP_OPEN_ID", "\"ca-app-pub-3612191981543807/3616361085\""
+            buildConfigField("Boolean", "IS_ENABLE_ADMOB", "false")
 
             debuggable false
             minifyEnabled true
@@ -71,6 +78,7 @@ android {
             buildConfigField "String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/6300978111\""
             buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3940256099942544/1033173712\""
             buildConfigField "String", "ADMOB_APP_OPEN_ID", "\"ca-app-pub-3940256099942544/9257395921\""
+            buildConfigField("Boolean", "IS_ENABLE_ADMOB", "false")
 
             minifyEnabled false
             //used android.enableR8=true in gradle.properties
@@ -127,10 +135,12 @@ dependencies {
     // ZXing-CPP v2.3.0.4 with 16KB page size support (Oct 8, 2025)
     api 'com.github.markusfisch:zxing-cpp:v2.3.0.4'
 //    api 'com.applovin:applovin-sdk:13.2.0'
-    implementation("com.google.android.gms:play-services-ads:23.6.0")
-    implementation("com.google.ads.mediation:applovin:13.1.0.0")
+//    implementation("com.google.android.gms:play-services-ads:23.6.0")
+//    implementation("com.google.ads.mediation:applovin:13.1.0.0")
+    implementation("com.github.royt93:AdmobApplovinWrapper:1.1.3")
 
     implementation("com.google.android.play:review:2.0.2")
     implementation("com.google.android.play:review-ktx:2.0.2")
+    implementation 'com.airbnb.android:lottie:6.1.0'
 //    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 }

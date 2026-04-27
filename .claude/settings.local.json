@@ -8,7 +8,9 @@
       "WebFetch(domain:jitpack.io)",
       "Bash(unzip:*)",
       "Bash(readelf:*)",
-      "WebFetch(domain:mvnrepository.com)"
+      "WebFetch(domain:mvnrepository.com)",
+      "Read(//private/tmp/wrapper-src/**)",
+      "Bash(awk '/planRow30|planRow90|planRow1Y|planRowLifetime/,/<\\\\/LinearLayout>/' /Users/loitran/AndroidStudioProjects/@mckimquyen/@playstore/@prodution/@ad/260318BinaryEye/app/src/main/res/layout/roy_frm_vip_management.xml)"
     ],
     "deny": [],
     "ask": []

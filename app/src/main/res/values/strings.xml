@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+<resources>
     <string name="cameraError">Can\'t access camera, please try again</string>
     <string name="scan_code">Scan code</string>
     <string name="compose_barcode">Compose barcode</string>
@@ -210,4 +210,76 @@
     <string name="choose_language_subtitle">Select your preferred language. You can change it later in Settings.</string>
     <string name="skip">Skip</string>
     <string name="confirm">Confirm</string>
+
+    <!-- VIP management screen -->
+    <string name="vip_title">VIP Management</string>
+    <string name="vip_chip_active">VIP ACTIVE</string>
+    <string name="vip_chip_free">FREE ACCOUNT</string>
+    <string name="vip_status_active">VIP Active</string>
+    <string name="vip_status_free">Free account</string>
+    <string name="vip_free_hint">Upgrade VIP to unlock all features</string>
+    <string name="vip_expiry_format">Expires: %1$s %2$s</string>
+    <string name="vip_countdown_caption">VIP time remaining</string>
+    <string name="vip_section_features">VIP BENEFITS</string>
+    <string name="vip_feature_no_ads_title">Remove all ads</string>
+    <string name="vip_feature_no_ads_sub">Banner, interstitial, app open</string>
+    <string name="vip_feature_unlimited_title">Unlimited fast scanning</string>
+    <string name="vip_feature_unlimited_sub">All QR / Barcode formats</string>
+    <string name="vip_feature_priority_title">Priority support</string>
+    <string name="vip_feature_priority_sub">Reply within 24 hours</string>
+    <string name="vip_feature_exclusive_title">Exclusive features</string>
+    <string name="vip_feature_exclusive_sub">VIP-only updates each month</string>
+    <string name="vip_section_key_input">ACTIVATE WITH VIP CODE</string>
+    <string name="vip_key_hint">Enter your VIP code…</string>
+    <string name="vip_btn_activate">Activate code</string>
+    <string name="vip_section_plans">UPGRADE PACKAGES</string>
+    <string name="vip_plan_watch_ad">Watch an ad</string>
+    <string name="vip_plan_watch_sub_loading">Get 3 days VIP · Loading…</string>
+    <string name="vip_plan_watch_sub_ready">Get 3 days VIP · Ready</string>
+    <string name="vip_plan_watch_sub_retry">Couldn\'t finish · Tap to retry</string>
+    <string name="vip_plan_watch_sub_error">Connection error · Tap to retry</string>
+    <string name="vip_plan_watch_sub_unavailable">No ad yet · Tap to load</string>
+    <string name="vip_plan_watch_sub_reloading">Reloading…</string>
+    <string name="vip_plan_watch_sub_opening">Opening ad…</string>
+    <string name="vip_plan_watch_sub_failed_show">Couldn\'t show · Try again</string>
+    <string name="vip_badge_free">FREE</string>
+    <string name="vip_badge_save_33">−33%</string>
+    <string name="vip_badge_save_67">−67%</string>
+    <string name="vip_badge_best_value">BEST VALUE</string>
+    <string name="vip_plan_30">VIP 30 days</string>
+    <string name="vip_plan_90">VIP 90 days</string>
+    <string name="vip_plan_1y">VIP 1 year</string>
+    <string name="vip_plan_lifetime">VIP Lifetime</string>
+    <string name="vip_price_30">%1$s · 30-day access</string>
+    <string name="vip_price_90">%1$s · 90-day access</string>
+    <string name="vip_price_1y">%1$s · 1-year access</string>
+    <string name="vip_price_lifetime">%1$s · Forever, unlimited</string>
+    <string name="vip_btn_cancel">Cancel VIP</string>
+
+    <!-- Bottom sheet titles &amp; messages -->
+    <string name="vip_sheet_invalid_title">Invalid VIP code</string>
+    <string name="vip_sheet_invalid_msg">The VIP code you entered is invalid.\nPlease double-check and try again.</string>
+    <string name="vip_sheet_system_error_title">System error</string>
+    <string name="vip_sheet_system_error_msg">Something went wrong!\nPlease try again later.</string>
+    <string name="vip_sheet_activated_title">Activated successfully</string>
+    <string name="vip_sheet_activated_msg">You now have %1$d days of VIP.\nExpires: %2$s</string>
+    <string name="vip_sheet_extra_3_title">Success</string>
+    <string name="vip_sheet_extra_3_msg">You\'ve earned 3 more VIP days!</string>
+    <string name="vip_sheet_reward_title">Success</string>
+    <string name="vip_sheet_reward_msg">🎉 You received 3 days of VIP!</string>
+    <string name="vip_sheet_cancel_title">Cancel VIP activation</string>
+    <string name="vip_sheet_cancel_msg">Do you really want to cancel VIP and switch back to free account?\n\nAll remaining VIP time will be lost.</string>
+    <string name="vip_sheet_cancelled_title">VIP cancelled</string>
+    <string name="vip_sheet_cancelled_msg">VIP has been cancelled successfully.\nYour account is now back to free.</string>
+    <string name="vip_btn_ok">OK</string>
+    <string name="vip_btn_close">Close</string>
+    <string name="vip_btn_great">Great</string>
+    <string name="vip_btn_confirm_cancel">Cancel VIP</string>
+    <string name="vip_btn_keep">Keep</string>
+    <string name="vip_status_expired">Expired</string>
+    <string name="vip_label_activated">Activated</string>
+    <string name="vip_label_expires">Expires</string>
+    <string name="vip_progress_caption">Used %1$d / %2$d days · %3$d%% remaining</string>
+    <string name="vip_progress_marker_start">START</string>
+    <string name="vip_progress_marker_end">EXPIRY</string>
 </resources>

@@ -1,6 +1,19 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="preferences"
     android:title="@string/preferences">
+    <PreferenceCategory android:title="Tài Khoản & VIP">
+        <Preference
+            android:key="vip_management"
+            android:title="Quản lý VIP"
+            android:summary="Nhập mã hoặc xem quảng cáo để kích hoạt VIP"
+            android:icon="@android:drawable/ic_secure" />
+        <Preference
+            android:key="privacy_consent"
+            android:title="Cấu hình Quyền Riêng Tư (UMP)"
+            android:summary="Thay đổi tuỳ chọn bảo mật và dữ liệu (GDPR/CCPA)"
+            android:icon="@android:drawable/ic_menu_info_details" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/scan_category">
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="true"
