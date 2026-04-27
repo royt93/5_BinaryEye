@@ -179,6 +179,9 @@ Báo cáo: PASS/FAIL từng rule + `file:line` dẫn chứng.
 + UI Mua VIP 1 năm giá 2 USD (tự convert ra local currency) => UI này disable và user không click được => tôi sẽ làm sau
 + UI Mua VIP trọn đời giá 3 USD (tự convert ra local currency) => UI này disable và user không click được => tôi sẽ làm sau
 - mọi dialog phải tuân theo thiết kế material you
+- Sau khi kích hoạt VIP thành công, UI VIP phải lập tức cập nhập UI mới, có confetti animation xịn sò
+- Khi account VIP, phải luôn có button huỷ kích hoạt VIP (reset mọi VIP để về free), phải có material you dialog để user confirm
+- Khi account FREE, button huỷ kích hoạt VIP sẽ bị disable và không thể click được
 
 ### 10.2 — Animation (bắt buộc đủ 5 cái dưới)
 
