@@ -174,16 +174,14 @@ class FVipManagement : Fragment() {
         runStaggerEntrance()
 
         // Khi focus EditText: scroll để CẢ KHỐI key input (input + button "Kích hoạt") nằm trên keyboard.
-        // Nếu chỉ request rect cho mỗi EditText → button vẫn bị keyboard che.
+        // initSystemBars dùng FLAG_LAYOUT_FULLSCREEN + setPaddingFromWindowInsets nên scrollVip
+        // chỉ thực sự shrink khi IME đã bố trí xong → dùng OnGlobalLayoutListener listener pattern.
         val keyCard = view.findViewById<View>(R.id.keyInputCard)
+        val scrollView = view.findViewById<ScrollView>(R.id.scrollVip)
         etVipKey.setOnFocusChangeListener { _, hasFocus ->
+            SafeLogger.d(TAG, "roy93~ etVipKey focus=$hasFocus")
             if (!hasFocus) return@setOnFocusChangeListener
-            keyCard.postDelayed({
-                if (!isAdded) return@postDelayed
-                // Rect bao toàn bộ keyInputCard (width × height) — request scroll đôn cả input + button lên trên keyboard
-                val rect = android.graphics.Rect(0, 0, keyCard.width, keyCard.height)
-                keyCard.requestRectangleOnScreen(rect, false)
-            }, 280)
+            installKeyboardScrollListener(scrollView, keyCard)
         }
 
         AdManager.loadRewarded(requireContext())
@@ -236,7 +234,59 @@ class FVipManagement : Fragment() {
         heroGlowAnim?.cancel()
         watchAdPulseAnim?.cancel()
         countDownTimer?.cancel()
+        removeKeyboardScrollListener()
         AdManager.rewardedListener = null
+    }
+
+    // ── Keyboard scroll handler ───────────────────────────────────────
+
+    private var keyboardScrollListener: android.view.ViewTreeObserver.OnGlobalLayoutListener? = null
+    private var lastVisibleHeight = 0
+
+    private fun installKeyboardScrollListener(scrollView: ScrollView, keyCard: View) {
+        if (keyboardScrollListener != null) return // already installed
+        val rootView = scrollView.rootView
+        val r = android.graphics.Rect()
+        keyboardScrollListener = android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            if (!isAdded) return@OnGlobalLayoutListener
+            rootView.getWindowVisibleDisplayFrame(r)
+            val visibleHeight = r.bottom - r.top
+            if (visibleHeight == lastVisibleHeight) return@OnGlobalLayoutListener
+            val rootHeight = rootView.height
+            val isImeShown = rootHeight - visibleHeight > rootHeight * 0.15f
+            SafeLogger.d(TAG, "roy93~ globalLayout — visibleH=$visibleHeight rootH=$rootHeight imeShown=$isImeShown")
+            lastVisibleHeight = visibleHeight
+            if (isImeShown) scrollKeyCardAboveKeyboard(scrollView, keyCard, r.bottom)
+        }
+        rootView.viewTreeObserver.addOnGlobalLayoutListener(keyboardScrollListener)
+        SafeLogger.d(TAG, "roy93~ installKeyboardScrollListener")
+    }
+
+    private fun scrollKeyCardAboveKeyboard(scrollView: ScrollView, keyCard: View, imeTopY: Int) {
+        scrollView.post {
+            if (!isAdded) return@post
+            val cardLoc = IntArray(2)
+            keyCard.getLocationInWindow(cardLoc)
+            val cardBottomOnScreen = cardLoc[1] + keyCard.height
+            val overlap = cardBottomOnScreen - imeTopY
+            SafeLogger.d(TAG, "roy93~ scrollKeyCard — cardTop=${cardLoc[1]} cardBottom=$cardBottomOnScreen imeTopY=$imeTopY overlap=$overlap currentScrollY=${scrollView.scrollY}")
+            if (overlap > 0) {
+                val targetY = scrollView.scrollY + overlap + 24 // +24dp padding để button không sát keyboard
+                scrollView.smoothScrollTo(0, targetY)
+                SafeLogger.d(TAG, "roy93~ scrollKeyCard → smoothScrollTo y=$targetY")
+            } else {
+                SafeLogger.d(TAG, "roy93~ scrollKeyCard — no overlap, skip")
+            }
+        }
+    }
+
+    private fun removeKeyboardScrollListener() {
+        keyboardScrollListener?.let {
+            view?.rootView?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
+            keyboardScrollListener = null
+            lastVisibleHeight = 0
+            SafeLogger.d(TAG, "roy93~ removeKeyboardScrollListener")
+        }
     }
 
     // ── Stagger entrance ───────────────────────────────────────────────
@@ -810,6 +860,10 @@ class FVipManagement : Fragment() {
         val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), R.style.Theme_Design_BottomSheetDialog)
         val view = layoutInflater.inflate(R.layout.roy_bottom_sheet_vip, null)
         sheet.setContentView(view)
+
+        // Fix viền xám ở 2 góc top: bottomSheet container có default theme background → set transparent
+        sheet.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        (view.parent as? View)?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
 
         val tvTitle = view.findViewById<TextView>(R.id.tvSheetTitle)
         val tvMsg = view.findViewById<TextView>(R.id.tvSheetMessage)
