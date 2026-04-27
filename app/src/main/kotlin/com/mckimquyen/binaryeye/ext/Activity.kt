@@ -135,35 +135,8 @@ fun Activity.setSoftInputMode(
     this.window.setSoftInputMode(mode)
 }
 
-// https://gist.github.com/mustafasevgi/8c6b638ffd5fca90d45d
-//fun Activity?.sendSMS(
-//    text: String
-//) {
-//    if (this == null) {
-//        return
-//    }
-//    val defaultSmsPackageName =
-//        Telephony.Sms.getDefaultSmsPackage(this) // Need to change the build to API 19
-//
-//    val sendIntent = Intent(Intent.ACTION_SEND)
-//    sendIntent.type = "text/plain"
-//    sendIntent.putExtra(Intent.EXTRA_TEXT, text)
-//
-//    if (defaultSmsPackageName != null)
-//    // Can be null in case that there is no default, then the user would be able to choose
-//    // any app that support this intent.
-//    {
-//        sendIntent.setPackage(defaultSmsPackageName)
-//    }
-//    this.startActivity(sendIntent)
-//}
-
 fun Activity.rateAppInApp(forceRateInApp: Boolean = false) {
     try {
-        //import gradle app
-//    implementation("com.google.android.play:review:2.0.2")
-//    implementation("com.google.android.play:review-ktx:2.0.2")
-
         val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val lastReviewTime = sharedPreferences.getLong("last_review_time", 0L)
         Log.d("roy93~", "~~~~~~~~~~~~~~~~~requestReview lastReviewTime $lastReviewTime")
@@ -172,7 +145,6 @@ fun Activity.rateAppInApp(forceRateInApp: Boolean = false) {
         Log.d("roy93~", "requestReview forceRateInApp $forceRateInApp")
         Log.d("roy93~", "requestReview daysSinceLastReview $daysSinceLastReview")
         if (daysSinceLastReview >= 7 || forceRateInApp) {
-//    if (daysSinceLastReview >= 7) {
             val reviewManager = ReviewManagerFactory.create(this)
             val request = reviewManager.requestReviewFlow()
             request.addOnCompleteListener { task ->
@@ -286,7 +258,6 @@ fun Context.getFacebookPageURL(): String {
     }
 }
 
-// playYoutube(activity, "http://www.youtube.com/watch?v=Hxy8BZGQ5Jo");
 fun Activity.playYoutube(
     url: String?,
 ) {
@@ -322,22 +293,6 @@ val screenWidth: Int
 val screenHeight: Int
     get() = Resources.getSystem().displayMetrics.heightPixels
 
-//fun Context.getScreenHeightIncludeNavigationBar(): Int {
-//    val windowManager = this.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-//    val display = windowManager.defaultDisplay
-//    val outPoint = Point()
-//    // include navigation bar
-//    display.getRealSize(outPoint)
-//    val mRealSizeHeight: Int = if (outPoint.y > outPoint.x) {
-//        outPoint.y
-//        // mRealSizeWidth = outPoint.x;
-//    } else {
-//        outPoint.x
-//        // mRealSizeWidth = outPoint.y;
-//    }
-//    return mRealSizeHeight
-//}
-
 @SuppressLint("ObsoleteSdkInt")
 fun Activity.showStatusBar(
 ) {
@@ -371,14 +326,7 @@ fun Activity.toggleFullscreen(
 ) {
     val attrs = this.window.attributes
     attrs.flags = attrs.flags xor WindowManager.LayoutParams.FLAG_FULLSCREEN
-    // attrs.flags ^= WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
-    // attrs.flags ^= WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
     this.window.attributes = attrs
-    /*if (isFullScreen(activity)) {
-        hideNavigationBar(activity)
-    } else {
-        showNavigationBar(activity)
-    }*/
 }
 
 fun Activity.toggleFullscreen(

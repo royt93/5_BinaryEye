@@ -13,7 +13,6 @@ import com.roy.sdkadbmob.awaitSplashComplete
 import kotlinx.coroutines.launch
 
 class ActivitySplash : BaseActivity() {
-    // [FIX L2] Dùng Handler có thể cancel để tránh giữ Activity reference
     private val handler = Handler(Looper.getMainLooper())
     private val finishRunnable = Runnable { finish() }
 
@@ -21,7 +20,6 @@ class ActivitySplash : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.roy_a_splash)
 
-        // Apply animations to splash elements
         applySplashAnimations()
 
         com.roy.sdkadbmob.AdManager.requestConsentInfoUpdate(
@@ -38,29 +36,18 @@ class ActivitySplash : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // [FIX L2] Cancel pending callbacks để tránh memory leak
         splashJob?.cancel()
         handler.removeCallbacks(finishRunnable)
     }
 
     private fun applySplashAnimations() {
-        // Version text fade in
         findViewById<TextView>(R.id.tvVersion)?.apply {
             text = "v${BuildConfig.VERSION_NAME}"
             startAnimation(AnimationUtils.loadAnimation(context, R.anim.splash_fade_in))
         }
-
-        // Logo scale in
-//        findViewById<ImageView>(R.id.ivLogo)?.apply {
-//            startAnimation(AnimationUtils.loadAnimation(context, R.anim.splash_scale_in))
-//        }
-
-        // App name fade in
         findViewById<TextView>(R.id.tvAppName)?.apply {
             startAnimation(AnimationUtils.loadAnimation(context, R.anim.splash_fade_in))
         }
-
-        // Bottom info slide up
         findViewById<android.view.View>(R.id.layoutBottom)?.apply {
             startAnimation(AnimationUtils.loadAnimation(context, R.anim.splash_slide_up))
         }
@@ -82,7 +69,6 @@ class ActivitySplash : BaseActivity() {
         val intent = Intent(this@ActivitySplash, CameraActivity::class.java)
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        // [FIX L2] Dùng handler có thể cancel thay vì decorView.postDelayed
         handler.postDelayed(finishRunnable, 300)
     }
 }
