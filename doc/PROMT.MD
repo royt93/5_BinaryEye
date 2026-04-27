@@ -1,5 +1,7 @@
 # Prompt Template: Migrate hệ thống Ad sang `_AdmobWrapper` (Android native)
 
+> Template dùng chung cho mọi project Android native. Trước khi đưa cho AI, **fill hết placeholder `<...>`** ở Section 0. VIP feature là **mandatory**, mọi project đều phải apply (không có cơ chế skip).
+
 ---
 
 ## 0. Bối cảnh — fill trước khi chạy
@@ -9,24 +11,29 @@
 | Project hiện tại (cwd, absolute path) | `<PROJECT_PATH>` |
 | Lib reference (absolute path) | `/Users/loitran/AndroidStudioProjects/@mckimquyen/@playstore/@prodution/_AdmobWrapper` |
 | File spec gốc của lib | `/Users/loitran/AndroidStudioProjects/@mckimquyen/@playstore/@prodution/_AdmobWrapper/doc/AD.MD` |
-| Lib coordinate + version | `<GROUP:ARTIFACT:VERSION>` (vd `com.github.royt93:AdmobApplovinWrapper:1.1.3`) |
+| Lib coordinate + version | `com.github.royt93:AdmobApplovinWrapper:1.1.3` |
 | Build variant phải xanh (debug) | `<assemble{Flavor}Debug>` |
 | Build variant phải xanh (release) | `<assemble{Flavor}Release>` |
-| Provider mặc định | `<AdMob \| AppLovin MAX>` (xem `BuildConfig.IS_ENABLE_ADMOB` trong project) | Ưu tiên dùng applovin
+| Provider chính (active runtime) | `AppLovin MAX` |
+| Provider fallback | `AdMob` (chỉ active khi `BuildConfig.IS_ENABLE_ADMOB=true`) |
+| AppLovin SDK key | `e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt` |
+| AppLovin banner ID | `<hỏi user — dừng nếu thiếu>` |
+| AppLovin interstitial ID | `<hỏi user — dừng nếu thiếu>` |
+| AppLovin app open ID | `<hỏi user — dừng nếu thiếu>` |
+| AppLovin rewarded ID | `<hỏi user — dừng nếu thiếu>` |
+| AdMob banner ID | `<hỏi user — dừng nếu thiếu>` |
+| AdMob interstitial ID | `<hỏi user — dừng nếu thiếu>` |
+| AdMob app open ID | `<hỏi user — dừng nếu thiếu>` |
+| AdMob rewarded ID | `<hỏi user — dừng nếu thiếu>` |
 | VIP key 30 ngày (plain) | `9fA0q7eN!27cLx04@21993Y2u0I7#Q0` |
 | VIP key 3 ngày (plain) | `eQ7@93L0f!2Y2707xN04021993u0I#2aK` |
-| Mức che giấu VIP key trong code | `<Base64 \| AES \| NDK>` (mặc định Base64) |
+| Mức che giấu VIP key | Base64 hardcode (AI tự encode plain → Base64 khi compile vào code) |
 
-Tôi sẽ cung câp thông tin admob/applovin
-***ADMOB: bạn tự check ở project hiện tại
-***APPLOVIN: bạn tự check ở project hiện tại, tôi bổ sung thêm
-sdk key: e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt
-ad id banner: cần hỏi
-ad id interstitial: cần hỏi
-ad open app: cần hỏi
-ad rewarded: cần hỏi
-Nếu user không đưa đủ các key trên, hãy lập tức hỏi owner để bổ sung ngay 
-Cố gắng che giấu các thông tin nhạy cảm này nhé, có thể dùng gradle.properties 
+**Rule cứng cho Section 0**:
+
+1. **Cả 2 bộ ID (AppLovin + AdMob) đều phải đầy đủ** trước khi setup `AdSdkConfig`, dù chỉ AppLovin active runtime — vì khi flip `IS_ENABLE_ADMOB=true` không phải re-build template.
+2. Bất kỳ field nào còn ghi `<hỏi user — dừng nếu thiếu>`: AI **phải hỏi user trong chat** rồi **dừng chờ trả lời**, KHÔNG tự fill placeholder, KHÔNG dùng test ID, KHÔNG bỏ qua.
+3. AppLovin SDK key đã hardcode trong template này — chấp nhận do file PROMT.MD là internal. Khi compile vào project, key này phải đi qua `BuildConfig` (không hardcode trong source `.kt`).
 
 ---
 
@@ -37,6 +44,7 @@ Cố gắng che giấu các thông tin nhạy cảm này nhé, có thể dùng g
 - Tự ý nâng version lib hoặc đổi flag `IS_ENABLE_ADMOB`.
 - Lặp lại đọc cùng 1 file > 1 lần với mục đích "double check" — review trên kết quả đã có, không re-read.
 - Tự thêm trigger interstitial mới (vd "show sau mỗi action X") nếu code cũ chưa có.
+- Tự fill ad ID bằng test ID hoặc placeholder — phải hỏi user.
 
 ---
 
@@ -44,8 +52,18 @@ Cố gắng che giấu các thông tin nhạy cảm này nhé, có thể dùng g
 
 - `ls` đệ quy `<LIB_PATH>` để nắm cấu trúc.
 - Đọc `<LIB_PATH>/doc/AD.MD` (spec gốc) trước.
-- Đọc sample app trong lib (thư mục `app/` hoặc `sample/`), đặc biệt các call site: `AdManager.setConfig`, `initialize`, `requestConsentInfoUpdate`, `awaitSplashComplete`, `loadBanner`, `showInterstitial`, `loadRewarded`, `showRewarded`, `activateVipByKey`, `AdSafetyLimits`.
-- Lưu ý AdSafetyLimits ở mode debug cần value dễ dãi hơn cho QC dễ test
+- Đọc sample app trong lib (`app/` hoặc `sample/`), đặc biệt các call site: `AdManager.setConfig`, `initialize`, `requestConsentInfoUpdate`, `awaitSplashComplete`, `loadBanner`, `showInterstitial`, `loadRewarded`, `showRewarded`, `activateVipByKey`, `AdSafetyLimits`.
+- **`AdSafetyLimits` debug-friendly**: ở `BuildConfig.DEBUG=true`, dùng giá trị dễ dãi hơn để QC test nhanh. Giá trị đề xuất (verify field name chính xác từ lib ở step này, đổi tên field nếu lib dùng tên khác):
+
+  | Field | Debug | Release |
+  |---|---|---|
+  | `interstitialMinIntervalSec` | `10` | `60` |
+  | `appOpenMinIntervalSec` | `10` | `120` |
+  | `interstitialMaxPerSession` | `999` | giữ default lib |
+  | `appOpenMaxPerSession` | `999` | giữ default lib |
+
+  Wire bằng `if (BuildConfig.DEBUG) AdSafetyLimits(...) else AdSafetyLimits()` trong `Application.onCreate`.
+
 **Output bắt buộc**: 1 đoạn ≤ 10 dòng tóm tắt API surface của lib và lifecycle nó tự quản (App Open auto qua `ProcessLifecycleOwner`, banner auto pause/resume/destroy, frequency cap…).
 
 ## Step 2 — Audit hiện trạng project
@@ -56,7 +74,7 @@ Trả lời 5 câu (yes/no + dẫn chứng `file:line`):
 2. `Application.onCreate` đang gọi gì để init ad?
 3. Splash activity có gọi consent + App Open warmup chưa?
 4. Activity nào đang load banner và interstitial bằng API nào (`AdView`, `InterstitialAd.load`, `MaxAdView`…)?
-5. Đã có VIP screen chưa? Nếu có thì UI gồm gì?
+5. **Đã có VIP screen chưa?** Nếu có → AI sẽ **upgrade in-place** ở Step 10, KHÔNG tạo trùng. Nếu chưa → tạo mới. Mô tả UI hiện tại nếu có.
 
 ## Step 3 — Viết kế hoạch migrate vào `<PROJECT_PATH>/doc/AD.MD`
 
@@ -77,7 +95,7 @@ Bắt buộc có các section:
 
 **(3) Bảng so sánh trước/sau** — tối thiểu 8 dòng (Provider, Architecture, App Open, Consent, Memory leak risk, Frequency cap, VIP, Lifecycle).
 
-**(4) Thông tin cần user cấp** — list rõ những gì còn thiếu: SDK key thật, ad unit ID thật, test device ID, EEA test config, banner placement layout id…
+**(4) Thông tin cần user cấp** — list rõ những gì còn thiếu: ad unit ID, test device ID, EEA test config, banner placement layout id…
 
 ## Step 4 — Lifecycle requirement (rule cứng, áp dụng mọi project)
 
@@ -95,7 +113,7 @@ Chỉ thay đúng các call site cũ. Trước khi xoá file/hàm SDK cũ, **gre
 - Với mỗi file: grep tên class/hàm trong toàn project, xác nhận 0 reference, rồi mới xoá.
 - Không tự thêm banner/interstitial/rewarded ở activity/fragment khác.
 
-## Step 6 — Build & memory check
+## Step 6 — Build & memory check (review chung toàn project)
 
 - Chạy 2 build variant đã chốt ở Section 0 — cả 2 phải xanh.
 - Memory leak: review thủ công 3 điểm (KHÔNG cần LeakCanary):
@@ -110,7 +128,7 @@ Chỉ thay đúng các call site cũ. Trước khi xoá file/hàm SDK cũ, **gre
 |---|---|---|
 | 1 | Banner không che nội dung tương tác | Đọc layout host banner, xác nhận banner ở dock bottom/top, không overlay nút bấm |
 | 2 | App Open không show trên splash thuần — chỉ show khi warmup xong trước khi vào main, hoặc khi resume từ background | Đọc Splash activity + lifecycle hook |
-| 3 | Interstitial không show liên tiếp dưới ngưỡng frequency cap | Tin `AdSafetyLimits` mặc định, ghi rõ giá trị mặc định lib dùng |
+| 3 | Interstitial không show liên tiếp dưới ngưỡng frequency cap | Tin `AdSafetyLimits` mặc định, ghi rõ giá trị dùng (debug vs release) |
 | 4 | Rewarded chỉ trigger khi user bấm nút | Đọc VIP screen |
 | 5 | Không tự click ad / không có UI giả mạo close button | Đọc layout banner |
 
@@ -127,29 +145,58 @@ Báo cáo: PASS/FAIL từng rule + `file:line` dẫn chứng.
 
 ## Step 9 — VIP 1 ngày auto-activate lần đầu cài
 
-- Lưu ý cần check xem bản thân SDK đã hỗ trợ tự động kích hoạt vip 1 ngày chưa, nếu có rồi thì bỏ qua vì có thể duplicate code
-Skip nếu Section 0 ghi `N/A` cho VIP key.
+**VIP feature mandatory — không skip.**
 
-- Lưu flag `pref_first_launch_vip_granted` trong `SharedPreferences`.
-- Trong `Application.onCreate` sau khi `AdManager.initialize`, nếu flag chưa set → gọi API activate 1 ngày của lib (verify tên hàm chính xác ở Step 1) → set flag.
-- Idempotent: lần mở thứ 2 không re-activate.
+- **Trước tiên kiểm tra lib**: `_AdmobWrapper` có sẵn cơ chế auto-activate 1-day không? Nếu có → dùng API đó, KHÔNG re-implement (tránh duplicate). Verify ở Step 1.
+- Nếu lib chưa có:
+  - Lưu flag `pref_first_launch_vip_granted` trong `SharedPreferences`.
+  - Trong `Application.onCreate` sau khi `AdManager.initialize`, nếu flag chưa set → gọi API activate 1 ngày của lib → set flag.
+  - Idempotent: lần mở thứ 2 không re-activate.
 
-## Step 10 — UI/UX VIP management screen
+## Step 10 — UI/UX VIP management screen (chi tiết, mandatory)
 
-Skip nếu Section 0 ghi `N/A` cho VIP key.
+**VIP feature mandatory — không skip. Step 2 đã audit có hay chưa: nếu có thì upgrade in-place, nếu chưa thì tạo mới.**
 
-Tạo/cập nhật VIP màn hình với 3 thành phần:
+### 10.1 — Cấu trúc UI (bắt buộc đủ)
 
-1. **Status row**: "VIP Active: <N> days left" hoặc "Free User". Get state qua API của lib (verify tên hàm ở Step 1).
-2. **Button "Nhập mã VIP"**: mở dialog input → user paste plain key → app Base64-encode rồi gọi `AdManager.activateVipByKey(base64)` → toast success/fail.
-3. **Button "Watch ad for 3 days VIP"**:
-   - Click → `AdManager.loadRewarded` → `showRewarded`.
-   - `onUserEarnedReward` → activate 3-day VIP bằng key 3 ngày Base64 ở Section 0.
-   - Nếu rewarded load fail → fallback `AdManager.showInterstitial` rồi vẫn activate 3 ngày (theo spec).
-4. **Che giấu key**: theo mức đã chọn ở Section 0. Mặc định Base64 hardcode — KHÔNG tự thêm AES/NDK trừ khi user yêu cầu.
-5. Entry point: thêm preference/menu item trong settings screen của project trỏ tới fragment này.
-6. UI/UX rõ ràng, animation sinh động, hãy tham khảo màn hình VIP của các startup khác để bắt chước.
-7. Cần đầy đủ thông tin rõ ràng, ngày kích hoạt, ngày kết thúc, nếu có count down càng tốt, cần check kỹ memory leak
+| # | Thành phần | Detail |
+|---|---|---|
+| 1 | Status header | Crown icon + text 2 dòng:<br>• Dòng 1: `VIP Active` hoặc `Free User`<br>• Dòng 2: `Until dd/MM/yyyy` (ẩn nếu free) |
+| 2 | Activation date row | `Activated: dd/MM/yyyy HH:mm` (ẩn nếu free) |
+| 3 | Expiry date row | `Expires: dd/MM/yyyy HH:mm` (ẩn nếu free) |
+| 4 | Progress bar | `LinearProgressIndicator` thể hiện % thời gian còn lại (0 → 100%) — chỉ hiện khi VIP active |
+| 5 | Countdown text | Dạng `12d 03h 24m 15s` — update mỗi giây bằng `CountDownTimer` |
+| 6 | Button "Nhập mã VIP" | Mở `AlertDialog` input → user paste plain key → app `Base64-encode` rồi gọi `AdManager.activateVipByKey(base64)` → toast success/fail |
+| 7 | Button "Watch ad → 3 days VIP" | Click → `AdManager.loadRewarded` → `showRewarded`. `onUserEarnedReward` → activate 3-day VIP bằng key 3-ngày Base64 (encode từ Section 0). Nếu rewarded load fail → fallback `AdManager.showInterstitial` rồi vẫn activate 3 ngày |
+| 8 | Toolbar badge | Khi VIP active, hiển thị badge "VIP" (dạng chip nhỏ vàng/gold) trên toolbar của `MainActivity`. Khi free, ẩn badge |
+| 9 | Date format | Dùng `DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())` cho ngày, `DateFormat.SHORT` cho giờ |
+
+### 10.2 — Animation (bắt buộc đủ 5 cái dưới)
+
+| # | Animation | Cách impl | Trigger |
+|---|---|---|---|
+| 1 | Pulse cho nút "Watch ad" | `anim_pulse.xml` (scale 1.0 → 1.05 → 1.0, repeat infinite) | onResume, cancel onPause |
+| 2 | Slide-in từ dưới khi mở fragment | `R.anim.slide_in_bottom` | `onCreateAnimation` của fragment |
+| 3 | Crown icon shimmer | `ObjectAnimator` rotate ±5° hoặc shimmer drawable | onResume, cancel onPause |
+| 4 | Number count-up cho countdown | `ValueAnimator` chạy khi value thay đổi đáng kể (mỗi phút), không mỗi giây | Khi `CountDownTimer.onTick` chạm phút mới |
+| 5 | Confetti / scale celebration khi activate thành công | `ObjectAnimator` scale 0 → 1.2 → 1.0 + alpha 0 → 1 trên crown icon (1 giây), kèm haptic feedback `VibrationEffect.EFFECT_CLICK` | Sau khi `activateVipByKey` hoặc `onUserEarnedReward` thành công |
+
+Bonus (nice-to-have, không bắt buộc): ripple effect mặc định cho 2 button (đã có sẵn theo Material), gradient background động cho status header.
+
+### 10.3 — Memory leak rule riêng cho VIP screen (KHÔNG dùng các pattern sau)
+
+- **KHÔNG** `Handler.postDelayed` cho countdown — bắt buộc dùng `CountDownTimer`, gọi `cancel()` ở `onDestroyView`.
+- **KHÔNG** giữ rewarded callback dạng `object : RewardedListener` mà capture `this` của fragment — dùng `WeakReference<Fragment>` hoặc clear callback ở `onDestroyView`.
+- **KHÔNG** start animation trong `onCreate`/`onResume` mà không cancel ở `onPause`/`onDestroyView` — mọi `ObjectAnimator`, `ValueAnimator`, `Animation` đều phải `.cancel()` trong `onDestroyView`.
+- **KHÔNG** dùng anonymous `Runnable` post lên `View.postDelayed` mà không `removeCallbacks` ở `onDestroyView`.
+
+### 10.4 — Entry point
+
+Thêm preference/menu item trong settings screen của project trỏ tới VIP fragment. Tên ưu tiên `FVipManagement` (Kotlin, prefix theo convention project nếu có).
+
+### 10.5 — Che giấu VIP key
+
+Plain key ở Section 0 — KHÔNG hardcode plain trong file `.kt`. AI phải Base64-encode trước rồi hardcode chuỗi Base64 vào `companion object` hằng số. KHÔNG thêm AES/NDK/ProGuard string-encrypt trừ khi user yêu cầu — Base64 là mức đã thống nhất.
 
 ## Step 11 — Self-review & cập nhật `<PROJECT_PATH>/doc/AD.MD`
 
@@ -159,33 +206,30 @@ Review duy nhất 1 lần, KHÔNG lặp 3 lần. Checklist:
 - [ ] 2 build variant ở Section 0 đều xanh
 - [ ] 5 policy rule đều PASS
 - [ ] Consent đã wire ở Splash
-- [ ] (Nếu áp dụng) VIP 1-day auto-activate có flag chống re-trigger
-- [ ] (Nếu áp dụng) VIP screen có 3 thành phần (status, key input, watch ad)
+- [ ] VIP 1-day auto-activate có flag chống re-trigger (hoặc đã dùng API có sẵn của lib)
+- [ ] VIP screen có **đủ 9 thành phần UI** (10.1) + **đủ 5 animation** (10.2) + **0 vi phạm memory leak rule** (10.3)
+- [ ] Toolbar badge "VIP" hiện đúng theo trạng thái
 - [ ] Bảng so sánh trước/sau đã viết trong `doc/AD.MD`
 - [ ] List "info cần user cấp" đã viết trong `doc/AD.MD`
 
 Nếu có item FAIL → fix → check lại item đó (không re-check item đã PASS).
 
-## Step 12 — Báo cáo cuối (1 lần, ≤ 30 dòng)
+## Step 12 — Báo cáo cuối (1 lần, ≤ 20 dòng)
 
-Format cố định:
+Format cố định, **chỉ 2 section**:
 
 ```
 ### Migrate Result
 - Build: <variantDebug>=<PASS|FAIL>, <variantRelease>=<PASS|FAIL>
-- Slots migrated: <N/M hoặc list slot fail>
+- Slots migrated: <N/M>
 - Policy: <5/5 hoặc list rule fail>
-- Memory review: <OK | list điểm nghi ngờ>
+- Memory review: <OK | list điểm nghi ngờ với file:line>
+- VIP UI: <9/9 components, 5/5 animations | list missing>
 - Files changed: <count>, lines +<X> -<Y>
 
-### Cần user cấp (nếu có)
-- <key/id còn thiếu, kèm chỗ sẽ điền>
-
-### Risk còn lại
-- <bullet ngắn>
-
-### Skipped (nếu có)
-- <step số — lý do skip, vd "Step 9–10 skipped vì project không có VIP feature">
+### Open questions for user
+- <key/id còn thiếu cụ thể>
+- <decision pending nếu có>
 ```
 
 KHÔNG lặp lại "3 round". Step 11 checklist PASS hết → dừng. Có FAIL thì fix tới khi PASS rồi mới báo cáo.
