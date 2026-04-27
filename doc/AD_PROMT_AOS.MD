@@ -171,6 +171,15 @@ Báo cáo: PASS/FAIL từng rule + `file:line` dẫn chứng.
 | 8 | Toolbar badge | Khi VIP active, hiển thị badge "VIP" (dạng chip nhỏ vàng/gold) trên toolbar của `MainActivity`. Khi free, ẩn badge |
 | 9 | Date format | Dùng `DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())` cho ngày, `DateFormat.SHORT` cho giờ |
 
+- Phải có text box để cho phép user nhập key tuỳ ý, sdk đã support sẵn các dialog check valid/invalid rồi, hãy sử dụng chúng
+- Phải có list các option nhận thưởng bên dưới UI text box nhập key, list view reward này bao gồm
++ UI Xem quảng cáo nhận vip 3 ngày => user click => show quảng cáo reward (fallback inter) => xem ad success sẽ tự kích hoạt 3 ngày
++ UI Mua VIP 30 ngày giá 0,5 USD (tự convert ra local currency) => UI này disable và user không click được => tôi sẽ làm sau
++ UI Mua VIP 90 ngày giá 1 USD (tự convert ra local currency) => UI này disable và user không click được => tôi sẽ làm sau
++ UI Mua VIP 1 năm giá 2 USD (tự convert ra local currency) => UI này disable và user không click được => tôi sẽ làm sau
++ UI Mua VIP trọn đời giá 3 USD (tự convert ra local currency) => UI này disable và user không click được => tôi sẽ làm sau
+- mọi dialog phải tuân theo thiết kế material you
+
 ### 10.2 — Animation (bắt buộc đủ 5 cái dưới)
 
 | # | Animation | Cách impl | Trigger |
