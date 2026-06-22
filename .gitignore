@@ -6,3 +6,6 @@ build
 local.properties
 infer-out
 *.iml
+
+# Claude Code local settings (YOLO/bypassPermissions — không commit)
+.claude/settings.local.json

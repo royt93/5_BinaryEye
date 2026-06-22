@@ -9,8 +9,8 @@ android {
         minSdkVersion 24
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 36
-        versionCode 202601427
-        versionName '2026.04.27'
+        versionCode 20270623
+        versionName '2026.06.23'
 
         buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${APPLOVIN_SDK_KEY}\""
         buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${APPLOVIN_BANNER_ID}\""
