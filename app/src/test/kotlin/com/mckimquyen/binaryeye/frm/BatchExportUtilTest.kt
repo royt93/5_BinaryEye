@@ -40,5 +40,43 @@ class BatchExportUtilTest {
     fun result_neverContainsPathSeparators() {
         val tricky = "../../etc/passwd"
         assertTrue(!zipEntryName(tricky, 0).contains("/"))
+        assertTrue(!zipEntryName("a\\b\\c", 0).contains("\\"))
+    }
+
+    @Test
+    fun exactly24Chars_kept() {
+        val name = "a".repeat(24)
+        assertEquals("${"a".repeat(24)}_1.png", zipEntryName(name, 0))
+    }
+
+    @Test
+    fun truncationHappensBeforeSanitize() {
+        // 24 ký tự đầu là "aaaa..../" — '/' ở vị trí 24 bị cắt trước khi sanitize.
+        val name = "a".repeat(24) + "/evil"
+        assertEquals("${"a".repeat(24)}_1.png", zipEntryName(name, 0))
+    }
+
+    @Test
+    fun unicodeOnly_fallsBackToQr() {
+        // Ký tự ngoài [A-Za-z0-9._-] đều bị thay → trim → rỗng → "qr".
+        assertEquals("qr_5.png", zipEntryName("日本語コード", 4))
+    }
+
+    @Test
+    fun dotsAndDashAndUnderscore_arePreserved() {
+        assertEquals("v1.2-3_x_1.png", zipEntryName("v1.2-3_x", 0))
+    }
+
+    @Test
+    fun largeIndex_formattedAsIs() {
+        assertEquals("item_200.png", zipEntryName("item", 199))
+    }
+
+    @Test
+    fun everyName_endsWithPngAndHasIndex() {
+        for (i in 0 until 50) {
+            val n = zipEntryName("x$i", i)
+            assertTrue(n.endsWith("_${i + 1}.png"))
+        }
     }
 }

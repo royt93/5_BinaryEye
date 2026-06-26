@@ -145,6 +145,9 @@ class FBatchEncode : Fragment() {
             val file = File(ac.externalCacheDir, "batch_qr.zip")
             ZipOutputStream(FileOutputStream(file)).use { zos ->
                 snapshot.forEachIndexed { i, (name, bmp) ->
+                    // Tránh crash nếu onDestroyView() recycle bitmap giữa chừng
+                    // (compress trên bitmap đã recycle ném IllegalStateException).
+                    if (bmp.isRecycled) return@forEachIndexed
                     zos.putNextEntry(ZipEntry(zipEntryName(name, i)))
                     bmp.compress(Bitmap.CompressFormat.PNG, 100, zos)
                     zos.closeEntry()

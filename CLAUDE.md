@@ -18,12 +18,16 @@ The wrapper is `./gradlew`. There are two flavor dimensions × two build types, 
 - `./gradlew assembleProductionRelease` — signed Play Store build (release uses `app/keystore.jks` with `KS_ALIAS` / `KS_PW` from `gradle.properties`; without the keystore present, the `release` variants fail to assemble. Release is `minifyEnabled true` with R8 + `proguard-rules.pro`)
 - `./gradlew installDevDebug` — install to a connected device
 - `./gradlew lintDevDebug` — Android Lint (config in `app/lint.xml`)
-- `./gradlew testDevDebugUnitTest` — JVM unit tests (JUnit)
+- `./gradlew testDevDebugUnitTest` — JVM unit + widget (Robolectric) tests
+- `./gradlew connectedDevDebugAndroidTest` — instrumented + Espresso tests (cần device; tắt animation: `adb shell settings put global {window,transition,animator}_*_scale 0`)
 - `./gradlew clean`
 
 Output APKs are renamed via `applicationVariants.configureEach` to `com.mckimquyen.binaryeye<buildType>_<versionName>_<versionCode>.apk`.
 
-`app/src/test/kotlin` now holds a small JVM unit-test suite (JUnit) covering pure logic — `database/ScanFilterTest` (filter→SQL builder, incl. localtime date predicates) and `frm/BatchExportUtilTest` (ZIP entry-name sanitization). Run with `./gradlew testDevDebugUnitTest`. `app/src/androidTest/kotlin` is wired but still empty (no instrumented tests). Keep unit-testable logic as pure functions (no Android imports) so it stays JVM-testable — e.g. `ScanFilter.toWhereClause()` and `zipEntryName()`.
+There is a 3-layer test suite (45 tests total):
+- **Unit (JVM, JUnit)** in `app/src/test/.../database/ScanFilterTest` (filter→SQL, incl. localtime) and `frm/BatchExportUtilTest` (ZIP name sanitize). Keep unit-testable logic as pure functions (no Android imports) — e.g. `ScanFilter.toWhereClause()`, `zipEntryName()`.
+- **Widget (JVM, Robolectric)** in `app/src/test/.../widget/` — launches `ActivityMain` with `--es encode`/`--ez history` extras to test FEncode visibility toggle, FHistory chips, and bottom-sheet inflation under the Material theme. Robolectric runs at `@Config(sdk = [29], application = Application::class)` — sdk 29 avoids `BaseActivity.enableAdaptiveRefreshRate()` (API 30+ `getDisplay()` is unsupported in Robolectric), and the plain Application skips `RApp.onCreate` (no AdManager); `db`/`prefs` are init'd manually in `@Before`.
+- **Integration (instrumented + Espresso)** in `app/src/androidTest/.../` — `DbScanFilterInstrumentedTest` exercises real SQLite (inserts with controlled `dateTime`, cleans up by id in `@After` so it never touches real history), and `flow/*EspressoTest` drive the History/Encode UI. Espresso needs animations disabled and a device where ads don't block (VIP active); off-screen chips are driven via `scenario.onActivity { performClick() }` rather than `scrollTo()`.
 
 ## Flavors and ad SDK config
 

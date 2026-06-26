@@ -12,6 +12,8 @@ android {
         versionCode 20270627
         versionName '2026.06.27'
 
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
         buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${APPLOVIN_SDK_KEY}\""
         buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${APPLOVIN_BANNER_ID}\""
         buildConfigField "String", "APPLOVIN_INTERSTITIAL_ID","\"${APPLOVIN_INTERSTITIAL_ID}\""
@@ -37,6 +39,12 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 
     signingConfigs {
@@ -110,5 +118,17 @@ dependencies {
     implementation "com.google.android.play:review-ktx:2.0.2"
     implementation 'com.airbnb.android:lottie:6.1.0'
 
+    // Unit (JVM)
     testImplementation 'junit:junit:4.13.2'
+    // Widget (Robolectric — chạy trên JVM, không cần device)
+    testImplementation 'org.robolectric:robolectric:4.14.1'
+    testImplementation 'androidx.test:core:1.6.1'
+    testImplementation 'androidx.test.ext:junit:1.2.1'
+    testImplementation 'com.google.android.material:material:1.12.0'
+    // Integration (instrumented + Espresso — chạy trên device/emulator)
+    androidTestImplementation 'androidx.test:core:1.6.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

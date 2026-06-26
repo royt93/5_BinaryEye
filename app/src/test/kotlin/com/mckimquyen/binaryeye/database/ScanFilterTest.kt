@@ -89,6 +89,47 @@ class ScanFilterTest {
         assertNull(ScanFilter(dateRange = DateRange.MONTH).toWhereArgs())
     }
 
+    @Test
+    fun barcode1d_listContainsAllExpectedFormats() {
+        val sql = ScanFilter(formatGroup = FormatGroup.BARCODE_1D).toWhereClause()
+        listOf("EAN_8", "EAN_13", "CODE_39", "CODE_93", "CODE_128",
+            "UPC_A", "UPC_E", "ITF", "CODABAR", "DATA_BAR", "DATA_BAR_EXPANDED")
+            .forEach { assertTrue("thiếu $it", sql.contains("'$it'")) }
+    }
+
+    @Test
+    fun queryLikeArgs_wrapWithPercent() {
+        assertArrayEquals2(arrayOf("%a b%", "%a b%"), ScanFilter(query = "a b").toWhereArgs())
+        // Ký tự đặc biệt được giữ nguyên trong arg (đã parameterized nên an toàn injection).
+        assertArrayEquals2(arrayOf("%a'b%", "%a'b%"), ScanFilter(query = "a'b").toWhereArgs())
+    }
+
+    @Test
+    fun whitespaceQuery_isTreatedAsAQuery() {
+        // " " không rỗng → vẫn tạo mệnh đề LIKE (tài liệu hoá hành vi hiện tại).
+        val f = ScanFilter(query = " ")
+        assertTrue(f.toWhereClause().contains("LIKE ?"))
+        assertFalse(f.isDefault)
+    }
+
+    @Test
+    fun clauseUsesParameterizedPlaceholders_noInlineQueryValue() {
+        // Giá trị query KHÔNG được nội suy vào câu SQL (chống injection).
+        val sql = ScanFilter(query = "DROP TABLE scans").toWhereClause()
+        assertFalse(sql.contains("DROP TABLE"))
+        assertTrue(sql.contains("LIKE ?"))
+    }
+
+    @Test
+    fun queryAndDate_noFormat_joinedWithAnd() {
+        val sql = ScanFilter(query = "q", dateRange = DateRange.WEEK).toWhereClause()
+        assertEquals(
+            "WHERE (content LIKE ? OR name LIKE ?) AND " +
+                "_datetime >= datetime('now','-7 days','localtime')",
+            sql
+        )
+    }
+
     private fun assertArrayEquals2(expected: Array<String>, actual: Array<String>?) {
         assertEquals(expected.toList(), actual?.toList())
     }
