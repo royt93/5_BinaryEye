@@ -1,6 +1,12 @@
 package com.mckimquyen.binaryeye.frm
 
 import android.annotation.SuppressLint
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
+import android.net.Uri
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Bitmap
@@ -76,10 +82,15 @@ class FBarcode : Fragment() {
             return null
         }
 
+        val logoUriStr = arguments?.getString(LOGO_URI)
+        val finalBitmap = if (logoUriStr != null && barcode.format == BarcodeFormat.QR_CODE) {
+            overlayLogo(bitmap, Uri.parse(logoUriStr))
+        } else bitmap
+
         val imageView = view.findViewById<ConfinedScalingImageView>(
             R.id.barcode
         )
-        imageView.setImageBitmap(bitmap)
+        imageView.setImageBitmap(finalBitmap)
         imageView.post {
             // Make sure to invoke this after ScalingImageView.onLayout().
             imageView.minWidth = min(
@@ -110,7 +121,8 @@ class FBarcode : Fragment() {
             getString(FORMAT) ?: throw IllegalArgumentException(
                 "format cannot be null"
             )
-        ), getInt(SIZE), getInt(EC_LEVEL), Colors.entries[getInt(COLORS)]
+        ), getInt(SIZE), getInt(EC_LEVEL), Colors.entries[getInt(COLORS)],
+        getInt(FG_COLOR, COLOR_BLACK), getInt(BG_COLOR, COLOR_WHITE)
     )
 
     override fun onDestroyView() {
@@ -241,12 +253,41 @@ class FBarcode : Fragment() {
         }
     }
 
+
+    private fun overlayLogo(base: Bitmap, uri: Uri): Bitmap {
+        val logo = try {
+            requireContext().contentResolver.openInputStream(uri)?.use {
+                BitmapFactory.decodeStream(it)
+            }
+        } catch (_: Exception) { null } ?: return base
+        val result = base.copy(Bitmap.Config.ARGB_8888, true)
+        val canvas = Canvas(result)
+        val logoSize = (base.width * 0.25f).toInt()
+        val scaled = Bitmap.createScaledBitmap(logo, logoSize, logoSize, true)
+        val x = (base.width - logoSize) / 2f
+        val y = (base.height - logoSize) / 2f
+        val pad = logoSize * 0.1f
+        val corner = logoSize * 0.12f
+        canvas.drawRoundRect(
+            RectF(x - pad, y - pad, x + logoSize + pad, y + logoSize + pad),
+            corner, corner,
+            Paint().apply { color = Color.WHITE; isAntiAlias = true }
+        )
+        canvas.drawBitmap(scaled, x, y, null)
+        logo.recycle()
+        scaled.recycle()
+        return result
+    }
+
     companion object {
         private const val CONTENT = "content"
         private const val FORMAT = "format"
         private const val SIZE = "size"
         private const val EC_LEVEL = "ec_level"
         private const val COLORS = "colors"
+        private const val FG_COLOR = "fg_color"
+        private const val BG_COLOR = "bg_color"
+        private const val LOGO_URI = "logo_uri"
         private const val MIME_PNG = "image/png"
         private const val MIME_SVG = "image/svg+xmg"
         private const val MIME_TXT = "text/plain"
@@ -257,6 +298,9 @@ class FBarcode : Fragment() {
             size: Int,
             ecLevel: Int = -1,
             colors: Int = 0,
+            fgColor: Int = COLOR_BLACK,
+            bgColor: Int = COLOR_WHITE,
+            logoUri: String? = null,
         ): Fragment {
             val args = Bundle()
             args.putString(CONTENT, content)
@@ -264,6 +308,9 @@ class FBarcode : Fragment() {
             args.putInt(SIZE, size)
             args.putInt(EC_LEVEL, ecLevel)
             args.putInt(COLORS, colors)
+            args.putInt(FG_COLOR, fgColor)
+            args.putInt(BG_COLOR, bgColor)
+            logoUri?.let { args.putString(LOGO_URI, it) }
             val fragment = FBarcode()
             fragment.arguments = args
             return fragment
@@ -277,9 +324,13 @@ private data class Barcode(
     val size: Int,
     val ecLevel: Int,
     val colors: Colors,
+    val fgColorCustom: Int = COLOR_BLACK,
+    val bgColorCustom: Int = COLOR_WHITE,
 ) {
     private var _bitmap: Bitmap? = null
     fun bitmap(): Bitmap {
+        val fg = fgColorCustom.takeIf { it != COLOR_BLACK } ?: colors.foregroundColor()
+        val bg = bgColorCustom.takeIf { it != COLOR_WHITE } ?: colors.backgroundColor()
         val b = _bitmap ?: ZxingCpp.encodeAsBitmap(
             content = content,
             format = format,
@@ -287,8 +338,8 @@ private data class Barcode(
             height = size,
             margin = -1,
             ecLevel = ecLevel,
-            setColor = colors.foregroundColor(),
-            unsetColor = colors.backgroundColor()
+            setColor = fg,
+            unsetColor = bg
         )
         _bitmap = b
         return b

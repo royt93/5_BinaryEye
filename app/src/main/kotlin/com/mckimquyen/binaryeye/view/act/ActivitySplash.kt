@@ -66,7 +66,7 @@ class ActivitySplash : BaseActivity() {
     }
 
     private fun goToMain() {
-        val intent = Intent(this@ActivitySplash, CameraActivity::class.java)
+        val intent = Intent(this@ActivitySplash, ActivityCamera::class.java)
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         handler.postDelayed(finishRunnable, 300)

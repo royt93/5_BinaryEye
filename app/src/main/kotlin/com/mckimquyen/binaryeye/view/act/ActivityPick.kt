@@ -258,8 +258,9 @@ class ActivityPick : BaseActivity() {
     private fun showResult() {
         val r = result
         if (r != null) {
-            showResult(r)
-            finish()
+            // finishOnDismiss=true: ActivityPick chỉ finish() khi bottom sheet đóng.
+            // Nếu finish() ngay, dialog sẽ chết theo activity và kết quả bị mất.
+            showResult(r, finishOnDismiss = true)
         } else {
             applicationContext.toast(R.string.no_barcode_found)
         }

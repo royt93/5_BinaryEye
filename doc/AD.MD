@@ -1,97 +1,153 @@
-# 🚀 Kế Hoạch Tích Hợp AdmobApplovinWrapper & VIP Management
+# Tích Hợp AdmobApplovinWrapper — Trạng Thái Hiện Tại
 
-## 1. Thông tin cấu hình SDK
-- **Provider**: AppLovin MAX (`IS_ENABLE_ADMOB = false`)
-- **AppLovin SDK Key**: `e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt`
-- **Banner Ad**: `84d187d1b08adc3d`
-- **Interstitial Ad**: `5ac61198c318d67b`
-- **App Open Ad**: `6569037b86c0256e`
-- **Rewarded Ad**: `671ca9067e78cc47`
+> Cập nhật: 2026-06-22 | Migration: ✅ HOÀN TẤT
+> Lib: `com.github.royt93:AdmobApplovinWrapper:1.1.3`
 
-### VIP Keys (Base64 Encoded trong code)
-- **30 Days Key**: `9fA0q7eN!27cLx04@21993Y2u0I7#Q0` -> Base64: `OWZBMHE3ZU4hMjdjTHgwNEAyMTk5M1kydTBJNyNRMA==`
-- **3 Days Key**: `eQ7@93L0f!2Y2707xN04021993u0I#2aK` -> Base64: `ZVE3QDkzTDBmITJZMjcwN3hOMDQwMjE5OTN1MEkjMmFL`
-- **Secret Key System**: Sẽ cấu hình `AdSdkConfig.vipKeySecret` thành `OWZBMHE3ZU4hMjdjTHgwNEAyMTk5M1kydTBJNyNRMA==` (cho 30 ngày) và xử lý riêng biệt key 3 ngày.
+---
 
-## 2. Các Bước Triển Khai (Touchpoints)
+## 1. Cấu Hình SDK Hiện Tại
 
-### Bước 1: Setup & Dependency
-- Cập nhật `build.gradle` thêm JitPack repository và dependency `com.github.royt93:AdmobApplovinWrapper:1.1.3`.
-- Xoá thư mục `sdkadbmob` cũ chứa `AdMobManager.kt` monolith để dọn dẹp code và tránh xung đột (không bị memory leak như bản cũ).
+| Field | Giá trị |
+|---|---|
+| Provider active | **AppLovin MAX** (`IS_ENABLE_ADMOB = false`) |
+| AppLovin SDK Key | `e75FnQfS9XTTqM1Kne69U7PW_MBgAnGQTFvtwVVui6kRPKs5L7ws9twr5IQWwVfzPKZ5pF2IfDa7lguMgGlCyt` |
+| Banner Ad Unit | `84d187d1b08adc3d` |
+| Interstitial Ad Unit | `5ac61198c318d67b` |
+| App Open Ad Unit | `6569037b86c0256e` |
+| Rewarded Ad Unit | `671ca9067e78cc47` |
 
-### Bước 2: App Initialization & UMP Consent (`RApp.kt` & `ActivitySplash.kt`)
-- Trong `RApp.kt`: Gọi `AdManager.setConfig(AdSdkConfig(...))` và `AdManager.initialize`.
-- Thêm logic **VIP 1 ngày tự động kích hoạt** ở lần mở app đầu tiên (check `SharedPreferences`).
-- Trong `ActivitySplash.kt`: Gọi `AdManager.requestConsentInfoUpdate` để hỏi UMP Consent (bắt buộc cho EEA). Sau khi user đồng ý (hoặc không ở EEA), chạy coroutine `AdManager.awaitSplashComplete` để chờ load App Open Ad rồi vào `MainActivity`.
-- Vòng đời App Open khi user chuyển từ background về foreground sẽ được SDK quản lý tự động.
+### VIP Keys (Base64 encoded — KHÔNG đổi nếu không muốn invalidate keys cũ)
 
-### Bước 3: VIP Management UI/UX
-- Thêm section mới trong màn hình Cài Đặt (Preferences) trỏ tới `FVipManagement.kt` (Fragment).
-- UI bao gồm:
-  - Text view trạng thái VIP (Ví dụ: `VIP Active: 29 days left` hoặc `Free User`).
-  - Nút **Nhập mã VIP**: Mở dialog cho phép user dán mã Base64 (30 ngày hoặc 3 ngày). Code sẽ decode và kích hoạt qua `AdManager.activateVipByKey`.
-  - Nút **Watch Ad for 3 Days VIP**: Gọi `AdManager.loadRewarded` và `AdManager.showRewarded`. Nếu xem xong -> `onUserEarnedReward` -> kích hoạt VIP 3 ngày. Nếu rewarded load lỗi -> fallback qua `AdManager.showInterstitial`.
-
-### Bước 4: Banner Ad (`ActivityCamera.kt`)
-- Xoá setup banner cũ.
-- Thêm include `@layout/layout_ad_banner` vào `ActivityCamera.kt`.
-- Sử dụng `AdManager.loadBanner` để SDK tự động handle lifecycle (pause/resume/destroy), đảm bảo không leak memory.
-
-### Bước 5: Interstitial Ad (`ActivityCamera.kt`)
-- Chỉ thay thế những chỗ đang gọi `AdMobManager.showInterstitial` cũ (sau khi scan hoặc các luồng tương tự) thành `AdManager.showInterstitial`. SDK đã lo AdSafety, Frequency Capping chống click tặc.
-
-## 3. So Sánh Trước & Sau Migrate
-
-| Tính Năng | Trước Khi Migrate (`AdMobManager` cũ) | Sau Khi Migrate (`_AdmobWrapper`) |
-| --- | --- | --- |
-| **Provider** | AdMob (Google) | AppLovin MAX |
-| **Kiến trúc** | Monolith, hardcode, tự quản lý vòng đời | Tách biệt, Coroutine-based, Auto-Lifecycle |
-| **App Open** | Dễ crash/leak, manual resume check | Tự động via ProcessLifecycleOwner |
-| **UMP Consent** | Không có | Có sẵn, tích hợp chặt chẽ ở Splash |
-| **Ad Safety** | Thô sơ | Tích hợp 7 lớp bảo vệ, Frequency Capping |
-| **VIP System** | Không có | Chặn ad toàn diện, tính expiry time chính xác |
-
-## 4. Open Questions / Thông Tin Cần Xác Nhận
-Tôi đã có đủ ID và Key bạn cung cấp. Tuy nhiên, tôi cần hỏi:
-1. Bạn muốn import thư viện qua JitPack (mạng) hay module nội bộ (`include ':AdmobWrapper'`)? (Tôi sẽ mặc định dùng JitPack vì nó dễ quản lý nhất).
-2. Mã VIP 3 ngày và 30 ngày sẽ dùng để activate `vipByKey`. Thư viện chỉ hỗ trợ 1 `vipKeySecret` cho thời gian cấu hình mặc định, nên tôi sẽ dùng logic Custom để cấp VIP tương ứng với số ngày tùy theo key nhập vào. Bạn đồng ý chứ?
-
-## 5. UI VIP — Premium polish (2026-04-27)
-
-Đợt nâng cấp UI để hướng tới "xịn nhất có thể" theo Step 10 của `doc/AD_PROMPT_AOS.MD`.
-
-### Layout `roy_frm_vip_management.xml`
-
-| Component | Trước | Sau |
+| Key | Plain | Base64 |
 |---|---|---|
-| Hero header | Gradient blue-grey + crown 3D + countdown | + Status chip ("VIP ACTIVE" gold / "TÀI KHOẢN MIỄN PHÍ" neutral) trên đỉnh, + radial glow xoay (12s/loop) sau crown, + dòng hint "Nâng cấp VIP để mở khoá toàn bộ tính năng" cho user free |
-| Status chip | Không có | `chipStatus` chuyển nền `roy_bg_status_chip_gold` ↔ `roy_bg_status_chip` theo state |
-| Đặc quyền VIP | Không có | Card `featuresCard` (4 mục: tắt ad / quét không giới hạn / hỗ trợ ưu tiên / tính năng độc quyền) với check icon vàng |
-| Plan icons | Emoji 👑💎⭐🔮 trong TextView | Vector drawable (`ic_play_circle_filled`, `ic_gift_box`, `ic_diamond_premium`, `ic_star_premium`, `ic_infinity`) trên các circle gradient màu (green/blue/purple/gold/pink) |
-| Plan badges | Chỉ "MIỄN PHÍ" cho Watch Ad | + "−33%" / "−67%" cho 90d / 1Y, + "BEST VALUE" gradient tím cho Lifetime |
-| Plan card bg | `bg_liquid_glass_dark` chung | Active row `roy_bg_vip_card_active` (gold tint), locked rows `roy_bg_vip_card_locked` (neutral, lock icon `ic_lock_outline`) |
-| Section header | TextView dọc | Divider gradient hai bên + label vàng letterSpacing |
+| 30 Days | `9fA0q7eN!27cLx04@21993Y2u0I7#Q0` | `OWZBMHE3ZU4hMjdjTHgwNEAyMTk5M1kydTBJNyNRMA==` |
+| 3 Days | `eQ7@93L0f!2Y2707xN04021993u0I#2aK` | `ZVE3QDkzTDBmITJZMjcwN3hOMDQwMjE5OTN1MEkjMmFL` |
 
-### Animation mới (theo Step 10.2)
+`vipKeySecret` trong `RApp.setupAdSystem()` = Base64 của key 30 ngày.
 
-| # | Animation | Cấu hình |
+---
+
+## 2. Touchpoint Table (Trạng Thái Sau Migration)
+
+| Slot | File | Trigger | API hiện tại | Ghi chú |
+|---|---|---|---|---|
+| **Banner** | `ActivityCamera.kt:161` | `onCreate` | `AdManager.loadBanner(...)` | View gắn vào `adView` |
+| **Interstitial** | `ActivityCamera.kt:168` | `onCreate` (preload) | `AdManager.loadInterstitial(this)` | Show tại lines 320, 332, 372 |
+| **App Open** | `ActivitySplash.kt` | `requestConsentInfoUpdate` callback | `AdManager.awaitSplashComplete(this)` | Block nav đến Main |
+| **Rewarded** | `FVipManagement.kt:524` | User click "Watch Ad" | `AdManager.showRewarded(...)` | Fallback → interstitial nếu fail |
+
+---
+
+## 3. Kiến Trúc Hiện Tại
+
+```
+RApp.onCreate()
+  └── setupAdSystem()
+        ├── AdSdkConfig(applovinSdkKey, banner/inter/appOpen/rewarded IDs, vipKeySecret, safety)
+        └── AdManager.initialize(this) { success, gaid -> ... }
+
+ActivitySplash.onCreate()
+  ├── AdManager.requestConsentInfoUpdate(activity, tagForUnderAgeOfConsent=false) { canRequestAds ->
+  │     if (canRequestAds) → runSplashAdFlow()
+  │     else → goToMain()
+  │   }
+  └── runSplashAdFlow() [CoroutineScope Main]
+        └── AdManager.awaitSplashComplete(this) → goToMain()
+
+CameraActivity.onCreate()
+  ├── AdManager.loadBanner(...)   → adView
+  └── AdManager.loadInterstitial(this)
+
+CameraActivity [scan decoded]
+  └── AdManager.showInterstitial(this) { success -> ... }
+
+FVipManagement [Watch Ad button]
+  └── AdManager.showRewarded(..., listener)
+        ├── onUserEarnedReward → activateVip(3 days)
+        └── onAdFailedToLoad/Show → showInterstitial fallback → activateVip(3 days)
+```
+
+---
+
+## 4. So Sánh Trước / Sau Migration
+
+| Tính Năng | Trước (AdMobManager cũ) | Sau (AdmobApplovinWrapper) |
 |---|---|---|
-| 1 | Stagger entrance | `runStaggerEntrance()` — alpha 0→1 + translationY 40→0, 380ms, delay 70ms cho mỗi row (`featuresCard`, `rowWatchAd`, `planRow30`, `planRow90`, `planRow1Y`, `planRowLifetime`) |
-| 2 | Hero glow rotation | `viewHeroGlow` xoay 360° trong 12s, infinite, linear, lifecycle-bound (cancel onPause) |
-| 3 | Watch ad pulse | Khi free user, `rowWatchAd` scale 1.0↔1.02 mỗi 1.5s; cancel khi VIP active hoặc onPause |
-| 4 | Crown shimmer | (giữ) rotate ±5° mỗi 800ms |
-| 5 | Confetti + scale celebration | (giữ) khi `activateVipByKey` thành công |
-| 6 | Glow sweep progress | (giữ) khi VIP active |
+| **Provider** | AdMob (Google) | AppLovin MAX (Admob disabled) |
+| **Kiến trúc** | Monolith, hardcode, self-managed lifecycle | Tách biệt, Coroutine-based, auto-lifecycle |
+| **App Open** | Manual resume check, dễ crash/leak | Auto via `ProcessLifecycleOwner` trong lib |
+| **UMP Consent** | Không có | `requestConsentInfoUpdate` ở Splash |
+| **Ad Safety** | Thô sơ | `AdSafetyLimits` với 7 lớp bảo vệ + frequency cap |
+| **Frequency Cap** | Không có | Built-in qua `AdSafetyLimits.TEST` (debug) / default (release) |
+| **VIP System** | Không có | `AdManager.activateVipByKey(base64)`, countdown, UI đầy đủ |
+| **Memory Leak** | Handler ẩn danh, Activity strong ref | WeakReference, `splashScope?.cancel()` trong `onDestroy` |
+| **Rewarded Ad** | Không có | Tích hợp trong `FVipManagement` với fallback interstitial |
+| **Banner Lifecycle** | Manual pause/resume/destroy | Auto qua lib |
 
-### Drawable mới
+---
 
-- Vector icons: `ic_play_circle_filled`, `ic_gift_box`, `ic_diamond_premium`, `ic_star_premium`, `ic_infinity`, `ic_lock_outline`, `ic_check_circle_gold`, `ic_shield_check`, `ic_bolt`, `ic_rocket`, `ic_sparkle`.
-- Backgrounds: `roy_bg_savings_badge`, `roy_bg_best_value`, `roy_bg_features_card`, `roy_bg_vip_card_active`, `roy_bg_vip_card_locked`, `roy_bg_section_divider`, `roy_bg_hero_overlay`, `roy_bg_status_chip`, `roy_bg_status_chip_gold`, `roy_bg_icon_circle_{gold,purple,blue,silver,pink}`.
+## 5. VIP Management Screen — Trạng Thái
 
-### Memory leak rule (Step 10.3)
+**Fragment:** `FVipManagement.kt`
+**Layout:** `roy_frm_vip_management.xml`
+**Entry point:** Settings screen (`FPreferences`) → VIP menu item
 
-Tất cả animator mới (`heroGlowAnim`, `watchAdPulseAnim`) đều cancel ở `onPause` và `onDestroyView`. Listener vẫn dùng `WeakReference<Fragment>`. Không thêm `Handler.postDelayed` cho countdown.
+### Components đã implement (9/9)
 
-### Build verify
+| # | Thành phần | Status |
+|---|---|---|
+| 1 | Status header (chip + crown icon) | ✅ `chipStatus`, `ivVipIcon` |
+| 2 | Activation date row | ✅ `tvVipActivated` |
+| 3 | Expiry date row | ✅ `tvVipExpiry` |
+| 4 | Progress bar | ✅ `progressVip` với `animateProgress()` |
+| 5 | Countdown text (`d h m s`) | ✅ `tvCountdown` via `CountDownTimer` |
+| 6 | Button "Nhập mã VIP" | ✅ `etVipKey` + MaterialAlertDialog |
+| 7 | Button "Watch ad → 3 days VIP" | ✅ `setupWatchAdRow()` |
+| 8 | Toolbar badge VIP | ✅ Hiển thị chip vàng trên toolbar |
+| 9 | Cancel VIP button | ✅ `setupCancelButton()` + confirm dialog |
 
-`./gradlew assembleDevDebug` → BUILD SUCCESSFUL (9s, không lỗi mới).
+### Animations đã implement (5/5)
+
+| # | Animation | Impl | Status |
+|---|---|---|---|
+| 1 | Stagger entrance | `runStaggerEntrance()` — alpha 0→1, translateY 40→0 | ✅ |
+| 2 | Hero glow rotation | `startHeroGlowRotation()` — 360° / 12s, infinite, cancel onPause | ✅ |
+| 3 | Watch ad pulse | `startWatchAdPulse()` — scale 1→1.05→1, infinite | ✅ |
+| 4 | Crown shimmer | `startCrownShimmer()` — rotate ±5°, repeat | ✅ |
+| 5 | Confetti celebration | `playCelebration()` + `showConfetti()` + haptic | ✅ |
+
+### Purchase Options (In-App Purchase — PENDING)
+
+| Gói | Giá | Status |
+|---|---|---|
+| Watch Ad | Free | ✅ Hoạt động |
+| VIP 30 ngày | ~$0.50 | ⏸️ Disabled (chờ IAP integration) |
+| VIP 90 ngày | ~$1.00 | ⏸️ Disabled |
+| VIP 1 năm | ~$2.00 | ⏸️ Disabled |
+| VIP Lifetime | ~$3.00 | ⏸️ Disabled |
+
+---
+
+## 6. Open Issues / Cần Làm
+
+| # | Issue | Priority |
+|---|---|---|
+| 1 | `ActivityCamera.kt` còn stale imports AdMob SDK (lines 25–28) | 🟡 LOW |
+| 2 | In-App Purchase integration cho các gói VIP trả phí | 📋 Planned |
+| 3 | `RApp.kt` và `ActivityCamera.kt` còn `Log.d("roy93~", ...)` debug trong production | 🟡 LOW |
+| 4 | `ActivityCamera` class name không theo convention (`CameraActivity` vs file `ActivityCamera.kt`) | 🟡 LOW |
+
+---
+
+## 7. AdSafetyLimits Config
+
+```kotlin
+// Trong RApp.setupAdSystem():
+safety = if (BuildConfig.DEBUG) AdSafetyLimits.TEST else AdSafetyLimits()
+```
+
+| Field | Debug (`TEST`) | Release (default) |
+|---|---|---|
+| Interstitial min interval | ~10s | ~60s |
+| App Open min interval | ~10s | ~120s |
+| Max per session | Không giới hạn | Theo default lib |

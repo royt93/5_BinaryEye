@@ -76,7 +76,7 @@
                 android:resource="@xml/shortcuts" />
         </activity>
         <activity
-            android:name=".view.act.CameraActivity"
+            android:name=".view.act.ActivityCamera"
             android:exported="true"
             android:label="@string/scan_code">
             <intent-filter android:label="@string/compose_barcode">

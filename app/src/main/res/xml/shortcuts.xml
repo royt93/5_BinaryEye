@@ -9,7 +9,7 @@
         android:shortcutShortLabel="@string/shortcut_decode">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.mckimquyen.binaryeye.view.act.CameraActivity"
+            android:targetClass="com.mckimquyen.binaryeye.view.act.ActivityCamera"
             android:targetPackage="com.mckimquyen.binaryeye" />
     </shortcut>
     <shortcut

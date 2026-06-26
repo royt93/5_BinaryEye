@@ -49,7 +49,7 @@ class RApp : Application() {
         AdManager.setConfig(adConfig)
         
         AdManager.initialize(this) { success, gaid ->
-            Log.d("roy93~", "AdManager init success=$success, gaid=$gaid")
+            if (BuildConfig.DEBUG) Log.d("roy93~", "AdManager init success=$success, gaid=$gaid")
         }
     }
 }

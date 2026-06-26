@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/insetLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/roy_bg_bottom_sheet"
+    android:orientation="vertical"
+    android:paddingBottom="16dp">
+
+    <!-- Drag handle -->
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:background="#66FFFFFF" />
+
+    <!-- Format badge row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFormat"
+            style="@style/Widget.MaterialComponents.Chip.Entry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="false"
+            android:clickable="false"
+            android:focusable="false"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:chipBackgroundColor="@color/primary_translucent"
+            app:closeIconVisible="false" />
+
+    </LinearLayout>
+
+    <!-- Content text -->
+    <TextView
+        android:id="@+id/tvScanContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="4"
+        android:textColor="@color/white"
+        android:textColorHighlight="@color/primary"
+        android:textSize="15sp"
+        android:textIsSelectable="true" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="#33FFFFFF" />
+
+    <!-- Primary smart action button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPrimaryAction"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="12dp"
+        android:textColor="@color/white"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconTint="@color/white" />
+
+    <!-- Secondary actions row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCopy"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:maxLines="1"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/scan_result_copy"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_action_copy"
+            app:iconGravity="top"
+            app:iconPadding="2dp"
+            app:iconTint="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnShare"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:maxLines="1"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/scan_result_share"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_action_share"
+            app:iconGravity="top"
+            app:iconPadding="2dp"
+            app:iconTint="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:maxLines="1"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/scan_result_save"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_action_save"
+            app:iconGravity="top"
+            app:iconPadding="2dp"
+            app:iconTint="@color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDetails"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:maxLines="1"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/scan_result_details"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            app:icon="@drawable/ic_action_info"
+            app:iconGravity="top"
+            app:iconPadding="2dp"
+            app:iconTint="@color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

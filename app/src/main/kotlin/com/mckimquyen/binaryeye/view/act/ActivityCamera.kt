@@ -21,11 +21,10 @@ import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
@@ -62,6 +61,13 @@ import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.DetectorView
 import com.mckimquyen.binaryeye.view.widget.toast
 import com.mckimquyen.binaryeye.frm.FLanguageDialog
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.mckimquyen.binaryeye.database.Scan
+import com.mckimquyen.binaryeye.view.actions.ActionRegistry
+import com.mckimquyen.binaryeye.view.content.shareText
+import kotlinx.coroutines.launch
 import de.markusfisch.android.cameraview.widget.CameraView
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import de.markusfisch.android.zxingcpp.ZxingCpp.Binarizer
@@ -71,7 +77,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class CameraActivity : BaseActivity() {
+class ActivityCamera : BaseActivity() {
     private val frameRoi = Rect()
     private val matrix = Matrix()
 
@@ -318,11 +324,7 @@ class CameraActivity : BaseActivity() {
 
             R.id.create -> {
                 AdManager.showInterstitial(this) { success ->
-                    if (success) {
-                        Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
-                    } else {
-                        Log.d("roy93~", "Ad không hiển thị được hoặc có lỗi")
-                    }
+                    if (BuildConfig.DEBUG) Log.d("roy93~", if (success) "Ad shown ok" else "Ad not shown")
                     createBarcode()
                 }
                 true
@@ -330,11 +332,7 @@ class CameraActivity : BaseActivity() {
 
             R.id.history -> {
                 AdManager.showInterstitial(this) { success ->
-                    if (success) {
-                        Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
-                    } else {
-                        Log.d("roy93~", "Ad không hiển thị được hoặc có lỗi")
-                    }
+                    if (BuildConfig.DEBUG) Log.d("roy93~", if (success) "Ad shown ok" else "Ad not shown")
                     startActivity(ActivityMain.getHistoryIntent(this))
                 }
                 true
@@ -370,11 +368,7 @@ class CameraActivity : BaseActivity() {
 
             R.id.preferences -> {
                 AdManager.showInterstitial(this) { success ->
-                    if (success) {
-                        Log.d("roy93~", "Ad đã hiển thị và đóng thành công")
-                    } else {
-                        Log.d("roy93~", "Ad không hiển thị được hoặc có lỗi")
-                    }
+                    if (BuildConfig.DEBUG) Log.d("roy93~", if (success) "Ad shown ok" else "Ad not shown")
                     startActivity(ActivityMain.getPreferencesIntent(this))
                 }
                 true
@@ -528,7 +522,7 @@ class CameraActivity : BaseActivity() {
             }
 
             override fun onCameraError() {
-                this@CameraActivity.toast(R.string.cameraError)
+                this@ActivityCamera.toast(R.string.cameraError)
             }
 
             override fun onCameraReady(camera: Camera) {
@@ -756,6 +750,10 @@ class CameraActivity : BaseActivity() {
 fun Activity.showResult(
     result: Result,
     bulkMode: Boolean = false,
+    // Khi true (vd quét từ ảnh trong ActivityPick), Activity host sẽ finish()
+    // KHI bottom sheet đóng — không finish ngay, nếu không dialog sẽ chết theo
+    // activity và kết quả bị mất.
+    finishOnDismiss: Boolean = false,
 ) {
     if (prefs.copyImmediately) {
         copyToClipboard(result.text)
@@ -772,9 +770,9 @@ fun Activity.showResult(
             return
         }
         // [FIX ML-4] Dung lifecycleScope thay vi GlobalScope
-        // Request se bi cancel khi Activity bi destroy
-        val scope = (this as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope
-            ?: kotlinx.coroutines.MainScope()
+        // Request se bi cancel khi Activity bi destroy.
+        // Moi Activity deu extend BaseActivity (AppCompatActivity -> LifecycleOwner).
+        val scope = (this as LifecycleOwner).lifecycleScope
         scan.sendAsync(
             prefs.sendScanUrl, prefs.sendScanType, scope
         ) { code, body ->
@@ -789,8 +787,7 @@ fun Activity.showResult(
         }
     }
     if (prefs.sendScanBluetooth && prefs.sendScanBluetoothHost.isNotEmpty() && hasBluetoothPermission()) {
-        val scope = (this as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope
-            ?: kotlinx.coroutines.MainScope()
+        val scope = (this as LifecycleOwner).lifecycleScope
         scan.sendBluetoothAsync(
             prefs.sendScanBluetoothHost, scope
         ) { connected, sent ->
@@ -812,11 +809,92 @@ fun Activity.showResult(
         }
     }
     if (!bulkMode) {
-        startActivity(
-            ActivityMain.getDecodeIntent(this, scan)
-        )
+        showScanBottomSheet(scan, finishOnDismiss)
+    } else if (finishOnDismiss) {
+        finish()
     }
 }
+
+private fun Activity.showScanBottomSheet(scan: Scan, finishOnDismiss: Boolean = false) {
+    val isBinary = scan.raw != null
+    val data = scan.raw ?: scan.content.toByteArray()
+    val action = if (isBinary) null else ActionRegistry.getAction(data)
+
+    val sheet = BottomSheetDialog(this)
+    val sheetView = layoutInflater.inflate(R.layout.roy_bottom_sheet_scan_result, null)
+    sheet.setContentView(sheetView)
+
+    // Container mặc định của BottomSheet là colorSurface (trắng dưới theme Bridge);
+    // làm trong suốt để chỉ thấy nền tối bo góc của sheetView → chữ sáng đọc được.
+    (sheetView.parent as? View)?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+    // Edge-to-edge: chừa nav/gesture bar để hàng nút không bị che.
+    val basePadBottom = sheetView.paddingBottom
+    ViewCompat.setOnApplyWindowInsetsListener(sheetView) { v, insets ->
+        val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+        v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, basePadBottom + nav)
+        insets
+    }
+
+    sheetView.findViewById<Chip>(R.id.chipFormat).text = prettifyFormatName(scan.format)
+    sheetView.findViewById<android.widget.TextView>(R.id.tvScanContent).text =
+        if (isBinary) getString(R.string.binary_data) else scan.content
+
+    val btnPrimary = sheetView.findViewById<MaterialButton>(R.id.btnPrimaryAction)
+    if (action != null) {
+        btnPrimary.setIconResource(action.iconResId)
+        btnPrimary.setText(action.titleResId)
+        btnPrimary.setOnClickListener {
+            // Moi Activity deu extend BaseActivity (AppCompatActivity -> LifecycleOwner),
+            // nen lifecycleScope luon co san; coroutine tu cancel khi Activity destroy.
+            (this as LifecycleOwner).lifecycleScope.launch {
+                action.execute(this@showScanBottomSheet, data)
+            }
+            sheet.dismiss()
+        }
+    } else {
+        btnPrimary.visibility = View.GONE
+    }
+
+    val btnCopy = sheetView.findViewById<MaterialButton>(R.id.btnCopy)
+    btnCopy.isEnabled = !isBinary
+    btnCopy.setOnClickListener {
+        copyToClipboard(scan.content)
+        toast(R.string.copied_to_clipboard)
+        sheet.dismiss()
+    }
+
+    val btnShare = sheetView.findViewById<MaterialButton>(R.id.btnShare)
+    btnShare.isEnabled = !isBinary
+    btnShare.setOnClickListener {
+        shareText(scan.content)
+        sheet.dismiss()
+    }
+
+    val btnSave = sheetView.findViewById<MaterialButton>(R.id.btnSave)
+    val alreadySaved = prefs.useHistory && scan.id > 0L
+    if (alreadySaved) {
+        btnSave.setText(R.string.scan_saved)
+        btnSave.isEnabled = false
+    } else {
+        btnSave.setOnClickListener {
+            db.insertScan(scan)
+            toast(R.string.scan_saved)
+            sheet.dismiss()
+        }
+    }
+
+    sheetView.findViewById<MaterialButton>(R.id.btnDetails).setOnClickListener {
+        sheet.dismiss()
+        startActivity(ActivityMain.getDecodeIntent(this, scan))
+    }
+
+    if (finishOnDismiss) {
+        sheet.setOnDismissListener { finish() }
+    }
+
+    sheet.show()
+}
+
 
 private fun getReturnIntent(result: Result) = Intent().apply {
     putExtra("SCAN_RESULT", result.text)

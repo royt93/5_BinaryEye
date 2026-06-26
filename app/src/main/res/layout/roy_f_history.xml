@@ -1,43 +1,170 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/historyInsetRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <ListView
-        android:id="@+id/scans"
+    <!-- Filter chips bar -->
+    <HorizontalScrollView
+        android:id="@+id/filterScrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:choiceMode="multipleChoice"
-        android:clipToPadding="false"
-        android:divider="@color/separator"
-        android:dividerHeight="1px" />
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:background="?attr/colorSurface">
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/insetLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/useHistory"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:padding="16dp"
-            android:text="@string/use_history"
-            android:thumb="@drawable/sw_thumb_selector"
-            android:visibility="gone"
-            app:track="@drawable/sw_track_selector"
-            app:trackTintMode="multiply"
-            tools:visibility="visible" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/share"
-            style="@style/FAB"
-            android:contentDescription="@string/share"
-            android:src="@drawable/ic_action_share"
-            android:visibility="gone" />
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            <!-- Date group -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
 
-    <include layout="@layout/roy_v_progress_view" />
-</FrameLayout>
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDateAll"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_all"
+                    android:checked="true" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDateToday"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_today" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDateWeek"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_this_week" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDateMonth"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_this_month" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+            <!-- Separator -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@color/separator" />
+
+            <!-- Format group -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFormat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipFormatAll"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_format_all"
+                    android:checked="true" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipFormatQr"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_format_qr" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipFormat1d"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_format_1d" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipFormat2d"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_format_2d" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:background="@color/separator" />
+
+    <!-- Existing content -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/scans"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:choiceMode="multipleChoice"
+            android:clipToPadding="false"
+            android:divider="@color/separator"
+            android:dividerHeight="1px" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/insetLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/useHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:padding="16dp"
+                android:text="@string/use_history"
+                android:thumb="@drawable/sw_thumb_selector"
+                android:visibility="gone"
+                app:track="@drawable/sw_track_selector"
+                app:trackTintMode="multiply"
+                tools:visibility="visible" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/share"
+                style="@style/FAB"
+                android:contentDescription="@string/share"
+                android:src="@drawable/ic_action_share"
+                android:visibility="gone" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        <include layout="@layout/roy_v_progress_view" />
+
+    </FrameLayout>
+
+</LinearLayout>

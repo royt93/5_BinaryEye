@@ -18,8 +18,10 @@ import androidx.appcompat.widget.SwitchCompat
 import android.view.*
 import android.widget.EditText
 import android.widget.ListView
+import com.google.android.material.chip.ChipGroup
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.adapter.ScansAdapter
+import com.mckimquyen.binaryeye.database.ScanFilter
 import com.mckimquyen.binaryeye.ext.app.addFragment
 import com.mckimquyen.binaryeye.ext.app.alertDialog
 import com.mckimquyen.binaryeye.ext.app.hasWritePermission
@@ -47,6 +49,9 @@ class FHistory : Fragment() {
     private lateinit var listView: ListView
     private lateinit var fab: View
     private lateinit var progressView: View
+
+    private lateinit var chipGroupDate: ChipGroup
+    private lateinit var chipGroupFormat: ChipGroup
 
     private val parentJob = Job()
     private val scope = CoroutineScope(Dispatchers.IO + parentJob)
@@ -159,7 +164,7 @@ class FHistory : Fragment() {
     private var scansAdapter: ScansAdapter? = null
     private var listViewState: Parcelable? = null
     private var actionMode: ActionMode? = null
-    private var filter: String? = null
+    private var scanFilter = ScanFilter()
     private var clearListMenuItem: MenuItem? = null
     private var exportHistoryMenuItem: MenuItem? = null
 
@@ -207,8 +212,14 @@ class FHistory : Fragment() {
 
         progressView = view.findViewById(R.id.progressView)
 
-        (view.findViewById<View>(R.id.insetLayout)).setPaddingFromWindowInsets()
-        listView.setPaddingFromWindowInsets()
+        // Áp window-inset (status bar + toolbar + navbar) cho cả cột để thanh
+        // filter chips ở trên cùng không bị status bar/toolbar che, và list/FAB
+        // không bị navbar che. Tránh double-pad ở từng con.
+        (view.findViewById<View>(R.id.historyInsetRoot)).setPaddingFromWindowInsets()
+
+        chipGroupDate = view.findViewById(R.id.chipGroupDate)
+        chipGroupFormat = view.findViewById(R.id.chipGroupFormat)
+        setupFilterChips()
 
         update()
 
@@ -286,18 +297,44 @@ class FHistory : Fragment() {
     }
 
     private fun updateAndClearFilter() {
-        filter = null
+        scanFilter = ScanFilter()
+        chipGroupDate.check(R.id.chipDateAll)
+        chipGroupFormat.check(R.id.chipFormatAll)
         update()
     }
 
+
+    private fun setupFilterChips() {
+        chipGroupDate.setOnCheckedStateChangeListener { _, checkedIds ->
+            val dateRange = when (checkedIds.firstOrNull()) {
+                R.id.chipDateToday -> ScanFilter.DateRange.TODAY
+                R.id.chipDateWeek  -> ScanFilter.DateRange.WEEK
+                R.id.chipDateMonth -> ScanFilter.DateRange.MONTH
+                else               -> ScanFilter.DateRange.ALL
+            }
+            scanFilter = scanFilter.copy(dateRange = dateRange)
+            update()
+        }
+        chipGroupFormat.setOnCheckedStateChangeListener { _, checkedIds ->
+            val formatGroup = when (checkedIds.firstOrNull()) {
+                R.id.chipFormatQr   -> ScanFilter.FormatGroup.QR
+                R.id.chipFormat1d   -> ScanFilter.FormatGroup.BARCODE_1D
+                R.id.chipFormat2d   -> ScanFilter.FormatGroup.OTHER_2D
+                else                -> ScanFilter.FormatGroup.ALL
+            }
+            scanFilter = scanFilter.copy(formatGroup = formatGroup)
+            update()
+        }
+    }
+
     private fun update(query: String? = null) {
-        query?.let { filter = it }
+        if (query != null) scanFilter = scanFilter.copy(query = query)
         scope.launch {
-            val cursor = db.getScans(filter)
+            val cursor = db.getScans(scanFilter)
             withContext(Dispatchers.Main) {
                 val ac = activity ?: return@withContext
                 val hasScans = cursor != null && cursor.count > 0
-                if (filter == null) {
+                if (scanFilter.isDefault) {
                     if (!hasScans) {
                         listView.emptyView = useHistorySwitch
                     }
@@ -407,14 +444,14 @@ class FHistory : Fragment() {
     private fun Context.askToRemoveScans() {
         AlertDialog.Builder(this)
             .setMessage(
-                if (filter == null) {
+                if (scanFilter.isDefault) {
                     R.string.reallyRemoveAllScans
                 } else {
                     R.string.reallyRemoveSelectedScans
                 }
             )
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                db.removeScans(filter)
+                db.removeScans(scanFilter.query)
                 updateAndClearFilter()
             }
             .setNegativeButton(android.R.string.cancel) { _, _ ->
@@ -452,7 +489,7 @@ class FHistory : Fragment() {
                 } ?: return@useVisibility
                 val message = when (delimiter) {
                     "db" -> ac.exportDatabase(name)
-                    else -> db.getScansDetailed(filter)?.use {
+                    else -> db.getScansDetailed(scanFilter)?.use {
                         when (delimiter) {
                             "json" -> ac.exportJson(name, it)
                             else -> ac.exportCsv(name, it, delimiter)
@@ -481,7 +518,7 @@ class FHistory : Fragment() {
     private fun shareScans(format: String) = scope.launch {
         progressView.useVisibility {
             var text: String? = null
-            db.getScansDetailed(filter)?.use { cursor ->
+            db.getScansDetailed(scanFilter)?.use { cursor ->
                 val details = format.split(":")
                 text = when (details[0]) {
                     "text" -> cursor.exportText(details[1])

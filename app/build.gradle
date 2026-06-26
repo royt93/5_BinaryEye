@@ -9,8 +9,8 @@ android {
         minSdkVersion 24
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 36
-        versionCode 20270623
-        versionName '2026.06.23'
+        versionCode 20270627
+        versionName '2026.06.27'
 
         buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${APPLOVIN_SDK_KEY}\""
         buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${APPLOVIN_BANNER_ID}\""
@@ -109,4 +109,6 @@ dependencies {
     implementation "com.google.android.play:review:2.0.2"
     implementation "com.google.android.play:review-ktx:2.0.2"
     implementation 'com.airbnb.android:lottie:6.1.0'
+
+    testImplementation 'junit:junit:4.13.2'
 }

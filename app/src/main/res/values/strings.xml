@@ -203,6 +203,46 @@
     <!-- Feature 3: Paste from clipboard -->
     <string name="paste_from_clipboard">Paste from clipboard</string>
     <string name="clipboard_empty">Clipboard is empty</string>
+
+    <!-- F6: Batch QR Generation -->
+    <string name="batch_qr_title">Batch QR</string>
+    <string name="batch_qr_hint">Enter items (one per line) — each line becomes a QR code:</string>
+    <string name="batch_qr_placeholder">product-001\nproduct-002\nhttps://example.com</string>
+    <string name="batch_qr_count_zero">0 items</string>
+    <string name="batch_qr_count">%d items</string>
+    <string name="batch_qr_generate">Generate</string>
+    <string name="batch_qr_export_zip">Export ZIP</string>
+    <string name="batch_qr_empty">Enter at least one item</string>
+    <string name="batch_qr_capped">Limited to first %d items</string>
+    <string name="batch_qr_zip_saved">ZIP saved</string>
+    <string name="batch_qr_open">Batch QR</string>
+
+    <!-- F2: QR Styling -->
+    <string name="qr_style_title">QR Style</string>
+    <string name="qr_foreground">Foreground</string>
+    <string name="qr_background">Background</string>
+    <string name="qr_pick_logo">Pick logo</string>
+    <string name="qr_clear_logo">Clear logo</string>
+    <string name="qr_no_logo">No logo (tap folder to add)</string>
+    <string name="pick_color">Pick Color</string>
+    <string name="qr_logo_ec_forced">EC level set to High for logo scannability</string>
+
+    <!-- E6: Scan result bottom sheet -->
+    <string name="scan_result_copy">Copy</string>
+    <string name="scan_result_share">Share</string>
+    <string name="scan_result_save">Save</string>
+    <string name="scan_result_details">Details</string>
+    <string name="scan_saved">Saved to history</string>
+
+    <!-- F1: History filter chips -->
+    <string name="filter_all">All</string>
+    <string name="filter_today">Today</string>
+    <string name="filter_this_week">This Week</string>
+    <string name="filter_this_month">This Month</string>
+    <string name="filter_format_all">All Formats</string>
+    <string name="filter_format_qr">QR Code</string>
+    <string name="filter_format_1d">1D Barcode</string>
+    <string name="filter_format_2d">2D Other</string>
     <!-- BUG-6: Double-back to exit i18n -->
     <string name="press_back_again_to_exit">Press BACK again to exit</string>
     <!-- Language selection dialog -->

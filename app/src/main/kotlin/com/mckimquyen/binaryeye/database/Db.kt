@@ -21,7 +21,7 @@ class Db {
             db.close()
         }
     }
-    fun getScans(query: String? = null): Cursor? = db.rawQuery(
+    fun getScans(filter: ScanFilter = ScanFilter()): Cursor? = db.rawQuery(
         """SELECT
 			$SCANS_ID,
 			$SCANS_DATETIME,
@@ -29,12 +29,12 @@ class Db {
 			$SCANS_CONTENT,
 			$SCANS_FORMAT
 			FROM $SCANS
-			${getWhereClause(query)}
+			${filter.toWhereClause()}
 			ORDER BY $SCANS_DATETIME DESC
-		""".trimMargin(), getWhereArguments(query)
+		""".trimMargin(), filter.toWhereArgs()
     )
 
-    fun getScansDetailed(query: String? = null): Cursor? = db.rawQuery(
+    fun getScansDetailed(filter: ScanFilter = ScanFilter()): Cursor? = db.rawQuery(
         """SELECT
 			$SCANS_ID,
 			$SCANS_DATETIME,
@@ -52,9 +52,9 @@ class Db {
 			$SCANS_GTIN_PRICE,
 			$SCANS_GTIN_ISSUE_NUMBER
 			FROM $SCANS
-			${getWhereClause(query)}
+			${filter.toWhereClause()}
 			ORDER BY $SCANS_DATETIME DESC
-		""".trimMargin(), getWhereArguments(query)
+		""".trimMargin(), filter.toWhereArgs()
     )
 
     private fun getWhereClause(

@@ -1,4 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -53,6 +54,111 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:entries="@array/colors" />
+
+            <!-- F2: QR Styling — visible only when QR_CODE format selected -->
+            <LinearLayout
+                android:id="@+id/qrStylingSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/qr_style_title" />
+
+                <!-- Color swatches row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <View
+                        android:id="@+id/swatchFg"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingStart="8dp"
+                        android:text="@string/qr_foreground" />
+
+                    <View
+                        android:id="@+id/swatchBg"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="16dp" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingStart="8dp"
+                        android:text="@string/qr_background" />
+
+                </LinearLayout>
+
+                <!-- Logo picker row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivLogoThumb"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <View
+                        android:id="@+id/logoPlaceholder"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@color/separator" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tvLogoName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:text="@string/qr_no_logo"
+                        android:textSize="13sp"
+                        android:ellipsize="end"
+                        android:maxLines="1" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/btnPickLogo"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_action_pick_file"
+                        android:contentDescription="@string/qr_pick_logo"
+                        android:tint="?attr/colorControlNormal" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/btnClearLogo"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_action_remove"
+                        android:contentDescription="@string/qr_clear_logo"
+                        android:visibility="gone"
+                        android:tint="?attr/colorControlNormal" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"
@@ -119,8 +225,18 @@
                 android:id="@+id/unescape"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:text="@string/unescape" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/batchQr"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="72dp"
+                android:text="@string/batch_qr_open"
+                app:icon="@drawable/ic_action_bulk_mode" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </com.mckimquyen.binaryeye.view.widget.ConfinedScrollView>
 

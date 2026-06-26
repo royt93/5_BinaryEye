@@ -18,11 +18,12 @@ The wrapper is `./gradlew`. There are two flavor dimensions × two build types, 
 - `./gradlew assembleProductionRelease` — signed Play Store build (release uses `app/keystore.jks` with `KS_ALIAS` / `KS_PW` from `gradle.properties`; without the keystore present, the `release` variants fail to assemble. Release is `minifyEnabled true` with R8 + `proguard-rules.pro`)
 - `./gradlew installDevDebug` — install to a connected device
 - `./gradlew lintDevDebug` — Android Lint (config in `app/lint.xml`)
+- `./gradlew testDevDebugUnitTest` — JVM unit tests (JUnit)
 - `./gradlew clean`
 
 Output APKs are renamed via `applicationVariants.configureEach` to `com.mckimquyen.binaryeye<buildType>_<versionName>_<versionCode>.apk`.
 
-`app/src/test/kotlin` and `app/src/androidTest/kotlin` are wired in `sourceSets` but currently empty — there is no JVM/instrumented test suite to run. Don't fabricate test commands.
+`app/src/test/kotlin` now holds a small JVM unit-test suite (JUnit) covering pure logic — `database/ScanFilterTest` (filter→SQL builder, incl. localtime date predicates) and `frm/BatchExportUtilTest` (ZIP entry-name sanitization). Run with `./gradlew testDevDebugUnitTest`. `app/src/androidTest/kotlin` is wired but still empty (no instrumented tests). Keep unit-testable logic as pure functions (no Android imports) so it stays JVM-testable — e.g. `ScanFilter.toWhereClause()` and `zipEntryName()`.
 
 ## Flavors and ad SDK config
 
