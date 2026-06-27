@@ -211,3 +211,152 @@
 | 🟠 Medium | M1, F3, F4, F8, F9, E2, E5 | IAP + features giữ chân user |
 | 🟡 Low | F5, F7, F10, E3, E4, E7, E8 | Nice-to-have |
 | ⏸️ Deferred | M2–M6 | Chờ IAP integration (M1) xong |
+
+---
+
+# 🧩 Implementation Plans — rã chi tiết (2026-06-27)
+
+> Rã 14 mục (E1 + F3–F10 + E2–E8, **bỏ Monetization M1–M6**) dựa trên khảo sát codebase thực tế.
+> Quy ước status mỗi mục: **📋 TODO** → **🔄 IN PROGRESS** → **✅ DONE**. Cập nhật badge ngay khi đổi trạng thái.
+> ⚠️ = phát hiện khảo sát làm đổi scope so với roadmap gốc.
+
+## Bảng điều phối
+
+| ID | Feature | Status | Độ lớn | Dependency mới | Ghi chú scope |
+|----|---------|--------|--------|----------------|---------------|
+| E7 | Zoom memory | 📋 TODO | XS | — | ⚠️ Gần như đã có sẵn — chỉ verify + toggle |
+| E3 | Custom QR size | 📋 TODO | S | — | ⚠️ SeekBar đã chỉnh size — chỉ thêm preset |
+| E1 | Torch auto-on | 📋 TODO | M | — | Cần `Sensor.TYPE_LIGHT` (không cần permission) |
+| E8 | Splash skip gần đây | 📋 TODO | S | — | Pref timestamp |
+| E5 | CSV export theo filter | 📋 TODO | S | — | ⚠️ Export đã dùng `scanFilter` — phần lớn đã đúng, cần verify |
+| E2 | History date header | 📋 TODO | M | — | ⚠️ ListView+CursorAdapter, KHÔNG phải RecyclerView |
+| E4 | Confetti nâng cấp | 📋 TODO | S | `konfetti-android` | Thay custom particle |
+| F3 | Scan tags | 📋 TODO | L | — | Bump DB v6→v7 |
+| F4 | Geo-tag scans | 📋 TODO | L | `play-services-location` | Bump DB v6→v7 + permission |
+| F8 | Biometric lock | 📋 TODO | M | `androidx.biometric` | VIP exclusive |
+| F9 | Auto-action config | 📋 TODO | M | — | Mở rộng ActionRegistry |
+| F5 | Barcode compare | 📋 TODO | M | — | Greenfield |
+| F7 | Scan reminder | 📋 TODO | L | `WorkManager` | Greenfield + notification |
+| F10 | OCR → QR | 📋 TODO | L | ML Kit text-recognition | Greenfield |
+
+---
+
+## E7 — Zoom Memory · 📋 TODO
+**⚠️ Re-scope:** Zoom **đã được nhớ** rồi — `ActivityCamera.saveZoom()` (onDestroy) ghi `ZOOM_LEVEL`/`ZOOM_MAX` vào SharedPreferences; `restoreZoom()` (trong `initZoomBar()`, chạy onResume) khôi phục. Tính năng cốt lõi xem như **đã có**.
+**Việc còn lại:**
+1. Verify thủ công: zoom → kill app → mở lại → zoom giữ nguyên (xem test E7).
+2. (Tùy chọn) thêm toggle `remember_zoom` trong `preferences.xml` + `Pref.kt`; nếu off thì `restoreZoom()` bỏ qua.
+**Test:** đặt zoom ~70% → thoát hẳn app → mở lại Camera → SeekBar đúng vị trí cũ.
+
+## E3 — Custom QR Size · 📋 TODO
+**⚠️ Re-scope:** `FEncode` đã có `SeekBar sizeBarView` + `getSize(power)=128*(power+1)` (FEncode.kt:39,430) → size đã tùy chỉnh được liên tục.
+**Việc còn lại:**
+1. `frm/FEncode.kt`: thêm 4 chip/preset 128/256/512/1024 set thẳng `sizeBarView.progress` tương ứng (128→power0, 256→power1, 512→power3, 1024→power7).
+2. Hiển thị label "Npx" cạnh SeekBar (cập nhật trong `updateSize()`).
+**Test:** chọn 512 → Encode → bitmap đúng 512px; SeekBar và preset đồng bộ.
+
+## E1 — Torch Auto-On khi tối · 📋 TODO
+**Hiện trạng:** `toggleTorchMode()` (ActivityCamera.kt:672) bật/tắt qua `Camera.Parameters.FLASH_MODE_TORCH`; FAB id `flash`; **chưa** dùng cảm biến ánh sáng (grep `TYPE_LIGHT` = rỗng).
+**Steps:**
+1. `Pref.kt`: thêm `AUTO_TORCH = "auto_torch"` + accessor `autoTorch` (mặc định false) + load trong `update()`.
+2. `preferences.xml`: thêm `SwitchPreferenceCompat key="auto_torch"` trong Scan category + string title/summary.
+3. `ActivityCamera.kt`: lấy `SensorManager` + `Sensor.TYPE_LIGHT`; đăng ký `SensorEventListener` trong `onResume` (chỉ khi `prefs.autoTorch`), hủy trong `onPause`.
+4. Logic ngưỡng + chống nhấp nháy (debounce/hysteresis): lux < ~10 trong >1.5s → bật torch; lux > ~50 → tắt; chỉ tự tác động khi user chưa toggle tay (cờ `userToggledTorch`).
+5. Tách helper `setTorch(on: Boolean)` từ `toggleTorchMode()` để cả tay lẫn auto dùng chung.
+**Risk:** `TYPE_LIGHT` không có trên mọi máy → null-check sensor, ẩn toggle nếu thiếu. Không cần permission mới.
+**Test:** bật setting → che camera vào chỗ tối → torch tự bật; ra sáng → tự tắt; toggle tay vẫn override.
+
+## E8 — Splash Skip nếu mở gần đây · 📋 TODO
+**Steps:**
+1. `Pref.kt`: `LAST_FOREGROUND_MS = "last_foreground_ms"` (Long) + accessor.
+2. `ActivitySplash.kt`: nếu `now - prefs.lastForegroundMs < 30*60_000` → bỏ App Open ad, `goToMain()` ngay.
+3. Ghi `prefs.lastForegroundMs = now` khi vào Main (hoặc onPause của Main).
+**Test:** mở app → vào Main → back ra → mở lại trong 30' → không thấy App Open ad, vào Main nhanh.
+
+## E5 — History CSV Export theo bộ lọc · 📋 TODO
+**⚠️ Re-scope:** `FHistory.askToExportToFile()` đã gọi `db.getScansDetailed(scanFilter)` → export **đã tôn trọng filter** đang áp. Có thể đã đạt yêu cầu.
+**Việc còn lại:**
+1. Verify: áp filter (Today / QR) → Export CSV → file chỉ chứa scan khớp filter.
+2. (Tùy chọn) thêm dòng tiêu đề/ghi chú filter vào đầu CSV; hỏi user "export all vs filtered" nếu đang có filter.
+**Test:** filter "This week" → export → đếm dòng khớp số item hiển thị.
+
+## E2 — History Date Group Header · 📋 TODO
+**⚠️ Re-scope quan trọng:** `FHistory` dùng **`ListView` + `ScansAdapter : CursorAdapter`** (không phải RecyclerView) → **không dùng được `RecyclerView.ItemDecoration`** như roadmap gốc ghi.
+**Hướng A (ít rủi ro, đề xuất):** thêm section header ngay trong `CursorAdapter`:
+1. `ScansAdapter`: override `getViewTypeCount()=2`, `getItemViewType()` trả HEADER khi item là ngày đầu nhóm.
+2. Tính nhóm (Today/Yesterday/This week/Older) từ `SCANS_DATETIME` của row hiện tại vs row trước; cần map vị trí→ngày (precompute khi `changeCursor`).
+3. Layout `roy_v_row_scan_header.xml` cho header.
+**Hướng B (lớn):** migrate ListView→RecyclerView rồi mới dùng ItemDecoration (đụng selection/ActionMode hiện tại → tốn).
+**Test:** history nhiều ngày → thấy header phân nhóm đúng, scroll mượt, longpress-select vẫn hoạt động.
+
+## E4 — Confetti nâng cấp · 📋 TODO
+**Hiện trạng:** `FVipManagement.showConfetti()` (line 767) là custom 50 particle + ObjectAnimator.
+**Steps:**
+1. `app/build.gradle`: thêm `nl.dionsegijn:konfetti-xml:<ver>`.
+2. Thêm `KonfettiView` vào `roy_frm_vip_management.xml` (overlay trên cùng).
+3. Thay thân `showConfetti()` bằng burst từ vị trí crown icon (2 nguồn góc trên); xóa code particle thủ công.
+4. Giữ haptic `playCelebration()` như cũ.
+**Test:** activate VIP bằng key hợp lệ → confetti burst đẹp; navigate back/lại không leak (xem AT-VIP-15).
+
+## F9 — Auto-Action Config (Smart Open) · 📋 TODO
+**Hiện trạng:** `ActionRegistry.getAction(data)` trả action đầu match (ActionRegistry.kt:31). Hiện scan xong hiện bottom-sheet (E6) để user chọn.
+**Steps:**
+1. `Pref.kt`: `AUTO_ACTION = "auto_action"` (Bool, mặc định false) — "tự chạy action mặc định, không hỏi".
+2. `preferences.xml`: SwitchPreferenceCompat trong Content category.
+3. `ActivityCamera.showScanBottomSheet(...)`: nếu `prefs.autoAction` và action != fallback `OpenOrSearchAction` → gọi thẳng `action.execute()` thay vì hiện sheet.
+4. Tôn trọng `prefs.openImmediately`/`copyImmediately` đang có để tránh chồng chéo.
+**Test:** bật setting → scan URL → mở trình duyệt ngay; scan text thường → vẫn hiện sheet (vì là fallback).
+
+## F3 — Scan Groups / Tags · 📋 TODO
+**Hiện trạng:** DB version **6**, 15 cột, `onUpgrade` incremental (`if oldVersion < N`).
+**Steps:**
+1. `Db.kt`: bump version `6→7`; thêm `SCANS_TAGS = "tags"` (TEXT, CSV các tag); thêm `addTagsColumn()` + nhánh `if (oldVersion < 7)` trong `onUpgrade`; thêm cột vào `CREATE TABLE`.
+2. `Db.kt`: method `setTags(id, tags)`, đưa `tags` vào `getScan`/`getScansDetailed`/`Scan.kt`.
+3. `ScanFilter.kt`: thêm `tag: String?` → predicate `tags LIKE '%<tag>%'`.
+4. UI: dialog gán tag (multi từ preset Work/Personal/Shopping/Travel + custom) trong `FHistory` ActionMode + chip filter theo tag.
+5. VIP gate: free giới hạn số tag; unlimited là VIP (`AdManager.isVipByKeyActive()`).
+**Test:** gán 2 tag cho 1 scan → filter theo tag → đúng; nâng cấp DB từ bản cũ không mất dữ liệu (cài đè bản v6).
+
+## F4 — Geo-Tagged Scans (VIP) · 📋 TODO
+**Steps:**
+1. `Db.kt`: bump `6→7` (gộp chung migration với F3 nếu làm cùng đợt) thêm `SCANS_LAT`/`SCANS_LNG` (REAL).
+2. `app/build.gradle`: `com.google.android.gms:play-services-location`.
+3. `AndroidManifest.xml`: `ACCESS_COARSE_LOCATION` (+ runtime request).
+4. Khi lưu scan (nếu VIP + bật setting): lấy last location, ghi lat/lng.
+5. UI: hiển thị vị trí ở scan detail (text + nút mở Maps qua `geo:` intent).
+**Test:** bật + cấp quyền → scan → detail có toạ độ + mở Maps; free user không thấy.
+
+## F8 — PIN / Biometric Lock cho History · 📋 TODO (VIP)
+**Steps:**
+1. `app/build.gradle`: `androidx.biometric:biometric`.
+2. `Pref.kt` + `preferences.xml`: toggle `lock_history`.
+3. `FHistory.onResume`: nếu bật + VIP → `BiometricPrompt` (API 28+), fallback device-credential (PIN) cho API 24–27; nội dung ẩn (overlay) tới khi auth.
+4. Re-auth khi quay lại từ background.
+**Test:** bật → rời/quay lại History → yêu cầu vân tay/PIN; hủy auth → không lộ nội dung.
+
+## F5 — Barcode Comparison Tool · 📋 TODO
+**Steps:**
+1. `FHistory` ActionMode: cho chọn đúng 2 scan → menu "Compare".
+2. Tạo `frm/FCompare.kt` + `roy_frm_compare.xml`: 2 cột so sánh content/format/datetime, highlight khác biệt (diff theo ký tự cho content).
+3. Dùng `db.getScan(id)` cho cả 2.
+**Test:** chọn 2 scan → Compare → thấy bảng so sánh + chỗ khác được tô.
+
+## F7 — Scan Reminder / Scheduled Scan · 📋 TODO
+**Steps:**
+1. `Db.kt` hoặc bảng mới `reminders` (barcode + time) — hoặc lưu qua `database/Reminder.kt`.
+2. `app/build.gradle`: `androidx.work:work-runtime` (WorkManager) — thay cho AlarmManager để bền với Doze.
+3. `sv/ReminderWorker.kt`: bắn notification đúng giờ → tap mở `ActivityCamera` với ROI/format đã cấu hình.
+4. `AndroidManifest.xml`: `POST_NOTIFICATIONS` (API 33+).
+5. UI đặt nhắc nhở (chọn barcode + thời gian).
+**Test:** đặt nhắc sau 2' → app background → notification hiện → tap → mở camera đúng cấu hình.
+
+## F10 — OCR → QR Pipeline · 📋 TODO
+**Steps:**
+1. `app/build.gradle`: ML Kit `com.google.mlkit:text-recognition`.
+2. `frm/FOcrEncode.kt`: pick/chụp ảnh → ML Kit `TextRecognition` trích text → đổ vào `FEncode` để tạo QR.
+3. Cho sửa text trước khi encode.
+**Test:** ảnh có chữ → OCR ra text đúng → tạo QR đúng nội dung.
+
+---
+
+> 📁 Folder `doc/task/{todo,inprogress,done}` để trống — có thể dùng kanban: tách mỗi feature lớn (F3/F4/F7/F10) thành file riêng khi bắt đầu làm, di chuyển giữa 3 thư mục theo status. Hiện tại tất cả 14 mục = **📋 TODO**.
