@@ -1,6 +1,8 @@
 # Quick Win — Implementation & Manual Test Guide
 
-> Cập nhật: 2026-03-16 | Build: ✅ SUCCESSFUL
+> Cập nhật gốc: 2026-03-16 | Soát lại: 2026-06-27 | Build: ✅ SUCCESSFUL
+>
+> ⚠️ **DOC LỊCH SỬ — ĐÃ MERGE.** Tính năng 2 ("Show as QR" từ History) và Tính năng 3 (Paste clipboard → QR) đã vào nhánh chính từ lâu. Giữ lại làm test-guide tham chiếu, không phải todo.
 
 ---
 

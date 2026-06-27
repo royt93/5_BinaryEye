@@ -1,7 +1,9 @@
 # Task & Feature Roadmap — BinaryEye / Cat Scanner
 
-> Cập nhật: 2026-06-22
+> Cập nhật: 2026-06-27
 > Status: ✅ Done | 🟡 In progress | 📋 Picked (chọn làm tiếp) | ⏸️ Deferred | 💭 Ideas
+>
+> **Đã hoàn thành tới nay:** T1–T4 (tech debt), F1 (filter chips), F2 (QR styling), F6 (batch QR), E6 (scan bottom-sheet). Chi tiết xem `feature.md` / `code_review.md`.
 
 ---
 
@@ -179,7 +181,7 @@
 
 ---
 
-### E6 — Decode Result — Quick Actions Bottom Sheet
+### E6 — Decode Result — Quick Actions Bottom Sheet ✅ DONE 2026-06-24
 **Priority:** 🟠 Medium
 **Mô tả:** Sau khi scan thành công, thay vì navigate sang `FDecode`, hiện bottom sheet với quick actions (Copy / Open / Share / Save) để user không mất focus khỏi camera.
 **Files cần sửa:** `ActivityCamera.kt`, tạo `roy_bottom_sheet_scan_result.xml`
@@ -204,7 +206,8 @@
 
 | Priority | Items | Ghi chú |
 |---|---|---|
-| 🔴 High | T1–T4, F1, F2, E1 | Fix bugs + tính năng ROI cao nhất |
-| 🟠 Medium | M1, F3, F4, F6, F8, F9, E2, E5, E6 | IAP + features giữ chân user |
+| ✅ Done | T1–T4, F1, F2, F6, E6 | Tech debt + 4 feature đã merge vào `dev` |
+| 🔴 High (còn lại) | E1 | Torch auto-on |
+| 🟠 Medium | M1, F3, F4, F8, F9, E2, E5 | IAP + features giữ chân user |
 | 🟡 Low | F5, F7, F10, E3, E4, E7, E8 | Nice-to-have |
 | ⏸️ Deferred | M2–M6 | Chờ IAP integration (M1) xong |

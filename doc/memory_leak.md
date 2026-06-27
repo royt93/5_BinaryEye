@@ -2,7 +2,9 @@
 
 > Phân tích thủ công toàn bộ source code Kotlin.
 > Sắp xếp theo mức độ **tăng dần** từ thấp → cao.
-> Cập nhật: 2026-03-16
+> Cập nhật gốc: 2026-03-16 | Soát lại: 2026-06-27
+>
+> ⚠️ **DOC LỊCH SỬ — TẤT CẢ ITEM ĐÃ ĐÓNG.** Mọi item L1–H2 đã FIXED/OK. Các item M2/M3/H2 nói tới `sdkadbmob/AdMobManager.kt` — file này **đã bị xoá hẳn** (commit `2af8f8a`), thay bằng `com.github.royt93:AdmobApplovinWrapper` (lifecycle/App-Open/scope do lib quản lý). Giữ lại làm tham chiếu, không phải todo.
 
 ---
 

@@ -1,7 +1,8 @@
 # Tích Hợp AdmobApplovinWrapper — Trạng Thái Hiện Tại
 
-> Cập nhật: 2026-06-22 | Migration: ✅ HOÀN TẤT
+> Cập nhật: 2026-06-27 | Migration: ✅ HOÀN TẤT
 > Lib: `com.github.royt93:AdmobApplovinWrapper:1.1.3`
+> `sdkadbmob/AdMobManager.kt` cũ đã **xoá hẳn** (commit `2af8f8a`), thay bằng wrapper.
 
 ---
 
@@ -31,10 +32,10 @@
 
 | Slot | File | Trigger | API hiện tại | Ghi chú |
 |---|---|---|---|---|
-| **Banner** | `ActivityCamera.kt:161` | `onCreate` | `AdManager.loadBanner(...)` | View gắn vào `adView` |
-| **Interstitial** | `ActivityCamera.kt:168` | `onCreate` (preload) | `AdManager.loadInterstitial(this)` | Show tại lines 320, 332, 372 |
-| **App Open** | `ActivitySplash.kt` | `requestConsentInfoUpdate` callback | `AdManager.awaitSplashComplete(this)` | Block nav đến Main |
-| **Rewarded** | `FVipManagement.kt:524` | User click "Watch Ad" | `AdManager.showRewarded(...)` | Fallback → interstitial nếu fail |
+| **Banner** | `ActivityCamera.kt:167` | `onCreate` | `AdManager.loadBanner(...)` | View gắn vào `adView` |
+| **Interstitial** | `ActivityCamera.kt:174` | `onCreate` (preload) | `AdManager.loadInterstitial(this)` | Show tại lines 326, 334, 370 |
+| **App Open** | `ActivitySplash.kt:25,61` | `requestConsentInfoUpdate` callback | `AdManager.awaitSplashComplete(this)` | Block nav đến Main |
+| **Rewarded** | `FVipManagement.kt:561` | User click "Watch Ad" | `AdManager.showRewarded(...)` | Preload tại `:187`; fallback → interstitial nếu fail |
 
 ---
 
@@ -130,12 +131,13 @@ FVipManagement [Watch Ad button]
 
 ## 6. Open Issues / Cần Làm
 
-| # | Issue | Priority |
-|---|---|---|
-| 1 | `ActivityCamera.kt` còn stale imports AdMob SDK (lines 25–28) | 🟡 LOW |
-| 2 | In-App Purchase integration cho các gói VIP trả phí | 📋 Planned |
-| 3 | `RApp.kt` và `ActivityCamera.kt` còn `Log.d("roy93~", ...)` debug trong production | 🟡 LOW |
-| 4 | `ActivityCamera` class name không theo convention (`CameraActivity` vs file `ActivityCamera.kt`) | 🟡 LOW |
+| # | Issue | Priority | Status |
+|---|---|---|---|
+| 1 | `ActivityCamera.kt` còn stale imports AdMob SDK | 🟡 LOW | ✅ FIXED — đã xoá hết import `com.google.android.gms.ads.*` |
+| 2 | In-App Purchase integration cho các gói VIP trả phí | 📋 Planned | ⏸️ Chờ M1 (Play Billing) |
+| 3 | `RApp.kt` + `ActivityCamera.kt` còn `Log.d("roy93~")` debug | 🟡 LOW | ✅ FIXED — đã bọc `if (BuildConfig.DEBUG)` |
+| 4 | Class name không theo convention (`CameraActivity` vs file `ActivityCamera.kt`) | 🟡 LOW | ✅ FIXED — class đã rename thành `ActivityCamera` |
+| 5 | `ext/Activity.kt` (`rateAppInApp`) còn 9 `Log.*("roy93~")` unconditional | 🟡 LOW | ✅ FIXED — chuyển sang `SafeLogger` (wrapper, tự gate DEBUG) |
 
 ---
 

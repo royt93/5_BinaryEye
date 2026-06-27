@@ -14,7 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.AlarmClock
 import android.provider.CalendarContract
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import com.google.android.play.core.review.ReviewException
@@ -22,7 +21,10 @@ import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.model.ReviewErrorCode
 import com.mckimquyen.binaryeye.R
+import com.roy.sdkadbmob.SafeLogger
 import java.util.Calendar
+
+private const val TAG = "ActivityExt"
 
 fun isDefaultLauncher(application: Application): Boolean {
     val intent = Intent(Intent.ACTION_MAIN)
@@ -139,11 +141,11 @@ fun Activity.rateAppInApp(forceRateInApp: Boolean = false) {
     try {
         val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val lastReviewTime = sharedPreferences.getLong("last_review_time", 0L)
-        Log.d("roy93~", "~~~~~~~~~~~~~~~~~requestReview lastReviewTime $lastReviewTime")
+        SafeLogger.d(TAG, "rateAppInApp lastReviewTime $lastReviewTime")
         val currentTime = Calendar.getInstance().timeInMillis
         val daysSinceLastReview = (currentTime - lastReviewTime) / (1000 * 60 * 60 * 24)
-        Log.d("roy93~", "requestReview forceRateInApp $forceRateInApp")
-        Log.d("roy93~", "requestReview daysSinceLastReview $daysSinceLastReview")
+        SafeLogger.d(TAG, "rateAppInApp forceRateInApp $forceRateInApp")
+        SafeLogger.d(TAG, "rateAppInApp daysSinceLastReview $daysSinceLastReview")
         if (daysSinceLastReview >= 7 || forceRateInApp) {
             val reviewManager = ReviewManagerFactory.create(this)
             val request = reviewManager.requestReviewFlow()
@@ -152,14 +154,14 @@ fun Activity.rateAppInApp(forceRateInApp: Boolean = false) {
                     val reviewInfo: ReviewInfo = task.result
                     reviewManager.launchReviewFlow(this, reviewInfo)
                     sharedPreferences.edit().putLong("last_review_time", currentTime).apply()
-                    Log.d("roy93~", "requestReview result ${task.result}")
-                    Log.d("roy93~", "requestReview isSuccessful ${task.isSuccessful}")
-                    Log.d("roy93~", "requestReview isCanceled ${task.isCanceled}")
-                    Log.d("roy93~", "requestReview isComplete ${task.isComplete}")
-                    Log.d("roy93~", "requestReview exception ${task.exception}")
+                    SafeLogger.d(TAG, "rateAppInApp result ${task.result}")
+                    SafeLogger.d(TAG, "rateAppInApp isSuccessful ${task.isSuccessful}")
+                    SafeLogger.d(TAG, "rateAppInApp isCanceled ${task.isCanceled}")
+                    SafeLogger.d(TAG, "rateAppInApp isComplete ${task.isComplete}")
+                    SafeLogger.d(TAG, "rateAppInApp exception ${task.exception}")
                 } else {
                     @ReviewErrorCode val reviewErrorCode = (task.exception as ReviewException).errorCode
-                    Log.e("roy93~", "requestReview error $reviewErrorCode")
+                    SafeLogger.w(TAG, "rateAppInApp error $reviewErrorCode")
                 }
             }
         }

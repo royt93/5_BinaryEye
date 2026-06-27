@@ -1,7 +1,8 @@
 # Code Review Report
 
-> Lần review gốc: 2026-03-18 | Audit cập nhật: 2026-06-22
-> Files scanned: 71 Kotlin files
+> Lần review gốc: 2026-03-18 | Audit cập nhật: 2026-06-27
+> Files scanned: 74 Kotlin files
+> Test suite hiện có: **45 test** (33 JVM unit/Robolectric + 12 instrumented) — không còn "chưa có test".
 
 ---
 
@@ -21,27 +22,19 @@ intent.getParcelableExtra(DECODED) ?: return FPreferences()
 ---
 
 ### H2 · `BluetoothSender.kt` line 20 — Unmanaged `CoroutineScope`
-**Status:** 🔍 **CẦN VERIFY** — Xem `memory_leak.md` H1/H2 để biết pattern đã áp dụng.
-
-```kotlin
-CoroutineScope(Dispatchers.IO).launch(Dispatchers.IO) { ... }
-```
-**Vấn đề:** Scope không cancel được nếu caller bị destroy.
-**Fix đề xuất:** Truyền scope từ caller hoặc dùng `GlobalScope` (fire-and-forget).
+**Status:** ✅ **FIXED** (audit 2026-06-27) — `send()` nay nhận `scope: CoroutineScope` từ caller (`// [FIX ML-4]` tại `BluetoothSender.kt:19,22`). Không còn `CoroutineScope(Dispatchers.IO)` ẩn danh.
 
 ---
 
 ### H3 · `ScanSender.kt` line 22 — Unmanaged `CoroutineScope`
-**Status:** 🔍 **CẦN VERIFY** — Tương tự H2.
+**Status:** ✅ **FIXED** (audit 2026-06-27) — Tương tự H2: `// [FIX ML-4]` tại `ScanSender.kt:17,22`, nhận scope từ caller.
 
 ---
 
 ## 🟠 MEDIUM — Memory Leaks
 
 ### M1 · `BluetoothSender.kt` lines 55–61 — File-level global mutable state
-**Status:** 🔍 **CẦN VERIFY**
-
-`socket` và `writer` là file-level globals, không thread-safe, có thể leak nếu coroutine chưa xong mà Activity bị destroy.
+**Status:** ✅ **OK** (audit 2026-06-27) — Sau khi `send()` nhận scope từ caller (H2), coroutine bị huỷ theo lifecycle của caller nên `socket`/`writer` không còn nguy cơ leak qua scope mồ côi. Pattern hiện tại chấp nhận được.
 
 ---
 
@@ -58,17 +51,12 @@ CoroutineScope(Dispatchers.IO).launch(Dispatchers.IO) { ... }
 ---
 
 ### W2 · `BaseActivity.kt` — Dead `else` branch không thể đạt được
-**Status:** 🔍 **CẦN VERIFY** — Còn tồn tại hay đã cleanup cùng W1.
+**Status:** ✅ **OK** (audit 2026-06-27) — `BaseActivity.kt` không còn `println`/`Log.*`/dead `else` (grep sạch). Đã cleanup cùng W1.
 
 ---
 
 ### W3 · Nhiều nơi — Dead code `attachBaseContext` bị comment
-**Status:** 🔍 **CẦN VERIFY**
-
-Tìm kiếm:
-```
-grep -rn "attachBaseContext" app/src/main/kotlin/
-```
+**Status:** ✅ **OK** (audit 2026-06-27) — Không còn `attachBaseContext` bị comment trong `app/src/main/kotlin/` (grep sạch).
 
 ---
 
@@ -86,12 +74,7 @@ cropImageView.imageRotation = (cropImageView.imageRotation + 90) % 360
 ---
 
 ### W5 · `FBarcode.kt` — Redundant `let` với biến không-null
-**Status:** 🔍 **CẦN VERIFY**
-
-```kotlin
-// Nên đơn giản hóa thành:
-ac.toast(message ?: getString(R.string.error_encoding_barcode))
-```
+**Status:** ✅ **OK** (audit 2026-06-27) — `FBarcode.kt:220` nay là `ac.toast(message)` thẳng, không còn `let` thừa.
 
 ---
 
@@ -132,23 +115,36 @@ Nên wrap trong `if (BuildConfig.DEBUG)` hoặc dùng `SafeLogger` từ AdManage
 
 ---
 
-## 📋 Tổng hợp cập nhật 2026-06-22
+### W9 · `ext/Activity.kt` — `rateAppInApp()` còn 9 `Log.*("roy93~")` unconditional
+**Status:** ✅ **FIXED** (audit 2026-06-27)
+
+Hàm `rateAppInApp()` (lines 142–164) trước có 8 `Log.d` + 1 `Log.e` log thô. Đã chuyển hết sang **`SafeLogger`** của wrapper (`com.roy.sdkadbmob.SafeLogger`, tự gate DEBUG nội bộ — cùng pattern `FVipManagement`):
+```kotlin
+// Trước: Log.d("roy93~", "...") / Log.e("roy93~", "...")
+// Sau:   SafeLogger.d(TAG, "...") / SafeLogger.w(TAG, "...")  // TAG = "ActivityExt"
+```
+`import android.util.Log` đã gỡ (không còn dùng). `Log.e` → `SafeLogger.w` (wrapper chỉ expose `d`/`w`). Verify: `compileDevDebugKotlin` BUILD SUCCESSFUL.
+
+---
+
+## 📋 Tổng hợp cập nhật 2026-06-27
 
 | ID | File | Severity | Status | Ghi chú |
 |----|------|----------|--------|---------|
 | H1 | `ActivityMain.kt:88` | 🔴 HIGH | ✅ FIXED | `?: return FPreferences()` |
-| H2 | `BluetoothSender.kt:20` | 🔴 HIGH | 🔍 Verify | |
-| H3 | `ScanSender.kt:22` | 🔴 HIGH | 🔍 Verify | |
-| M1 | `BluetoothSender.kt:55-61` | 🟠 MEDIUM | 🔍 Verify | |
-| M2 | `Beeps.kt:7-8` | 🟠 MEDIUM | ✅ OK | release() trong CameraActivity.onDestroy |
+| H2 | `BluetoothSender.kt:19,22` | 🔴 HIGH | ✅ FIXED | Nhận scope từ caller (`[FIX ML-4]`) — audit 2026-06-27 |
+| H3 | `ScanSender.kt:17,22` | 🔴 HIGH | ✅ FIXED | Nhận scope từ caller (`[FIX ML-4]`) — audit 2026-06-27 |
+| M1 | `BluetoothSender.kt:55-61` | 🟠 MEDIUM | ✅ OK | Coroutine huỷ theo caller (sau H2) — audit 2026-06-27 |
+| M2 | `Beeps.kt:7-8` | 🟠 MEDIUM | ✅ OK | release() trong ActivityCamera.onDestroy |
 | W1 | `BaseActivity.kt:37` | 🟡 LOW | ✅ FIXED | Đã xóa println |
-| W2 | `BaseActivity.kt` | 🟡 LOW | 🔍 Verify | |
-| W3 | Nhiều file | 🟡 LOW | 🔍 Verify | |
+| W2 | `BaseActivity.kt` | 🟡 LOW | ✅ OK | Không còn dead `else`/log — audit 2026-06-27 |
+| W3 | Nhiều file | 🟡 LOW | ✅ OK | Không còn `attachBaseContext` comment — audit 2026-06-27 |
 | W4 | `ActivityPick.kt:243` | 🟡 LOW | ✅ FIXED | `(+ 90) % 360` |
-| W5 | `FBarcode.kt` | 🟡 LOW | 🔍 Verify | |
-| W6 | `ActivityCamera.kt:25-28` | 🟡 LOW | ✅ FIXED | Đã xóa stale AdMob imports (audit 2026-06-24) |
-| W7 | `RApp.kt` | 🟡 LOW | ✅ FIXED | Bọc `if (BuildConfig.DEBUG)` (audit 2026-06-24) |
-| W8 | `ActivityCamera.kt:322,334,374` | 🟡 LOW | ✅ FIXED | Bọc `if (BuildConfig.DEBUG)` (audit 2026-06-24) |
+| W5 | `FBarcode.kt:220` | 🟡 LOW | ✅ OK | `ac.toast(message)` thẳng — audit 2026-06-27 |
+| W6 | `ActivityCamera.kt` | 🟡 LOW | ✅ FIXED | Đã xóa stale AdMob imports (audit 2026-06-24) |
+| W7 | `RApp.kt:52` | 🟡 LOW | ✅ FIXED | Bọc `if (BuildConfig.DEBUG)` (audit 2026-06-24) |
+| W8 | `ActivityCamera.kt:327...` | 🟡 LOW | ✅ FIXED | Bọc `if (BuildConfig.DEBUG)` (audit 2026-06-24) |
+| W9 | `ext/Activity.kt:142-164` | 🟡 LOW | ✅ FIXED | `rateAppInApp()` chuyển 9 log sang `SafeLogger` — audit 2026-06-27 |
 
 ---
 
@@ -197,11 +193,13 @@ Theme `.Bridge` → BottomSheet nền trắng mặc định, app dark (chữ sá
 `SCANS_DATETIME` lưu giờ địa phương (`DateFormat.format(...,currentTimeMillis())`) nhưng filter dùng `date('now')`/`datetime('now')` (UTC) → sai biên (vd VN +7, scan sáng sớm bị "Today" bỏ sót).
 **Fix:** thêm `'localtime'` vào các predicate ngày. Đồng thời **refactor** logic build WHERE/args thành hàm thuần `ScanFilter.toWhereClause()`/`toWhereArgs()` (bỏ `Db.buildWhereClause/buildWhereArgs`) để unit-test được trên JVM.
 
-### Unit tests (mới) — `./gradlew testDevDebugUnitTest`
-- `database/ScanFilterTest` (7): isDefault, từng nhóm format, **date predicate có `localtime`**, combine AND, args.
-- `frm/BatchExportUtilTest` (6): `zipEntryName` sanitize/truncate/fallback/không chứa path separator.
-- Kết quả: **13/13 pass**. Thêm `testImplementation 'junit:junit:4.13.2'`.
+### Test suite hiện tại (cập nhật 2026-06-27) — **45 test**
+- **JVM unit/Robolectric** (`./gradlew testDevDebugUnitTest`) — 33 `@Test`:
+  - `database/ScanFilterTest` (12): isDefault, từng nhóm format, **date predicate có `localtime`**, combine AND, args.
+  - `frm/BatchExportUtilTest` (12): `zipEntryName` sanitize/truncate/fallback/không chứa path separator.
+  - `widget/*RobolectricTest` (9): FEncode visibility toggle, FHistory chips, scan bottom-sheet inflate.
+- **Instrumented + Espresso** (`./gradlew connectedDevDebugAndroidTest`) — 12 `@Test`: `DbScanFilterInstrumentedTest` + `flow/*EspressoTest`.
 
-**Hạn chế còn lại (không phải bug):** color picker preset-only; batch QR giữ toàn bộ bitmap trong RAM (đã cap 200); chưa có test suite (toàn project chưa có).
+**Hạn chế còn lại (không phải bug):** color picker preset-only; batch QR giữ toàn bộ bitmap trong RAM (đã cap 200).
 
-**Ghi chú tên class:** `ActivityCamera.kt` khai báo class là `CameraActivity` (không phải `ActivityCamera`). Đây là inconsistency với naming convention — file name theo convention prefix `Activity*` nhưng class name bị viết ngược.
+**Ghi chú tên class (đã giải quyết 2026-06-27):** `ActivityCamera.kt` nay khai báo `class ActivityCamera : BaseActivity()` (line 80) — đã rename khớp convention prefix `Activity*`. Inconsistency `CameraActivity` cũ không còn (xem `task.md` T4).
