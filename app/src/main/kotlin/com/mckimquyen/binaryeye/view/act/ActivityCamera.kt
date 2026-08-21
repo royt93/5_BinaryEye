@@ -25,11 +25,15 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.adapter.prettifyFormatName
+import com.mckimquyen.binaryeye.database.Scan
 import com.mckimquyen.binaryeye.database.toScan
 import com.mckimquyen.binaryeye.db
 import com.mckimquyen.binaryeye.ext.app.PERMISSION_CAMERA
@@ -40,13 +44,14 @@ import com.mckimquyen.binaryeye.ext.openBrowserPolicy
 import com.mckimquyen.binaryeye.ext.rateApp
 import com.mckimquyen.binaryeye.ext.rateAppInApp
 import com.mckimquyen.binaryeye.ext.shareApp
+import com.mckimquyen.binaryeye.frm.FLanguageDialog
 import com.mckimquyen.binaryeye.prefs
-import com.roy.sdkadbmob.AdManager
-import com.roy.sdkadbmob.AdSdkConfig
+import com.mckimquyen.binaryeye.view.actions.ActionRegistry
 import com.mckimquyen.binaryeye.view.bluetooth.sendBluetoothAsync
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
 import com.mckimquyen.binaryeye.view.content.execShareIntent
 import com.mckimquyen.binaryeye.view.content.openUrl
+import com.mckimquyen.binaryeye.view.content.shareText
 import com.mckimquyen.binaryeye.view.errorFeedback
 import com.mckimquyen.binaryeye.view.graphics.FrameMetrics
 import com.mckimquyen.binaryeye.view.graphics.mapPosition
@@ -60,14 +65,8 @@ import com.mckimquyen.binaryeye.view.scanFeedback
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.DetectorView
 import com.mckimquyen.binaryeye.view.widget.toast
-import com.mckimquyen.binaryeye.frm.FLanguageDialog
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.chip.Chip
-import com.mckimquyen.binaryeye.database.Scan
-import com.mckimquyen.binaryeye.view.actions.ActionRegistry
-import com.mckimquyen.binaryeye.view.content.shareText
-import kotlinx.coroutines.launch
+import com.roy.sdkadbmob.AdManager
+import com.roy.sdkadbmob.AdSdkConfig
 import de.markusfisch.android.cameraview.widget.CameraView
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import de.markusfisch.android.zxingcpp.ZxingCpp.Binarizer
@@ -76,6 +75,7 @@ import de.markusfisch.android.zxingcpp.ZxingCpp.Result
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 class ActivityCamera : BaseActivity() {
     private val frameRoi = Rect()

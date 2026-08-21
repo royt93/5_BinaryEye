@@ -1,8 +1,8 @@
 package com.mckimquyen.binaryeye.pref
 
 import android.content.Context
-import androidx.preference.DialogPreference
 import android.util.AttributeSet
+import androidx.preference.DialogPreference
 import com.mckimquyen.binaryeye.R
 
 class UrlPref(

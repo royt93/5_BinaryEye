@@ -1,6 +1,5 @@
 package com.mckimquyen.binaryeye.frm
 
-import com.mckimquyen.binaryeye.BuildConfig
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Color
@@ -20,6 +19,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -28,7 +28,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import android.widget.EditText
+import com.mckimquyen.binaryeye.BuildConfig
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.roy.sdkadbmob.AdError

@@ -1,5 +1,6 @@
 package com.mckimquyen.binaryeye.frm
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +10,6 @@ import android.widget.RadioButton
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import android.content.DialogInterface
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.ext.app.applyLocale

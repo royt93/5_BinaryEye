@@ -1,11 +1,6 @@
 package com.mckimquyen.binaryeye.view.net
 
 import com.mckimquyen.binaryeye.database.Scan
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -13,6 +8,11 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.ProtocolException
 import java.net.URL
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 // [FIX ML-4] Nhan CoroutineScope tu caller thay vi dung GlobalScope
 // Scope cua caller (Activity/Fragment) se tu dong cancel request khi bi destroy

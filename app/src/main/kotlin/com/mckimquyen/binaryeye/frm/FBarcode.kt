@@ -1,43 +1,43 @@
 package com.mckimquyen.binaryeye.frm
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.net.Uri
-import android.app.AlertDialog
-import android.content.Context
-import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.*
 import android.widget.EditText
+import androidx.fragment.app.Fragment
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.ext.app.hasWritePermission
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
 import com.mckimquyen.binaryeye.view.content.shareFile
 import com.mckimquyen.binaryeye.view.content.shareText
+import com.mckimquyen.binaryeye.view.doOnApplyWindowInsets
 import com.mckimquyen.binaryeye.view.graphics.COLOR_BLACK
 import com.mckimquyen.binaryeye.view.graphics.COLOR_WHITE
 import com.mckimquyen.binaryeye.view.io.addSuffixIfNotGiven
 import com.mckimquyen.binaryeye.view.io.toSaveResult
 import com.mckimquyen.binaryeye.view.io.writeExternalFile
-import com.mckimquyen.binaryeye.view.doOnApplyWindowInsets
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.ConfinedScalingImageView
 import com.mckimquyen.binaryeye.view.widget.toast
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import de.markusfisch.android.zxingcpp.ZxingCpp.BarcodeFormat
-import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*
 import kotlin.math.min
+import kotlinx.coroutines.*
 
 class FBarcode : Fragment() {
     private enum class FileType {

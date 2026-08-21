@@ -9,6 +9,25 @@ if (localPropsFile.exists()) {
 def ksExternalDir = localProps.getProperty("KS_EXTERNAL_DIR",
         "${System.getProperty("user.home")}/AndroidStudioProjects/@mckimquyen/myKeyStore/com.mckimquyen.binaryeye")
 def externalPropsFile = new File(ksExternalDir, "keystore.properties")
+
+// Keys needed for EVERY variant (they're defaultConfig buildConfigFields — even a debug/unit-test
+// compile needs real values so BuildConfig.java carries them correctly), vs. keys only needed when
+// actually signing/packaging a release build. Splitting this lets `testDevDebugUnitTest`,
+// `lintDevDebug`, etc. run without requiring the release keystore — only assemble*Release/bundle*Release
+// (or any task name containing "release"/"bundle") demand the signing + AdMob-release keys.
+def ALWAYS_REQUIRED_EXTERNAL_KEYS = [
+        "vipKeySecret", "vipRedeemCode3Day", "vipRedeemCode30Day",
+        "applovinSdkKey", "applovinBannerId", "applovinInterstitialId", "applovinAppOpenId", "applovinRewardedId"
+]
+def RELEASE_ONLY_EXTERNAL_KEYS = [
+        "storeFile", "storePassword", "keyAlias", "keyPassword",
+        "admobBannerIdRelease", "admobInterstitialIdRelease", "admobAppOpenIdRelease"
+]
+def isReleaseTaskRequested = gradle.startParameter.taskNames.any {
+    def n = it.toLowerCase()
+    n.contains("release") || n.contains("bundle")
+}
+
 if (!externalPropsFile.exists()) {
     throw new GradleException(
         "Missing ${externalPropsFile} — clone github.com/royt93/myKeyStore next to this project, " +
@@ -18,17 +37,20 @@ if (!externalPropsFile.exists()) {
 def externalProps = new Properties()
 externalProps.load(new FileInputStream(externalPropsFile))
 
-def REQUIRED_EXTERNAL_KEYS = [
-        "storeFile", "storePassword", "keyAlias", "keyPassword", "vipKeySecret",
-        "vipRedeemCode3Day", "vipRedeemCode30Day",
-        "applovinSdkKey", "applovinBannerId", "applovinInterstitialId", "applovinAppOpenId", "applovinRewardedId",
-        "admobBannerIdRelease", "admobInterstitialIdRelease", "admobAppOpenIdRelease"
-]
-def missingExternalKeys = REQUIRED_EXTERNAL_KEYS.findAll { !externalProps.getProperty(it) }
-if (!missingExternalKeys.isEmpty()) {
-    throw new GradleException("Missing key(s) in ${externalPropsFile}: ${missingExternalKeys.join(', ')}")
+def missingAlwaysKeys = ALWAYS_REQUIRED_EXTERNAL_KEYS.findAll { !externalProps.getProperty(it) }
+if (!missingAlwaysKeys.isEmpty()) {
+    throw new GradleException("Missing key(s) in ${externalPropsFile}: ${missingAlwaysKeys.join(', ')}")
 }
-def externalKeystoreFile = new File(ksExternalDir, externalProps.getProperty("storeFile"))
+if (isReleaseTaskRequested) {
+    def missingReleaseKeys = RELEASE_ONLY_EXTERNAL_KEYS.findAll { !externalProps.getProperty(it) }
+    if (!missingReleaseKeys.isEmpty()) {
+        throw new GradleException(
+            "Missing key(s) required for a release build in ${externalPropsFile}: ${missingReleaseKeys.join(', ')}"
+        )
+    }
+}
+def externalKeystoreFile = externalProps.getProperty("storeFile") ?
+        new File(ksExternalDir, externalProps.getProperty("storeFile")) : null
 
 android {
     namespace 'com.mckimquyen.binaryeye'

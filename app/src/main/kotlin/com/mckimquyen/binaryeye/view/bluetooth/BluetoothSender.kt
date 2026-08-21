@@ -6,13 +6,13 @@ import android.bluetooth.BluetoothSocket
 import android.util.Log
 import androidx.preference.ListPreference
 import com.mckimquyen.binaryeye.database.Scan
+import java.io.IOException
+import java.io.OutputStreamWriter
+import java.util.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.io.OutputStreamWriter
-import java.util.*
 
 private const val TAG = "roy93~BluetoothSender"
 

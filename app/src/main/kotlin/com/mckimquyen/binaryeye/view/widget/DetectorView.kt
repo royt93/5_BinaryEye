@@ -6,10 +6,10 @@ import android.graphics.*
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
-import androidx.core.content.ContextCompat
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.prefs
 import com.mckimquyen.binaryeye.view.graphics.getBitmapFromDrawable

@@ -2,9 +2,9 @@ package com.mckimquyen.binaryeye.view.actions.search
 
 import android.content.Context
 import com.mckimquyen.binaryeye.R
-import com.mckimquyen.binaryeye.view.actions.IAction
 import com.mckimquyen.binaryeye.ext.app.alertDialog
 import com.mckimquyen.binaryeye.prefs
+import com.mckimquyen.binaryeye.view.actions.IAction
 import com.mckimquyen.binaryeye.view.content.openUrl
 import com.mckimquyen.binaryeye.view.net.urlEncode
 

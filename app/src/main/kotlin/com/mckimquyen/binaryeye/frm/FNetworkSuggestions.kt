@@ -5,11 +5,11 @@ import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
 import android.os.Bundle
-import androidx.annotation.RequiresApi
-import androidx.fragment.app.Fragment
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.ListView
+import androidx.annotation.RequiresApi
+import androidx.fragment.app.Fragment
 import com.mckimquyen.binaryeye.R
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.systemBarListViewScrollListener

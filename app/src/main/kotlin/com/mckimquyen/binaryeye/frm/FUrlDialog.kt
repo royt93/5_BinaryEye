@@ -1,15 +1,15 @@
 package com.mckimquyen.binaryeye.frm
 
 import android.os.Bundle
-import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceDialogFragmentCompat
 import android.view.View
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceDialogFragmentCompat
 import com.mckimquyen.binaryeye.R
-import com.mckimquyen.binaryeye.prefs
 import com.mckimquyen.binaryeye.database.Scan
-import com.mckimquyen.binaryeye.view.net.sendAsync
 import com.mckimquyen.binaryeye.pref.UrlPref
+import com.mckimquyen.binaryeye.prefs
+import com.mckimquyen.binaryeye.view.net.sendAsync
 
 class FUrlDialog : PreferenceDialogFragmentCompat() {
     private var urlView: TextView? = null

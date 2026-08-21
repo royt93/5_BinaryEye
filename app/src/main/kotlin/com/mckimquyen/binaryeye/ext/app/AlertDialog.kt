@@ -2,10 +2,10 @@ package com.mckimquyen.binaryeye.ext.app
 
 import android.app.AlertDialog
 import android.content.Context
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 suspend inline fun <T : Any> alertDialog(
     context: Context,

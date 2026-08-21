@@ -2,11 +2,11 @@ package com.mckimquyen.binaryeye.view
 
 import android.graphics.Rect
 import android.os.Build
+import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.appcompat.widget.Toolbar
-import android.view.View
 
 private var toolbarHeight = 0
 fun recordToolbarHeight(toolbar: Toolbar) {

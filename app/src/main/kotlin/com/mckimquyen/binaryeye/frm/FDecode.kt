@@ -2,38 +2,38 @@ package com.mckimquyen.binaryeye.frm
 
 import android.os.Build
 import android.os.Bundle
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import androidx.fragment.app.Fragment
 import android.text.Editable
 import android.text.Html
 import android.text.TextWatcher
 import android.text.method.LinkMovementMethod
 import android.view.*
 import android.widget.*
+import androidx.fragment.app.Fragment
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.mckimquyen.binaryeye.R
+import com.mckimquyen.binaryeye.adapter.prettifyFormatName
+import com.mckimquyen.binaryeye.database.Recreation
+import com.mckimquyen.binaryeye.database.Scan
+import com.mckimquyen.binaryeye.database.toRecreation
+import com.mckimquyen.binaryeye.db
+import com.mckimquyen.binaryeye.ext.app.addFragment
+import com.mckimquyen.binaryeye.ext.app.hasLocationPermission
+import com.mckimquyen.binaryeye.ext.app.hasWritePermission
+import com.mckimquyen.binaryeye.prefs
+import com.mckimquyen.binaryeye.view.act.ActivityMain
 import com.mckimquyen.binaryeye.view.actions.ActionRegistry
 import com.mckimquyen.binaryeye.view.actions.IAction
 import com.mckimquyen.binaryeye.view.actions.wifi.WifiAction
 import com.mckimquyen.binaryeye.view.actions.wifi.WifiConnector
-import com.mckimquyen.binaryeye.view.act.ActivityMain
-import com.mckimquyen.binaryeye.adapter.prettifyFormatName
-import com.mckimquyen.binaryeye.ext.app.addFragment
-import com.mckimquyen.binaryeye.ext.app.hasLocationPermission
-import com.mckimquyen.binaryeye.ext.app.hasWritePermission
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
-import com.mckimquyen.binaryeye.prefs
 import com.mckimquyen.binaryeye.view.content.shareText
-import com.mckimquyen.binaryeye.db
-import com.mckimquyen.binaryeye.database.Recreation
-import com.mckimquyen.binaryeye.database.Scan
-import com.mckimquyen.binaryeye.database.toRecreation
 import com.mckimquyen.binaryeye.view.io.askForFileName
 import com.mckimquyen.binaryeye.view.io.toSaveResult
 import com.mckimquyen.binaryeye.view.io.writeExternalFile
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.toast
-import kotlinx.coroutines.*
 import kotlin.math.roundToInt
+import kotlinx.coroutines.*
 
 class FDecode : Fragment() {
     private lateinit var contentView: EditText
