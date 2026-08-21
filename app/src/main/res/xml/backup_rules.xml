@@ -2,4 +2,9 @@
     <include
         domain="root"
         path="." />
+    <!-- [FIX SEC-03] Lich su scan co the chua noi dung nhay cam (mat khau WiFi,
+    the tin dung...) - khong dua vao auto-backup (API < 12, legacy path). -->
+    <exclude
+        domain="database"
+        path="." />
 </full-backup-content>

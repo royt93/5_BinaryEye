@@ -356,6 +356,7 @@ class ActivityCamera : BaseActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_a_camera, menu)
         menu.findItem(R.id.bulkMode).isChecked = bulkMode
+        menu.findItem(R.id.incognitoMode).isChecked = prefs.incognitoMode
         return true
     }
 
@@ -411,6 +412,21 @@ class ActivityCamera : BaseActivity() {
 
             R.id.restrictFormat -> {
                 showRestrictionDialog()
+                true
+            }
+
+            // [FEAT Incognito] Bat/tat che do quet an danh - khong luu history,
+            // tu xoa clipboard sau 60s
+            R.id.incognitoMode -> {
+                prefs.incognitoMode = prefs.incognitoMode xor true
+                item.isChecked = prefs.incognitoMode
+                toast(
+                    if (prefs.incognitoMode) {
+                        R.string.incognito_mode_on
+                    } else {
+                        R.string.incognito_mode_off
+                    }
+                )
                 true
             }
 
@@ -807,6 +823,9 @@ class ActivityCamera : BaseActivity() {
 
 }
 
+// [FEAT Incognito] Thoi gian tu xoa clipboard khi dang quet an danh
+private const val INCOGNITO_CLIPBOARD_CLEAR_MS = 60_000L
+
 fun Activity.showResult(
     result: Result,
     bulkMode: Boolean = false,
@@ -816,10 +835,16 @@ fun Activity.showResult(
     finishOnDismiss: Boolean = false,
 ) {
     if (prefs.copyImmediately) {
-        copyToClipboard(result.text)
+        copyToClipboard(
+            result.text,
+            isSensitive = prefs.incognitoMode,
+            autoClearAfterMs = if (prefs.incognitoMode) INCOGNITO_CLIPBOARD_CLEAR_MS else null
+        )
     }
     val scan = result.toScan()
-    if (prefs.useHistory) {
+    // [FEAT Incognito] Khong tu dong luu vao history khi dang quet an danh,
+    // du prefs.useHistory dang bat
+    if (prefs.useHistory && !prefs.incognitoMode) {
         scan.id = db.insertScan(scan)
     }
     if (prefs.sendScanActive && prefs.sendScanUrl.isNotEmpty()) {
@@ -918,7 +943,11 @@ private fun Activity.showScanBottomSheet(scan: Scan, finishOnDismiss: Boolean = 
     val btnCopy = sheetView.findViewById<MaterialButton>(R.id.btnCopy)
     btnCopy.isEnabled = !isBinary
     btnCopy.setOnClickListener {
-        copyToClipboard(scan.content)
+        copyToClipboard(
+            scan.content,
+            isSensitive = prefs.incognitoMode,
+            autoClearAfterMs = if (prefs.incognitoMode) INCOGNITO_CLIPBOARD_CLEAR_MS else null
+        )
         toast(R.string.copied_to_clipboard)
         sheet.dismiss()
     }

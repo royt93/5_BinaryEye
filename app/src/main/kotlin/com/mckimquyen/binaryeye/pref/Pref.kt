@@ -44,6 +44,8 @@ class Pref {
         private const val EXPAND_ESCAPE_SEQUENCES = "expand_escape_sequences"
         private const val LAST_FOREGROUND_MS = "last_foreground_ms"
         private const val AUTO_TORCH = "auto_torch"
+        private const val LOCK_HISTORY = "lock_history"
+        private const val INCOGNITO_MODE = "incognito_mode"
     }
 
     lateinit var preferences: SharedPreferences
@@ -110,6 +112,18 @@ class Pref {
     var autoTorch = false
         set(value) {
             apply(AUTO_TORCH, value)
+            field = value
+        }
+    // [FEAT F8] Khoa man History bang van tay/PIN (VIP-exclusive)
+    var lockHistory = false
+        set(value) {
+            apply(LOCK_HISTORY, value)
+            field = value
+        }
+    // [FEAT Incognito] Khong luu vao history, tu xoa clipboard sau 60s
+    var incognitoMode = false
+        set(value) {
+            apply(INCOGNITO_MODE, value)
             field = value
         }
     var bulkMode = false
@@ -285,6 +299,8 @@ class Pref {
         autoRotate = preferences.getBoolean(AUTO_ROTATE, autoRotate)
         tryHarder = preferences.getBoolean(TRY_HARDER, tryHarder)
         autoTorch = preferences.getBoolean(AUTO_TORCH, autoTorch)
+        lockHistory = preferences.getBoolean(LOCK_HISTORY, lockHistory)
+        incognitoMode = preferences.getBoolean(INCOGNITO_MODE, incognitoMode)
         bulkMode = preferences.getBoolean(BULK_MODE, bulkMode)
         bulkModeDelay = preferences.getString(
             BULK_MODE_DELAY,

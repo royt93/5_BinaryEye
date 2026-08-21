@@ -165,6 +165,8 @@ dependencies {
     api 'com.github.markusfisch:ScalingImageView:1.4.1'
     // ZXing-CPP v2.3.0.4 with 16KB page size support — keep ≥ this for Android 15+ compatibility
     api 'com.github.markusfisch:zxing-cpp:v2.3.0.4'
+    // [FEAT F8] Biometric lock cho History (VIP-exclusive)
+    api 'androidx.biometric:biometric:1.1.0'
 
     implementation "com.github.royt93:AdmobApplovinWrapper:1.1.3"
 

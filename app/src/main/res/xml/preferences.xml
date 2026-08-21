@@ -12,6 +12,12 @@
             android:title="Cấu hình Quyền Riêng Tư (UMP)"
             android:summary="Thay đổi tuỳ chọn bảo mật và dữ liệu (GDPR/CCPA)"
             android:icon="@android:drawable/ic_menu_info_details" />
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="lock_history"
+            android:summary="@string/lock_history_summary"
+            android:title="@string/lock_history"
+            android:widgetLayout="@layout/switch_preference_compat" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/scan_category">

@@ -83,6 +83,14 @@
     <string name="try_harder_summary">Enable this option for very hard to read codes. Will affect performance.</string>
     <string name="auto_torch">Auto-torch in low light</string>
     <string name="auto_torch_summary">Automatically turn on the flashlight when it\'s too dark to scan.</string>
+    <string name="lock_history">Lock History (VIP)</string>
+    <string name="lock_history_summary">Require fingerprint or PIN to open History. VIP-exclusive.</string>
+    <string name="lock_history_vip_only">Lock History is a VIP-exclusive feature</string>
+    <string name="lock_history_prompt_title">Unlock History</string>
+    <string name="lock_history_auth_failed">Authentication failed</string>
+    <string name="incognito_mode">Incognito scan</string>
+    <string name="incognito_mode_on">Incognito mode on — scans won\'t be saved to History</string>
+    <string name="incognito_mode_off">Incognito mode off</string>
     <string name="show_toast_in_bulk_mode">Show data in continuous mode</string>
     <string name="show_toast_in_bulk_mode_summary">Briefly show the scanned data when scanning continuously.</string>
     <string name="vibrate">Vibrate on detection</string>

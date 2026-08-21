@@ -165,6 +165,41 @@
 
         <include layout="@layout/roy_v_progress_view" />
 
+        <!-- [FEAT F8] Bien che khi Lock History dang bat va chua xac thuc -->
+        <LinearLayout
+            android:id="@+id/lockOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/colorSurface"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@android:drawable/ic_lock_lock"
+                app:tint="?attr/colorAccent" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/lock_history_prompt_title"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUnlock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/lock_history_prompt_title" />
+
+        </LinearLayout>
+
     </FrameLayout>
 
 </LinearLayout>

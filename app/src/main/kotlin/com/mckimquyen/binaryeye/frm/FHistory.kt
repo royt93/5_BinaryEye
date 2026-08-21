@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SwitchCompat
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -54,6 +56,10 @@ class FHistory : Fragment() {
 
     private lateinit var chipGroupDate: ChipGroup
     private lateinit var chipGroupFormat: ChipGroup
+
+    // [FEAT F8] Lock History (VIP-exclusive)
+    private lateinit var lockOverlay: View
+    private var authenticated = false
 
     private val parentJob = Job()
     private val scope = CoroutineScope(Dispatchers.IO + parentJob)
@@ -215,6 +221,9 @@ class FHistory : Fragment() {
 
         progressView = view.findViewById(R.id.progressView)
 
+        lockOverlay = view.findViewById(R.id.lockOverlay)
+        view.findViewById<View>(R.id.btnUnlock).setOnClickListener { showBiometricPrompt() }
+
         // Áp window-inset (status bar + toolbar + navbar) cho cả cột để thanh
         // filter chips ở trên cùng không bị status bar/toolbar che, và list/FAB
         // không bị navbar che. Tránh double-pad ở từng con.
@@ -235,9 +244,69 @@ class FHistory : Fragment() {
         parentJob.cancel()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (isLockRequired() && !authenticated) {
+            lockOverlay.visibility = View.VISIBLE
+            showBiometricPrompt()
+        }
+    }
+
     override fun onPause() {
         super.onPause()
         listViewState = listView.onSaveInstanceState()
+        // [FEAT F8] Bat lai xac thuc moi lan roi man hinh (background app,
+        // chuyen fragment khac...) de dam bao khoa that su co tac dung
+        if (isLockRequired()) {
+            authenticated = false
+        }
+    }
+
+    private fun isLockRequired() =
+        prefs.lockHistory && com.roy.sdkadbmob.AdManager.isVipByKeyActive()
+
+    private fun showBiometricPrompt() {
+        val ac = activity ?: return
+        val biometricManager = BiometricManager.from(ac)
+        val allowedAuthenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK or
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        if (biometricManager.canAuthenticate(allowedAuthenticators) !=
+            BiometricManager.BIOMETRIC_SUCCESS
+        ) {
+            // Khong co van tay/PIN/pattern nao duoc thiet lap tren may - khong
+            // the khoa duoc, cho qua thay vi khoa cung user ra khoi History
+            authenticated = true
+            lockOverlay.visibility = View.GONE
+            return
+        }
+        val prompt = BiometricPrompt(
+            this,
+            ContextCompat.getMainExecutor(ac),
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(
+                    result: BiometricPrompt.AuthenticationResult,
+                ) {
+                    authenticated = true
+                    lockOverlay.visibility = View.GONE
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    // User huy hoac lockout - giu overlay, nut "Unlock" cho phep thu lai
+                    if (errorCode != BiometricPrompt.ERROR_USER_CANCELED &&
+                        errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON &&
+                        errorCode != BiometricPrompt.ERROR_CANCELED
+                    ) {
+                        ac.toast("${getString(R.string.lock_history_auth_failed)}: $errString")
+                    }
+                }
+            }
+        )
+        prompt.authenticate(
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.lock_history_prompt_title))
+                .setAllowedAuthenticators(allowedAuthenticators)
+                .build()
+        )
     }
 
     override fun onCreateOptionsMenu(

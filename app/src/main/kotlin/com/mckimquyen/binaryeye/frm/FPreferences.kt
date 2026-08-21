@@ -50,6 +50,16 @@ class FPreferences : PreferenceFragmentCompat() {
                     setSummary(preference)
                 }
 
+                // [FEAT F8] Lock History la tinh nang VIP-exclusive - free
+                // user bat cong tac se bi tu dong tat lai kem toast giai thich
+                "lock_history" -> {
+                    if (prefs.lockHistory && !com.roy.sdkadbmob.AdManager.isVipByKeyActive()) {
+                        prefs.lockHistory = false
+                        context?.toast(R.string.lock_history_vip_only)
+                    }
+                    setSummary(preference)
+                }
+
                 else -> setSummary(preference)
             }
         }

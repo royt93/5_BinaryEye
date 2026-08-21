@@ -39,6 +39,12 @@
         android:title="@string/restrict_format"
         material:showAsAction="ifRoom" />
     <item
+        android:id="@+id/incognitoMode"
+        android:checkable="true"
+        android:icon="@android:drawable/ic_secure"
+        android:title="@string/incognito_mode"
+        material:showAsAction="ifRoom" />
+    <item
         android:id="@+id/preferences"
         android:icon="@drawable/ic_action_preferences"
         android:title="@string/preferences"
