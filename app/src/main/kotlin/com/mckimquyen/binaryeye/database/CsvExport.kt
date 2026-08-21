@@ -77,18 +77,17 @@ private fun Cursor.toCsvRecord(
 	delimiter: String,
 	deviation: Pair<Int, String>?,
 ): ByteArray {
-    val sb = StringBuilder()
-    indices.forEach {
+    // [FIX BUG-10] Dung joinToString giong header - truoc day moi cot deu bi
+    // them delimiter thua o cuoi (ke ca cot cuoi), lech so cot voi header
+    val row = indices.joinToString(separator = delimiter) {
         val value = if (deviation?.first == it) {
             deviation.second
         } else {
             this.getString(it)
         }
-        sb.append(value?.quoteAndEscape() ?: "")
-        sb.append(delimiter)
+        value?.quoteAndEscape() ?: ""
     }
-    sb.append("\n")
-    return sb.toString().toByteArray()
+    return "$row\n".toByteArray()
 }
 
 private fun String.quoteAndEscape() = "\"${

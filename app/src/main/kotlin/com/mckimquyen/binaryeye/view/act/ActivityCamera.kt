@@ -325,6 +325,8 @@ class ActivityCamera : BaseActivity() {
             R.id.create -> {
                 AdManager.showInterstitial(this) { success ->
                     if (BuildConfig.DEBUG) Log.d("roy93~", if (success) "Ad shown ok" else "Ad not shown")
+                    // [FIX BUG-17] Callback ad co the ve sau khi Activity da finish/destroy
+                    if (isFinishing || isDestroyed) return@showInterstitial
                     createBarcode()
                 }
                 true
@@ -333,6 +335,8 @@ class ActivityCamera : BaseActivity() {
             R.id.history -> {
                 AdManager.showInterstitial(this) { success ->
                     if (BuildConfig.DEBUG) Log.d("roy93~", if (success) "Ad shown ok" else "Ad not shown")
+                    // [FIX BUG-17] Callback ad co the ve sau khi Activity da finish/destroy
+                    if (isFinishing || isDestroyed) return@showInterstitial
                     startActivity(ActivityMain.getHistoryIntent(this))
                 }
                 true
@@ -369,6 +373,8 @@ class ActivityCamera : BaseActivity() {
             R.id.preferences -> {
                 AdManager.showInterstitial(this) { success ->
                     if (BuildConfig.DEBUG) Log.d("roy93~", if (success) "Ad shown ok" else "Ad not shown")
+                    // [FIX BUG-17] Callback ad co the ve sau khi Activity da finish/destroy
+                    if (isFinishing || isDestroyed) return@showInterstitial
                     startActivity(ActivityMain.getPreferencesIntent(this))
                 }
                 true
@@ -899,7 +905,9 @@ private fun Activity.showScanBottomSheet(scan: Scan, finishOnDismiss: Boolean = 
 
 private fun getReturnIntent(result: Result) = Intent().apply {
     putExtra("SCAN_RESULT", result.text)
-    putExtra("SCAN_RESULT_FORMAT", result.format)
+    // [FIX BUG-07] ZXing Intent Protocol mong doi String, khong phai enum -
+    // app thu 3 goi getStringExtra("SCAN_RESULT_FORMAT") se nhan null/crash
+    putExtra("SCAN_RESULT_FORMAT", result.format.name)
     putExtra("SCAN_RESULT_ORIENTATION", result.orientation)
     putExtra("SCAN_RESULT_ERROR_CORRECTION_LEVEL", result.ecLevel)
     if (result.rawBytes.isNotEmpty()) {

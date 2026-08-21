@@ -44,6 +44,8 @@ import com.mckimquyen.binaryeye.view.widget.toast
 import de.markusfisch.android.zxingcpp.ZxingCpp
 import kotlinx.coroutines.*
 
+private const val SEARCH_DEBOUNCE_MS = 300L
+
 class FHistory : Fragment() {
     private lateinit var useHistorySwitch: SwitchCompat
     private lateinit var listView: ListView
@@ -55,6 +57,7 @@ class FHistory : Fragment() {
 
     private val parentJob = Job()
     private val scope = CoroutineScope(Dispatchers.IO + parentJob)
+    private var searchJob: Job? = null
     private val actionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(
             mode: ActionMode,
@@ -329,10 +332,19 @@ class FHistory : Fragment() {
 
     private fun update(query: String? = null) {
         if (query != null) scanFilter = scanFilter.copy(query = query)
-        scope.launch {
+        // [FIX BUG-12] Huy job tim kiem truoc do de tranh race - ket qua cu
+        // co the ve sau va de len ket qua moi neu khong huy
+        searchJob?.cancel()
+        searchJob = scope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
             val cursor = db.getScans(scanFilter)
             withContext(Dispatchers.Main) {
-                val ac = activity ?: return@withContext
+                // [FIX BUG-11] Dong cursor truoc khi return neu fragment da
+                // detach - truoc day cursor mo o background thread bi ro ri
+                val ac = activity ?: run {
+                    cursor?.close()
+                    return@withContext
+                }
                 val hasScans = cursor != null && cursor.count > 0
                 if (scanFilter.isDefault) {
                     if (!hasScans) {

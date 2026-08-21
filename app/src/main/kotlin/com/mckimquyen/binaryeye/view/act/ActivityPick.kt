@@ -154,21 +154,28 @@ class ActivityPick : BaseActivity() {
             )
         }
         scope.launch {
-            // [FIX BUG-04] firstOrNull thay vi first() - danh sach rong se nem NoSuchElementException
-            cropped.decode()?.firstOrNull()?.let {
-                withContext(Dispatchers.Main) {
-                    if (isFinishing) {
-                        return@withContext
-                    }
-                    result = it
-                    scanFeedback()
-                    detectorView.update(
-                        matrix.mapPosition(
-                            it.position,
-                            detectorView.coordinates
+            try {
+                // [FIX BUG-04] firstOrNull thay vi first() - danh sach rong se nem NoSuchElementException
+                cropped.decode()?.firstOrNull()?.let {
+                    withContext(Dispatchers.Main) {
+                        if (isFinishing) {
+                            return@withContext
+                        }
+                        result = it
+                        scanFeedback()
+                        detectorView.update(
+                            matrix.mapPosition(
+                                it.position,
+                                detectorView.coordinates
+                            )
                         )
-                    )
+                    }
                 }
+            } finally {
+                // [FIX BUG-15] cropped chi dung de decode, khong hien thi -
+                // recycle ngay sau khi xong de tranh giu nhieu bitmap trong RAM
+                // khi user keo vung crop lien tuc
+                cropped.recycle()
             }
         }
     }

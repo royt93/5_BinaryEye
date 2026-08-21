@@ -21,6 +21,14 @@ class Db {
             db.close()
         }
     }
+
+    // [FIX BUG-13] Flush WAL vao file .db chinh truoc khi copy file de export/backup -
+    // neu khong, du lieu ghi gan nhat co the con nam trong -wal, chua co trong file duoc copy
+    fun checkpoint() {
+        if (::db.isInitialized && db.isOpen) {
+            db.execSQL("PRAGMA wal_checkpoint(FULL)")
+        }
+    }
     fun getScans(filter: ScanFilter = ScanFilter()): Cursor? = db.rawQuery(
         """SELECT
 			$SCANS_ID,
@@ -207,6 +215,17 @@ class Db {
             if (oldVersion < 6) {
                 db.migrateToVersionString()
             }
+        }
+
+        // [FIX BUG-14] Khong override se nem SQLiteException va crash app khi
+        // mo lai DB co schema version cao hon (vd sau "undo update"/restore
+        // backup). Moi migration hien tai chi ADD COLUMN, khong xoa/doi ten,
+        // nen giu nguyen schema (khong lam gi) la an toan cho code cu doc lai.
+        override fun onDowngrade(
+            db: SQLiteDatabase,
+            oldVersion: Int,
+            newVersion: Int,
+        ) {
         }
     }
 

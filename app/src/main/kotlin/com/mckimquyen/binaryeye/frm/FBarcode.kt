@@ -289,7 +289,7 @@ class FBarcode : Fragment() {
         private const val BG_COLOR = "bg_color"
         private const val LOGO_URI = "logo_uri"
         private const val MIME_PNG = "image/png"
-        private const val MIME_SVG = "image/svg+xmg"
+        private const val MIME_SVG = "image/svg+xml" // [FIX BUG-09] loi chinh ta xmg -> xml
         private const val MIME_TXT = "text/plain"
 
         fun newInstance(

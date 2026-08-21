@@ -52,8 +52,11 @@ object VCardAction : IntentAction() {
                     1 -> ContactsContract.Intents.Insert.SECONDARY_PHONE_TYPE to
                             ContactsContract.Intents.Insert.SECONDARY_PHONE
 
+                    // [FIX BUG-08] Ve phai phai la gia tri TERTIARY_PHONE, khong
+                    // phai lap lai TERTIARY_PHONE_TYPE - truoc day so dien thoai
+                    // thu 3 khong duoc luu vao danh ba
                     2 -> ContactsContract.Intents.Insert.TERTIARY_PHONE_TYPE to
-                            ContactsContract.Intents.Insert.TERTIARY_PHONE_TYPE
+                            ContactsContract.Intents.Insert.TERTIARY_PHONE
 
                     else -> return@forEachIndexed
                 }
