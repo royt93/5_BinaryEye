@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:key="preferences"
     android:title="@string/preferences">
-    <PreferenceCategory android:title="Tài Khoản & VIP">
+    <PreferenceCategory android:title="Tài Khoản &amp; VIP">
         <Preference
             android:key="vip_management"
             android:title="Quản lý VIP"
@@ -18,6 +18,13 @@
             android:summary="@string/lock_history_summary"
             android:title="@string/lock_history"
             android:widgetLayout="@layout/switch_preference_compat" />
+        <ListPreference
+            android:defaultValue="1200"
+            android:entries="@array/auditDebounceDelaysNames"
+            android:entryValues="@array/auditDebounceDelaysValues"
+            android:key="audit_repeat_debounce_ms"
+            android:summary="@string/audit_repeat_debounce_summary"
+            android:title="@string/audit_repeat_debounce" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/scan_category">

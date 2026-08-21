@@ -1,0 +1,14 @@
+<resources>
+    <string-array name="auditDebounceDelaysNames">
+        <item>@string/audit_debounce_0_8s</item>
+        <item>@string/audit_debounce_1_2s</item>
+        <item>@string/audit_debounce_1_8s</item>
+        <item>@string/audit_debounce_3s</item>
+    </string-array>
+    <string-array name="auditDebounceDelaysValues">
+        <item>800</item>
+        <item>1200</item>
+        <item>1800</item>
+        <item>3000</item>
+    </string-array>
+</resources>

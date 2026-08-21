@@ -46,6 +46,7 @@ class Pref {
         private const val AUTO_TORCH = "auto_torch"
         private const val LOCK_HISTORY = "lock_history"
         private const val INCOGNITO_MODE = "incognito_mode"
+        private const val AUDIT_REPEAT_DEBOUNCE_MS = "audit_repeat_debounce_ms"
     }
 
     lateinit var preferences: SharedPreferences
@@ -164,6 +165,13 @@ class Pref {
     var ignoreConsecutiveDuplicates = true
         set(value) {
             apply(IGNORE_CONSECUTIVE_DUPLICATES, value)
+            field = value
+        }
+    // [FEAT VIP-02] Trong bao lau thi 1 lan quet lai dung 1 ma trong Batch
+    // audit moi duoc tinh la lan quet moi (chong dem trung do rung tay)
+    var auditRepeatDebounceMs = "1200"
+        set(value) {
+            apply(AUDIT_REPEAT_DEBOUNCE_MS, value)
             field = value
         }
     var copyImmediately = false
@@ -320,6 +328,10 @@ class Pref {
             IGNORE_CONSECUTIVE_DUPLICATES,
             ignoreConsecutiveDuplicates
         )
+        auditRepeatDebounceMs = preferences.getString(
+            AUDIT_REPEAT_DEBOUNCE_MS,
+            auditRepeatDebounceMs
+        ) ?: auditRepeatDebounceMs
         copyImmediately = preferences.getBoolean(
             COPY_IMMEDIATELY,
             copyImmediately

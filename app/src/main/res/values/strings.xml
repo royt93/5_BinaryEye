@@ -110,6 +110,12 @@
     <string name="audit_status_unexpected">UNEXPECTED</string>
     <string name="audit_status_missing">MISSING</string>
     <string name="audit_missing_summary">%1$d expected code(s) not yet scanned</string>
+    <string name="audit_repeat_debounce">Audit repeat-scan debounce</string>
+    <string name="audit_repeat_debounce_summary">How long to wait before the same code can be counted again in Batch audit</string>
+    <string name="audit_debounce_0_8s">0.8 second (fast)</string>
+    <string name="audit_debounce_1_2s">1.2 seconds (recommended)</string>
+    <string name="audit_debounce_1_8s">1.8 seconds</string>
+    <string name="audit_debounce_3s">3 seconds (careful)</string>
     <string name="show_toast_in_bulk_mode">Show data in continuous mode</string>
     <string name="show_toast_in_bulk_mode_summary">Briefly show the scanned data when scanning continuously.</string>
     <string name="vibrate">Vibrate on detection</string>

@@ -110,7 +110,7 @@ class AuditSessionTest {
         session.recordScan("X999", "EAN_13")
 
         val lines = session.toCsv().trim().split("\n")
-        assertEquals("content,format,count,status", lines[0])
+        assertEquals("content,format,count,status,gtin,lot,expiry,serial", lines[0])
         // header + A001 + X999 (scanned) + A002 + A003 (missing) = 5
         assertEquals(5, lines.size)
         assertTrue(lines.any { it.contains("\"A001\"") && it.contains("\"OK\"") })
@@ -144,5 +144,32 @@ class AuditSessionTest {
         assertEquals(original.rows(), restored.rows())
         // Sau khi khoi phuc, quet lai A001 phai van la DUPLICATE (khong bi coi la moi)
         assertEquals(AuditSession.Outcome.DUPLICATE, restored.recordScan("A001", "QR_CODE"))
+    }
+
+    @Test
+    fun rows_gs1Content_exposesParsedGtinLotExpirySerial() {
+        val session = AuditSession()
+        session.recordScan("(01)09501101530003(17)191231(10)LOT1(21)SN1", "DATA_MATRIX")
+        session.recordScan("plain-non-gs1-code", "QR_CODE")
+
+        val rows = session.rows().associateBy { it.content }
+        val gs1Row = rows.getValue("(01)09501101530003(17)191231(10)LOT1(21)SN1")
+        assertEquals("09501101530003", gs1Row.gtin)
+        assertEquals("LOT1", gs1Row.lot)
+        assertEquals("2019-12-31", gs1Row.expiryDate)
+        assertEquals("SN1", gs1Row.serial)
+
+        val plainRow = rows.getValue("plain-non-gs1-code")
+        assertEquals(null, plainRow.gtin)
+        assertEquals(null, plainRow.serial)
+    }
+
+    @Test
+    fun toCsv_includesGs1Columns() {
+        val session = AuditSession()
+        session.recordScan("(01)09501101530003(21)SN1", "DATA_MATRIX")
+        val csv = session.toCsv()
+        assertTrue(csv.contains("\"09501101530003\""))
+        assertTrue(csv.contains("\"SN1\""))
     }
 }

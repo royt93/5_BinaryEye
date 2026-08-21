@@ -877,7 +877,8 @@ class ActivityCamera : BaseActivity() {
     private fun handleAuditScan(result: Result) {
         val session = auditSession ?: return
         val now = System.currentTimeMillis()
-        if (result.text == auditLastCode && now - auditLastCodeAtMs < AUDIT_REPEAT_DEBOUNCE_MS) {
+        val debounceMs = prefs.auditRepeatDebounceMs.toLongOrNull() ?: AUDIT_REPEAT_DEBOUNCE_DEFAULT_MS
+        if (result.text == auditLastCode && now - auditLastCodeAtMs < debounceMs) {
             // Camera van dang thay lai dung ma vua quet (chua kip doi cho) -
             // bo qua de 1 lan gio ma khong bi tinh thanh nhieu ban ghi
             detectorView.postDelayed({ decoding = true }, AUDIT_SCAN_RESUME_DELAY_MS)
@@ -964,7 +965,13 @@ class ActivityCamera : BaseActivity() {
         sheetView.findViewById<TextView>(R.id.tvAuditStats).text = statsText
 
         val rowsText = session.rows().joinToString("\n") { row ->
-            "${row.status.padEnd(11)} ${row.count}x  ${row.content}"
+            // [FEAT VIP-02] Hien them lot/expiry/serial neu ma la GS1 (agi-01/10/17/21)
+            val gs1Suffix = buildString {
+                row.lot?.let { append(" lot=$it") }
+                row.expiryDate?.let { append(" exp=$it") }
+                row.serial?.let { append(" sn=$it") }
+            }
+            "${row.status.padEnd(11)} ${row.count}x  ${row.content}$gs1Suffix"
         }
         sheetView.findViewById<TextView>(R.id.tvAuditRows).text = rowsText.ifEmpty { "—" }
 
@@ -1016,8 +1023,9 @@ class ActivityCamera : BaseActivity() {
 
         // [FIX VIP-02] Chi chan quet lai dung 1 ma trong khoang ngan nay (chong rung
         // tay/nhieu frame), qua khoang nay van tinh la lan quet moi (kem theo DUPLICATE
-        // neu da tung quet truoc do trong phien)
-        private const val AUDIT_REPEAT_DEBOUNCE_MS = 1200L
+        // neu da tung quet truoc do trong phien). Gia tri that lay tu prefs.auditRepeatDebounceMs
+        // (Settings), day chi la fallback neu pref bi hong/khong parse duoc.
+        private const val AUDIT_REPEAT_DEBOUNCE_DEFAULT_MS = 1200L
 
         // [FIX VIP-02] Khoi phuc audit session sau khi Activity bi tao lai (vd xoay man hinh)
         private const val AUDIT_EXPECTED_CODES = "audit_expected_codes"

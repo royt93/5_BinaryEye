@@ -16,6 +16,10 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
         val format: String,
         val count: Int,
         val status: String,
+        val gtin: String? = null,
+        val lot: String? = null,
+        val expiryDate: String? = null,
+        val serial: String? = null,
     )
 
     val expectedCodesList: List<String> = expectedCodes.toList()
@@ -60,11 +64,15 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
             entry.count > 1 -> "DUPLICATE"
             else -> "OK"
         }
-        Row(content, entry.format, entry.count, status)
+        val gs1 = Gs1Parser.parse(content)
+        Row(content, entry.format, entry.count, status, gs1.gtin, gs1.lot, gs1.expiryDate, gs1.serial)
     }
 
     /** Cac ma ky vong nhung chua quet, xuat kem vao bao cao voi count=0. */
-    fun missingRows(): List<Row> = missingCodes.map { Row(it, "", 0, "MISSING") }
+    fun missingRows(): List<Row> = missingCodes.map { code ->
+        val gs1 = Gs1Parser.parse(code)
+        Row(code, "", 0, "MISSING", gs1.gtin, gs1.lot, gs1.expiryDate, gs1.serial)
+    }
 
     /** Snapshot cac dong da quet, dung de khoi phuc phien sau khi Activity bi tao lai (vd xoay man hinh). */
     fun snapshotEntries(): List<Triple<String, String, Int>> =
@@ -77,7 +85,9 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
 
     /** Bao cao CSV day du (scanned rows + missing rows), sap xep de doc. */
     fun toCsv(delimiter: String = ","): String {
-        val header = listOf("content", "format", "count", "status").joinToString(delimiter)
+        val header = listOf(
+            "content", "format", "count", "status", "gtin", "lot", "expiry", "serial"
+        ).joinToString(delimiter)
         val allRows = rows() + missingRows()
         val body = allRows.joinToString("\n") { row ->
             listOf(
@@ -85,6 +95,10 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
                 row.format.quoteAndEscape(),
                 row.count.toString(),
                 row.status.quoteAndEscape(),
+                (row.gtin ?: "").quoteAndEscape(),
+                (row.lot ?: "").quoteAndEscape(),
+                (row.expiryDate ?: "").quoteAndEscape(),
+                (row.serial ?: "").quoteAndEscape(),
             ).joinToString(delimiter)
         }
         return if (body.isEmpty()) "$header\n" else "$header\n$body\n"
