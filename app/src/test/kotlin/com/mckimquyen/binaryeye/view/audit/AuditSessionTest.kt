@@ -110,7 +110,10 @@ class AuditSessionTest {
         session.recordScan("X999", "EAN_13")
 
         val lines = session.toCsv().trim().split("\n")
-        assertEquals("content,format,count,status,gtin,lot,expiry,serial", lines[0])
+        assertEquals(
+            "content,format,count,status,gtin,lot,expiry,serial,cross_session_alert",
+            lines[0]
+        )
         // header + A001 + X999 (scanned) + A002 + A003 (missing) = 5
         assertEquals(5, lines.size)
         assertTrue(lines.any { it.contains("\"A001\"") && it.contains("\"OK\"") })
@@ -171,5 +174,19 @@ class AuditSessionTest {
         val csv = session.toCsv()
         assertTrue(csv.contains("\"09501101530003\""))
         assertTrue(csv.contains("\"SN1\""))
+    }
+
+    @Test
+    fun toCsv_crossSessionAlertCallback_marksMatchingRowsOnly() {
+        val session = AuditSession()
+        session.recordScan("(21)FLAGGED", "QR_CODE")
+        session.recordScan("(21)CLEAN", "QR_CODE")
+
+        val csv = session.toCsv(isCrossSessionAlert = { it.serial == "FLAGGED" })
+        val lines = csv.trim().split("\n")
+        val flaggedLine = lines.first { it.contains("FLAGGED") }
+        val cleanLine = lines.first { it.contains("CLEAN") }
+        assertTrue(flaggedLine.endsWith("\"YES\""))
+        assertTrue(cleanLine.endsWith("\"\""))
     }
 }

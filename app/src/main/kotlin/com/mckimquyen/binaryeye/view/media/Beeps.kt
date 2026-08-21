@@ -15,6 +15,9 @@ private object BeepManager {
     // [FEAT VIP-02] Tone rieng cho "da quet trung" trong Audit Mode - phai
     // nghe khac ro rang voi confirm (item moi/hop le) va error (ngoai danh sach)
     private var duplicateGenerator: ToneGenerator? = null
+    // [FEAT FEAT-NEW-04] Tone rieng, muc do nghiem trong nhat - serial nay da
+    // tung xuat hien o 1 phien audit KHAC truoc do (nghi ngo trung/hang gia)
+    private var alertGenerator: ToneGenerator? = null
 
     fun beepConfirm() {
         val tg = confirmGenerator ?: tryCreate(AudioManager.STREAM_NOTIFICATION).also {
@@ -37,6 +40,13 @@ private object BeepManager {
         tg.startTone(ToneGenerator.TONE_PROP_BEEP2)
     }
 
+    fun beepAlert() {
+        val tg = alertGenerator ?: tryCreate(AudioManager.STREAM_ALARM).also {
+            alertGenerator = it
+        } ?: return
+        tg.startTone(ToneGenerator.TONE_SUP_CONGESTION)
+    }
+
     fun release() {
         try { confirmGenerator?.release() } catch (e: Exception) {
             Log.w(TAG, "release confirmGenerator error", e)
@@ -50,6 +60,10 @@ private object BeepManager {
             Log.w(TAG, "release duplicateGenerator error", e)
         }
         duplicateGenerator = null
+        try { alertGenerator?.release() } catch (e: Exception) {
+            Log.w(TAG, "release alertGenerator error", e)
+        }
+        alertGenerator = null
     }
 
     private fun tryCreate(streamType: Int): ToneGenerator? = try {
@@ -66,5 +80,7 @@ fun beepConfirm() = BeepManager.beepConfirm()
 fun beepError() = BeepManager.beepError()
 
 fun beepDuplicate() = BeepManager.beepDuplicate()
+
+fun beepAlert() = BeepManager.beepAlert()
 
 fun releaseToneGenerators() = BeepManager.release()

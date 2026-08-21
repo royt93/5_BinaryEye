@@ -53,6 +53,7 @@ import com.mckimquyen.binaryeye.frm.FLanguageDialog
 import com.mckimquyen.binaryeye.prefs
 import com.mckimquyen.binaryeye.view.actions.ActionRegistry
 import com.mckimquyen.binaryeye.view.audit.AuditSession
+import com.mckimquyen.binaryeye.view.audit.Gs1Parser
 import com.mckimquyen.binaryeye.view.bluetooth.sendBluetoothAsync
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
 import com.mckimquyen.binaryeye.view.content.execShareIntent
@@ -68,6 +69,7 @@ import com.mckimquyen.binaryeye.view.io.askForFileName
 import com.mckimquyen.binaryeye.view.io.toSaveResult
 import com.mckimquyen.binaryeye.view.io.writeExternalFile
 import com.mckimquyen.binaryeye.view.isSilent
+import com.mckimquyen.binaryeye.view.media.beepAlert
 import com.mckimquyen.binaryeye.view.media.beepConfirm
 import com.mckimquyen.binaryeye.view.media.beepDuplicate
 import com.mckimquyen.binaryeye.view.media.beepError
@@ -122,6 +124,11 @@ class ActivityCamera : BaseActivity() {
     // [FEAT VIP-02] Batch audit session - null = khong dang audit
     private var auditSession: AuditSession? = null
     private lateinit var auditBadge: Chip
+
+    // [FEAT FEAT-NEW-04] Moc thoi gian bat dau phien audit hien tai - dung de
+    // phan biet "serial da thay trong DB tu 1 phien KHAC truoc do" (canh bao)
+    // voi "serial vua duoc ghi boi chinh phien nay" (khong phai canh bao)
+    private var auditSessionStartedAtMs: Long = 0L
 
     // [FIX VIP-02] Debounce rieng cho audit mode (KHONG dung chung `ignoreNext`
     // voi bulk mode - ignoreNext khong bao gio het han trong 1 phien camera,
@@ -364,6 +371,7 @@ class ActivityCamera : BaseActivity() {
             auditSession = AuditSession(expected).apply {
                 restoreEntries(contents.indices.map { i -> Triple(contents[i], formats[i], counts[i]) })
             }
+            auditSessionStartedAtMs = savedState.getLong(AUDIT_SESSION_STARTED_AT_MS)
             updateAuditBadge()
         }
     }
@@ -381,6 +389,7 @@ class ActivityCamera : BaseActivity() {
             outState.putStringArrayList(AUDIT_ENTRY_CONTENTS, ArrayList(snapshot.map { it.first }))
             outState.putStringArrayList(AUDIT_ENTRY_FORMATS, ArrayList(snapshot.map { it.second }))
             outState.putIntArray(AUDIT_ENTRY_COUNTS, snapshot.map { it.third }.toIntArray())
+            outState.putLong(AUDIT_SESSION_STARTED_AT_MS, auditSessionStartedAtMs)
         }
         super.onSaveInstanceState(outState)
     }
@@ -887,12 +896,22 @@ class ActivityCamera : BaseActivity() {
         auditLastCode = result.text
         auditLastCodeAtMs = now
         val outcome = session.recordScan(result.text, result.format.name)
+
+        // [FEAT FEAT-NEW-04] Neu ma la GS1 va co serial, doi chieu voi lich su
+        // serial da tung audit (xuyen suot moi phien, luu trong DB rieng) -
+        // serial da thay o 1 phien KHAC truoc do la dau hieu nghi ngo trung/hang gia
+        val gs1 = Gs1Parser.parse(result.text)
+        val crossSessionAlert = gs1.serial != null &&
+            db.hasAuditSerialBefore(gs1.serial, auditSessionStartedAtMs)
+        gs1.serial?.let { db.recordAuditSerialIfNew(it, gs1.gtin, result.text, now) }
+
         if (prefs.vibrate) getVibrator().vibrate()
         if (prefs.beep && !isSilent()) {
-            when (outcome) {
-                AuditSession.Outcome.NEW_EXPECTED -> beepConfirm()
-                AuditSession.Outcome.NEW_UNEXPECTED -> beepError()
-                AuditSession.Outcome.DUPLICATE -> beepDuplicate()
+            when {
+                crossSessionAlert -> beepAlert()
+                outcome == AuditSession.Outcome.NEW_EXPECTED -> beepConfirm()
+                outcome == AuditSession.Outcome.NEW_UNEXPECTED -> beepError()
+                outcome == AuditSession.Outcome.DUPLICATE -> beepDuplicate()
             }
         }
         updateAuditBadge()
@@ -935,6 +954,7 @@ class ActivityCamera : BaseActivity() {
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
                 auditSession = AuditSession(codes)
+                auditSessionStartedAtMs = System.currentTimeMillis()
                 auditLastCode = null
                 // [FIX VIP-02] Neu da co 1 lan quet thuong truoc do trong cung phien
                 // camera, `decoding` co the dang bi khoa false - phai bat lai o day,
@@ -971,7 +991,9 @@ class ActivityCamera : BaseActivity() {
                 row.expiryDate?.let { append(" exp=$it") }
                 row.serial?.let { append(" sn=$it") }
             }
-            "${row.status.padEnd(11)} ${row.count}x  ${row.content}$gs1Suffix"
+            // [FEAT FEAT-NEW-04] Danh dau ro cac serial da tung xuat hien o phien khac
+            val alertPrefix = if (isCrossSessionAlert(row)) "⚠ " else ""
+            "$alertPrefix${row.status.padEnd(11)} ${row.count}x  ${row.content}$gs1Suffix"
         }
         sheetView.findViewById<TextView>(R.id.tvAuditRows).text = rowsText.ifEmpty { "—" }
 
@@ -985,12 +1007,17 @@ class ActivityCamera : BaseActivity() {
         sheet.show()
     }
 
+    // [FEAT FEAT-NEW-04] True neu serial cua dong nay da tung duoc audit o 1
+    // phien KHAC truoc phien hien tai (nghi ngo trung/hang gia)
+    private fun isCrossSessionAlert(row: AuditSession.Row): Boolean =
+        row.serial != null && db.hasAuditSerialBefore(row.serial, auditSessionStartedAtMs)
+
     private fun exportAuditReport() {
         val session = auditSession ?: return
         lifecycleScope.launch {
             val name = askForFileName(".csv") ?: return@launch
             val ok = writeExternalFile(name, "text/csv") { out ->
-                out.write(session.toCsv().toByteArray())
+                out.write(session.toCsv(isCrossSessionAlert = ::isCrossSessionAlert).toByteArray())
             }
             toast(ok.toSaveResult())
         }
@@ -1032,6 +1059,7 @@ class ActivityCamera : BaseActivity() {
         private const val AUDIT_ENTRY_CONTENTS = "audit_entry_contents"
         private const val AUDIT_ENTRY_FORMATS = "audit_entry_formats"
         private const val AUDIT_ENTRY_COUNTS = "audit_entry_counts"
+        private const val AUDIT_SESSION_STARTED_AT_MS = "audit_session_started_at_ms"
     }
 
 }

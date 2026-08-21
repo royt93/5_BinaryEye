@@ -83,10 +83,20 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
         raw.forEach { (content, format, count) -> entries[content] = Entry(format, count) }
     }
 
-    /** Bao cao CSV day du (scanned rows + missing rows), sap xep de doc. */
-    fun toCsv(delimiter: String = ","): String {
+    /**
+     * Bao cao CSV day du (scanned rows + missing rows), sap xep de doc.
+     * @param isCrossSessionAlert callback tuy chon de danh dau 1 dong la "da
+     * tung xuat hien o phien audit khac truoc do" (FEAT-NEW-04) - AuditSession
+     * khong tu truy van DB (giu pure/khong phu thuoc Android), goi truyen vao
+     * tu lop goi (ActivityCamera) neu can.
+     */
+    fun toCsv(
+        delimiter: String = ",",
+        isCrossSessionAlert: (Row) -> Boolean = { false },
+    ): String {
         val header = listOf(
-            "content", "format", "count", "status", "gtin", "lot", "expiry", "serial"
+            "content", "format", "count", "status",
+            "gtin", "lot", "expiry", "serial", "cross_session_alert"
         ).joinToString(delimiter)
         val allRows = rows() + missingRows()
         val body = allRows.joinToString("\n") { row ->
@@ -99,6 +109,7 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
                 (row.lot ?: "").quoteAndEscape(),
                 (row.expiryDate ?: "").quoteAndEscape(),
                 (row.serial ?: "").quoteAndEscape(),
+                (if (isCrossSessionAlert(row)) "YES" else "").quoteAndEscape(),
             ).joinToString(delimiter)
         }
         return if (body.isEmpty()) "$header\n" else "$header\n$body\n"

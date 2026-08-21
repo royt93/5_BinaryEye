@@ -112,7 +112,7 @@ Gộp với `M1-M6` cũ trong `doc/task.md` (IAP), bổ sung phát hiện mới:
 | **FEAT-NEW-01** ⭐🎯 | **VietQR / EMVCo Banking QR Parser** — nhận diện QR chuyển khoản ngân hàng chuẩn NAPAS247/VietQR/EMVCo, tự tách Số tài khoản/Ngân hàng/Tên chủ thẻ/Số tiền để copy nhanh hoặc mở thẳng app ngân hàng | ⚠️ 1 nguồn (agy) nhưng đánh giá **"Business Value: Rất cao, Độ khó: Thấp-Vừa"**, rất hợp thị trường VN/ĐNA của app này | **Đề xuất flagship mới**, xem Q3 AskUserQuestion |
 | ✅ FEAT-NEW-02 | **GS1 Application Identifier parser (GTIN/expiry/lot/serial)** | ✅ **DONE 2026-08-21** — `view/audit/Gs1Parser.kt` (pure, AI 01/10/11/13/15/17/21/30, ho tro ca dang bracketed `(AI)value` va raw FNC1). Tich hop vao `AuditSession.rows()`/`toCsv()`/summary sheet. 11 test rieng + 2 test tich hop trong AuditSessionTest. | Nền tảng cho cả VIP-02 (B2B suite) |
 | FEAT-NEW-03 | Product & Price Lookup (OpenFoodFacts/UPC DB) | ✅ (agy) | Freemium — basic free, VIP unlimited/cảnh báo dị ứng |
-| FEAT-NEW-04 | Duplicate/counterfeit serial alert | ✅✅ (codex + claude, dạng B2B "Verify & Track") | Nền tảng chung với VIP-02 |
+| ✅ FEAT-NEW-04 | **Duplicate/counterfeit serial alert** | ✅ **DONE 2026-08-21** — bảng DB mới `audit_serials` (schema v6→v7, migration onUpgrade), ghi nhận serial GS1 (AI 21) lần đầu thấy vĩnh viễn xuyên mọi phiên audit. Serial trùng ở phiên KHÁC → tone `beepAlert()` riêng + đánh dấu ⚠ trên summary sheet + cột `cross_session_alert` trong CSV export. Live-verify migration + query thật trên A50s (seed dữ liệu qua sqlite3 local vì không có mã GS1 vật lý để quét thật). | Nền tảng chung với VIP-02 |
 | FEAT-NEW-05 | Pagination cho History (hiện load hết 1 lần) | ✅ (claude) | Effort thấp-trung bình, ảnh hưởng hiệu năng thực tế khi lịch sử lớn |
 
 ---

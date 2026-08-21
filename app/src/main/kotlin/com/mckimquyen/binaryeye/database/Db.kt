@@ -189,10 +189,38 @@ class Db {
         db.update(SCANS, cv, "$SCANS_ID = ?", arrayOf("$id"))
     }
 
+    // [FEAT FEAT-NEW-04] True neu `serial` da tung duoc ghi nhan (INSERT OR
+    // IGNORE - lan dau tien tung thay) TRUOC thoi diem `beforeMs`, tuc la o
+    // 1 phien audit KHAC, khong phai phien dang chay hien tai.
+    fun hasAuditSerialBefore(serial: String, beforeMs: Long): Boolean = db.rawQuery(
+        """SELECT $AUDIT_SERIALS_ID FROM $AUDIT_SERIALS
+            WHERE $AUDIT_SERIALS_SERIAL = ? AND $AUDIT_SERIALS_FIRST_SEEN_AT < ?
+            LIMIT 1
+        """.trimMargin(),
+        arrayOf(serial, "$beforeMs")
+    )?.use { it.count > 0 } ?: false
+
+    // Idempotent - lan quet dau tien cua 1 serial se duoc ghi lai vinh vien
+    // (first_seen_at khong bao gio bi ghi de o cac lan quet sau).
+    fun recordAuditSerialIfNew(serial: String, gtin: String?, content: String, atMs: Long) {
+        db.insertWithOnConflict(
+            AUDIT_SERIALS,
+            null,
+            ContentValues().apply {
+                put(AUDIT_SERIALS_SERIAL, serial)
+                put(AUDIT_SERIALS_GTIN, gtin)
+                put(AUDIT_SERIALS_CONTENT, content)
+                put(AUDIT_SERIALS_FIRST_SEEN_AT, atMs)
+            },
+            SQLiteDatabase.CONFLICT_IGNORE
+        )
+    }
+
     private class OpenHelper(context: Context) :
-        SQLiteOpenHelper(context, FILE_NAME, null, 6) {
+        SQLiteOpenHelper(context, FILE_NAME, null, 7) {
         override fun onCreate(db: SQLiteDatabase) {
             db.createScans()
+            db.createAuditSerials()
         }
 
         override fun onUpgrade(
@@ -214,6 +242,9 @@ class Db {
             }
             if (oldVersion < 6) {
                 db.migrateToVersionString()
+            }
+            if (oldVersion < 7) {
+                db.createAuditSerials()
             }
         }
 
@@ -255,6 +286,28 @@ class Db {
         const val SCANS_GTIN_ADD_ON = "gtin_add_on"
         const val SCANS_GTIN_PRICE = "gtin_price"
         const val SCANS_GTIN_ISSUE_NUMBER = "gtin_issue_number"
+
+        // [FEAT FEAT-NEW-04] Serial (GS1 AI 21) da tung xuat hien trong bat ky
+        // phien Batch Audit nao - ton tai xuyen suot moi phien, KHONG bi xoa khi
+        // 1 phien audit ket thuc (khac voi AuditSession, chi song trong bo nho).
+        private const val AUDIT_SERIALS = "audit_serials"
+        private const val AUDIT_SERIALS_ID = "_id"
+        private const val AUDIT_SERIALS_SERIAL = "serial"
+        private const val AUDIT_SERIALS_GTIN = "gtin"
+        private const val AUDIT_SERIALS_CONTENT = "content"
+        private const val AUDIT_SERIALS_FIRST_SEEN_AT = "first_seen_at"
+
+        private fun SQLiteDatabase.createAuditSerials() {
+            execSQL(
+                """CREATE TABLE IF NOT EXISTS $AUDIT_SERIALS (
+					$AUDIT_SERIALS_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+					$AUDIT_SERIALS_SERIAL TEXT NOT NULL UNIQUE,
+					$AUDIT_SERIALS_GTIN TEXT,
+					$AUDIT_SERIALS_CONTENT TEXT NOT NULL,
+					$AUDIT_SERIALS_FIRST_SEEN_AT INTEGER NOT NULL
+				)""".trimMargin()
+            )
+        }
 
         private fun SQLiteDatabase.createScans() {
             execSQL("DROP TABLE IF EXISTS $SCANS".trimMargin())
