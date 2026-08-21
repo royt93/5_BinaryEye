@@ -67,6 +67,7 @@ import com.mckimquyen.binaryeye.view.initSystemBars
 import com.mckimquyen.binaryeye.view.io.askForFileName
 import com.mckimquyen.binaryeye.view.io.toSaveResult
 import com.mckimquyen.binaryeye.view.io.writeExternalFile
+import com.mckimquyen.binaryeye.view.isSilent
 import com.mckimquyen.binaryeye.view.media.beepConfirm
 import com.mckimquyen.binaryeye.view.media.beepDuplicate
 import com.mckimquyen.binaryeye.view.media.beepError
@@ -348,6 +349,16 @@ class ActivityCamera : BaseActivity() {
         frontFacing = savedState.getBoolean(FRONT_FACING)
         bulkMode = savedState.getBoolean(BULK_MODE)
         restrictFormat = savedState.getString(RESTRICT_FORMAT)
+        // [FIX VIP-02] Khoi phuc audit session (neu dang co) sau khi Activity bi tao lai
+        savedState.getStringArrayList(AUDIT_EXPECTED_CODES)?.let { expected ->
+            val contents = savedState.getStringArrayList(AUDIT_ENTRY_CONTENTS).orEmpty()
+            val formats = savedState.getStringArrayList(AUDIT_ENTRY_FORMATS).orEmpty()
+            val counts = savedState.getIntArray(AUDIT_ENTRY_COUNTS)?.toList().orEmpty()
+            auditSession = AuditSession(expected).apply {
+                restoreEntries(contents.indices.map { i -> Triple(contents[i], formats[i], counts[i]) })
+            }
+            updateAuditBadge()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -356,6 +367,14 @@ class ActivityCamera : BaseActivity() {
         outState.putBoolean(FRONT_FACING, frontFacing)
         outState.putBoolean(BULK_MODE, bulkMode)
         outState.putString(RESTRICT_FORMAT, restrictFormat)
+        // [FIX VIP-02] Luu audit session de khong mat du lieu khi Activity bi tao lai
+        auditSession?.let { session ->
+            outState.putStringArrayList(AUDIT_EXPECTED_CODES, ArrayList(session.expectedCodesList))
+            val snapshot = session.snapshotEntries()
+            outState.putStringArrayList(AUDIT_ENTRY_CONTENTS, ArrayList(snapshot.map { it.first }))
+            outState.putStringArrayList(AUDIT_ENTRY_FORMATS, ArrayList(snapshot.map { it.second }))
+            outState.putIntArray(AUDIT_ENTRY_COUNTS, snapshot.map { it.third }.toIntArray())
+        }
         super.onSaveInstanceState(outState)
     }
 
@@ -852,10 +871,12 @@ class ActivityCamera : BaseActivity() {
         val session = auditSession ?: return
         val outcome = session.recordScan(result.text, result.format.name)
         if (prefs.vibrate) getVibrator().vibrate()
-        when (outcome) {
-            AuditSession.Outcome.NEW_EXPECTED -> beepConfirm()
-            AuditSession.Outcome.NEW_UNEXPECTED -> beepError()
-            AuditSession.Outcome.DUPLICATE -> beepDuplicate()
+        if (prefs.beep && !isSilent()) {
+            when (outcome) {
+                AuditSession.Outcome.NEW_EXPECTED -> beepConfirm()
+                AuditSession.Outcome.NEW_UNEXPECTED -> beepError()
+                AuditSession.Outcome.DUPLICATE -> beepDuplicate()
+            }
         }
         updateAuditBadge()
         if (prefs.ignoreConsecutiveDuplicates) {
@@ -974,6 +995,12 @@ class ActivityCamera : BaseActivity() {
 
         // [FEAT VIP-02] Tiep tuc quet gan nhu ngay lap tuc sau moi lan dem trong audit mode
         private const val AUDIT_SCAN_RESUME_DELAY_MS = 300L
+
+        // [FIX VIP-02] Khoi phuc audit session sau khi Activity bi tao lai (vd xoay man hinh)
+        private const val AUDIT_EXPECTED_CODES = "audit_expected_codes"
+        private const val AUDIT_ENTRY_CONTENTS = "audit_entry_contents"
+        private const val AUDIT_ENTRY_FORMATS = "audit_entry_formats"
+        private const val AUDIT_ENTRY_COUNTS = "audit_entry_counts"
     }
 
 }

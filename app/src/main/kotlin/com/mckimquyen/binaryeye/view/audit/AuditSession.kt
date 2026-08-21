@@ -18,6 +18,7 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
         val status: String,
     )
 
+    val expectedCodesList: List<String> = expectedCodes.toList()
     private val expectedCodes: Set<String> = expectedCodes.toSet()
     private val entries = LinkedHashMap<String, Entry>()
 
@@ -64,6 +65,15 @@ class AuditSession(expectedCodes: Collection<String> = emptyList()) {
 
     /** Cac ma ky vong nhung chua quet, xuat kem vao bao cao voi count=0. */
     fun missingRows(): List<Row> = missingCodes.map { Row(it, "", 0, "MISSING") }
+
+    /** Snapshot cac dong da quet, dung de khoi phuc phien sau khi Activity bi tao lai (vd xoay man hinh). */
+    fun snapshotEntries(): List<Triple<String, String, Int>> =
+        entries.map { (content, entry) -> Triple(content, entry.format, entry.count) }
+
+    /** Khoi phuc cac dong da quet tu snapshot. Chi goi ngay sau khi tao AuditSession moi. */
+    fun restoreEntries(raw: List<Triple<String, String, Int>>) {
+        raw.forEach { (content, format, count) -> entries[content] = Entry(format, count) }
+    }
 
     /** Bao cao CSV day du (scanned rows + missing rows), sap xep de doc. */
     fun toCsv(delimiter: String = ","): String {

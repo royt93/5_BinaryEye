@@ -126,4 +126,23 @@ class AuditSessionTest {
         session.recordScan("B002", "QR_CODE")
         assertEquals(listOf("C003", "A001", "B002"), session.rows().map { it.content })
     }
+
+    @Test
+    fun snapshotAndRestore_reproducesSameCountsAndOutcomes() {
+        val original = AuditSession(listOf("A001", "A002"))
+        original.recordScan("A001", "QR_CODE")
+        original.recordScan("A001", "QR_CODE") // duplicate
+        original.recordScan("X999", "EAN_13") // unexpected
+
+        val restored = AuditSession(original.expectedCodesList)
+        restored.restoreEntries(original.snapshotEntries())
+
+        assertEquals(original.totalScans, restored.totalScans)
+        assertEquals(original.uniqueCount, restored.uniqueCount)
+        assertEquals(original.unexpectedCount, restored.unexpectedCount)
+        assertEquals(original.missingCodes, restored.missingCodes)
+        assertEquals(original.rows(), restored.rows())
+        // Sau khi khoi phuc, quet lai A001 phai van la DUPLICATE (khong bi coi la moi)
+        assertEquals(AuditSession.Outcome.DUPLICATE, restored.recordScan("A001", "QR_CODE"))
+    }
 }

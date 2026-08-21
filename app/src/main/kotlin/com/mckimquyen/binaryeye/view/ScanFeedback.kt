@@ -27,7 +27,7 @@ fun Context.errorFeedback() {
     }
 }
 
-private fun Context.isSilent(): Boolean {
+internal fun Context.isSilent(): Boolean {
     val am = getSystemService(Context.AUDIO_SERVICE) as AudioManager
     return when (am.ringerMode) {
         AudioManager.RINGER_MODE_SILENT,

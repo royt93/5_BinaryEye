@@ -62,6 +62,17 @@ Pixel 7 Pro mất kết nối USB giữa chừng phiên làm việc — chuyển
 
 **Khuyến nghị:** quét thử 2-3 mã vạch thật (1 mã trùng, 1 mã ngoài danh sách nếu có expected-list) để nghe đúng 3 loại tone và xác nhận badge/summary cập nhật đúng theo thời gian thực.
 
+## Audit code sau khi ship (2026-08-21) — 2 bug thật tìm được + đã fix
+
+Tự review lại toàn bộ diff VIP-02 (không phải chỉ nhìn lại test), so sánh với các quy ước sẵn có trong codebase:
+
+1. **Beep bỏ qua `prefs.beep`/silent mode** — `handleAuditScan()` gọi thẳng `beepConfirm()/beepError()/beepDuplicate()` không qua điều kiện `prefs.beep && !isSilent()` mà `scanFeedback()`/`errorFeedback()` (dùng cho mọi luồng quét khác trong app) đều tuân thủ. Hậu quả: user tắt Beep trong Settings, hoặc để điện thoại chế độ im lặng/rung — audit mode vẫn phát tiếng mọi lần quét, sai quy ước toàn app. **Fix:** bọc khối `when(outcome)` bằng `if (prefs.beep && !isSilent())`; bump `isSilent()` từ `private` lên `internal` trong `ScanFeedback.kt` để tái dùng được.
+2. **Mất dữ liệu audit khi Activity bị tạo lại (xoay màn hình)** — `auditSession` là `var` trong bộ nhớ, `ActivityCamera` không khoá orientation và `onSaveInstanceState`/`onRestoreInstanceState` cũ chỉ lưu zoom/frontFacing/bulkMode/restrictFormat, không có audit session. Xoay máy giữa phiên kiểm kê → mất sạch số đã quét + danh sách expected, không cảnh báo. **Fix:** thêm `AuditSession.snapshotEntries()`/`restoreEntries()` + `expectedCodesList`, lưu/khôi phục qua `onSaveInstanceState`/`onRestoreInstanceState` (content/format/count dạng 3 mảng song song trong Bundle). Thêm unit test `snapshotAndRestore_reproducesSameCountsAndOutcomes` (73 test total, pass).
+
+**Live-verify fix #2 trên Galaxy A50s:** bật VIP giả (kỹ thuật cũ), start audit với expected-list "A001/A002/A003", ép Activity bị huỷ+tạo lại thật (tắt auto-rotate, đổi `user_rotation` sang landscape rồi portrait — log xác nhận camera đóng/mở lại, tức Activity thật sự recreate chứ không chỉ resize) → mở lại summary sheet, thấy đúng **"0 scanned · 0 unexpected · 3 expected code(s) not yet scanned"** — khớp 100% trạng thái trước khi xoay. Không crash, logcat sạch trong toàn bộ phiên test.
+
+**Còn lại chưa verify (không đổi so với trước):** `handleAuditScan()` qua 1 lần quét camera thật — không có mã vạch vật lý sẵn có trong phiên test này nữa, giữ nguyên là gap đã biết.
+
 ## Chưa làm (deferred, ngoài scope MVP)
 
 - **GS1 Application Identifier parser** (lot/expiry/serial) — cần thêm logic parse riêng cho barcode chuẩn GS1-128/DataMatrix, effort M-L độc lập.
