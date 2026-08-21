@@ -1,6 +1,6 @@
 # VIP-02 — 👑 B2B Batch Audit & Inventory Suite (MVP)
 
-**Status:** ✅ DONE (MVP) — 2026-08-21, live-verify đầy đủ trên Samsung Galaxy A50s (trừ luồng quét camera thật).
+**Status:** ✅ DONE (MVP) — 2026-08-21, live-verify đầy đủ trên Samsung Galaxy A50s **bao gồm cả luồng quét camera thật** (mã vạch vật lý tìm được ngay trên bàn — hộp sản phẩm có QR code).
 
 ## Scope MVP đã làm
 
@@ -57,10 +57,9 @@ Pixel 7 Pro mất kết nối USB giữa chừng phiên làm việc — chuyển
 
 ### Còn lại chưa verify
 
-- **`handleAuditScan()` (nhánh xử lý khi quét camera thật) CHƯA được kích hoạt qua 1 lần quét thật** — không có mã vạch vật lý trong phiên test. Mọi thứ TRƯỚC và SAU bước quét (tạo session, badge, summary, export, end session) đã verify đầy đủ; chỉ riêng đường đi cụ thể "camera decode → `postResult()` → `handleAuditScan()` → tone/badge update" là suy luận từ code review + unit test của `AuditSession.recordScan()` (đã test kỹ), chưa tận mắt xác nhận tone phát đúng và badge tăng đúng số khi quét vật lý.
+- ~~`handleAuditScan()` chưa quét thật~~ — **đã đóng**, xem mục "Smoke test luồng quét camera thật" bên dưới.
 - Không test trên thiết bị Pixel 7 Pro (mất kết nối giữa chừng) — chỉ verify trên Galaxy A50s (Android 11, API 30). Các API dùng (Chip, BottomSheetDialog, MaterialButton) đều là AndroidX/Material chuẩn, rủi ro khác biệt giữa 2 máy thấp.
-
-**Khuyến nghị:** quét thử 2-3 mã vạch thật (1 mã trùng, 1 mã ngoài danh sách nếu có expected-list) để nghe đúng 3 loại tone và xác nhận badge/summary cập nhật đúng theo thời gian thực.
+- Chưa nghe trực tiếp tone `beepError` (NEW_UNEXPECTED) và `beepDuplicate` phân biệt rõ bằng tai qua loa thật — mã vạch thật có sẵn chỉ test được đường DUPLICATE (không có expected-list nên không có NEW_UNEXPECTED); logic outcome đã unit-test đầy đủ nên rủi ro thấp, nhưng chưa xác nhận cảm quan âm thanh.
 
 ## Audit code sau khi ship (2026-08-21) — 2 bug thật tìm được + đã fix
 
@@ -71,7 +70,20 @@ Tự review lại toàn bộ diff VIP-02 (không phải chỉ nhìn lại test),
 
 **Live-verify fix #2 trên Galaxy A50s:** bật VIP giả (kỹ thuật cũ), start audit với expected-list "A001/A002/A003", ép Activity bị huỷ+tạo lại thật (tắt auto-rotate, đổi `user_rotation` sang landscape rồi portrait — log xác nhận camera đóng/mở lại, tức Activity thật sự recreate chứ không chỉ resize) → mở lại summary sheet, thấy đúng **"0 scanned · 0 unexpected · 3 expected code(s) not yet scanned"** — khớp 100% trạng thái trước khi xoay. Không crash, logcat sạch trong toàn bộ phiên test.
 
-**Còn lại chưa verify (không đổi so với trước):** `handleAuditScan()` qua 1 lần quét camera thật — không có mã vạch vật lý sẵn có trong phiên test này nữa, giữ nguyên là gap đã biết.
+## Smoke test luồng quét camera thật (2026-08-21, cùng ngày) — tìm thêm 2 bug thật + đã fix
+
+User yêu cầu "thử lại đi" sau khi lần đầu không có mã vạch vật lý sẵn. Lần này tìm được 1 hộp sản phẩm có QR code thật trên bàn, test trực tiếp qua camera. Phát hiện thêm **2 bug thật**, nghiêm trọng hơn 2 bug ở mục trên vì đánh thẳng vào luồng lõi (đếm số lượng):
+
+3. **Quét lại đúng 1 mã bị "nuốt" vĩnh viễn trong suốt phiên camera** — `handleAuditScan()` dùng chung biến `ignoreNext` với bulk mode để chống đếm trùng do rung tay, nhưng biến này KHÔNG BAO GIỜ hết hạn (chỉ reset khi mở lại camera). Verify trực tiếp: giữ yên 1 QR trong khung liên tục 8+ giây, badge đứng yên "1 scanned" suốt — chứng tỏ lần quét thứ 2 trở đi của **đúng 1 mã đó** bị chặn ở tầng decode (trước cả khi vào `AuditSession.recordScan()`), không hề có tiếng DUPLICATE nào. Với mục đích cốt lõi của tính năng (đếm nhiều item cùng SKU/cùng mã), đây là mất dữ liệu âm thầm nghiêm trọng — quét 5 sản phẩm giống hệt nhau chỉ đếm được 1. **Fix:** audit mode không dùng `ignoreNext` chung nữa; thêm debounce riêng theo thời gian (`auditLastCode`/`auditLastCodeAtMs`, ngưỡng `AUDIT_REPEAT_DEBOUNCE_MS = 1200L`) — quét lại đúng mã trong vòng 1.2s bị bỏ qua (chống rung tay), qua khỏi 1.2s thì tính là lần quét mới (DUPLICATE nếu đã từng thấy).
+4. **`decoding` bị khoá `false` vĩnh viễn nếu đã có 1 lần quét thường trước khi bật Audit mode** — kịch bản cực kỳ phổ biến: mở camera, mã vạch tự lọt vào khung quét ngay (chế độ thường) → user thấy rồi mới bật Audit mode. `showAuditStartDialog()`'s nút START không hề bật lại `decoding = true`, nên audit mode "bật thành công" (badge hiện ra) nhưng **không bao giờ quét được gì cả** — không lỗi, không cảnh báo, badge đứng yên "0 scanned" vĩnh viễn. Đây chính là bug khiến lần thử đầu tiên (trước khi fix bug #3) cũng bị 0 scanned suốt — ban đầu tưởng do QR lệch khung, hoá ra do decoding đã bị khoá từ trước. **Fix:** thêm `decoding = true` vào nhánh xử lý positive-button của `showAuditStartDialog()`.
+
+**Live-verify cả 2 fix trên Galaxy A50s, quét camera thật:**
+- Bật Audit mode ngay sau khi 1 QR vừa tự động quét ở chế độ thường (đúng kịch bản bug #4) → tap START → **quét được ngay**, badge tăng dần theo thời gian giữ QR trong khung (đúng nhịp ~1.2s/lần, khớp `AUDIT_REPEAT_DEBOUNCE_MS`), lên tới "69 scanned" khi thao tác xong.
+- Mở summary sheet: đúng 1 dòng duy nhất `DUPLICATE 54x https://qr.me-qr.com/anPAQk8O` (1 mã, đếm nhiều lần, status DUPLICATE vì count > 1) — khớp 100% logic thiết kế.
+- Export CSV, kéo file thật về kiểm tra nội dung: `content,format,count,status` / `"https://qr.me-qr.com/anPAQk8O","QR_CODE",54,"DUPLICATE"` — đúng cả `format` (QR_CODE, lấy từ `result.format.name` thật của ZXing) chứ không phải giá trị test giả như lần trước.
+- Logcat sạch suốt phiên, không FATAL/AndroidRuntime exception. 73/73 unit/widget test vẫn pass sau 2 fix này.
+
+**Kết luận: gap "`handleAuditScan()` chưa từng chạy qua quét thật" đã đóng hoàn toàn.** Không còn hạng mục nào của VIP-02 thiếu live-verify qua camera thật.
 
 ## Chưa làm (deferred, ngoài scope MVP)
 

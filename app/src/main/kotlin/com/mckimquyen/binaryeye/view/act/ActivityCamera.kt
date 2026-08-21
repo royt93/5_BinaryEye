@@ -123,6 +123,13 @@ class ActivityCamera : BaseActivity() {
     private var auditSession: AuditSession? = null
     private lateinit var auditBadge: Chip
 
+    // [FIX VIP-02] Debounce rieng cho audit mode (KHONG dung chung `ignoreNext`
+    // voi bulk mode - ignoreNext khong bao gio het han trong 1 phien camera,
+    // nen se nuot vinh vien moi lan quet lai dung 1 ma, sai muc dich dem so
+    // luong nhieu item cung SKU cua tinh nang nay)
+    private var auditLastCode: String? = null
+    private var auditLastCodeAtMs: Long = 0L
+
     // [FEAT E1] Torch auto-on khi toi
     private var userToggledTorch = false
     private var lowLightSinceMs = 0L
@@ -869,6 +876,15 @@ class ActivityCamera : BaseActivity() {
     // tone rieng theo tung outcome, KHONG luu history/khong dispatch action
     private fun handleAuditScan(result: Result) {
         val session = auditSession ?: return
+        val now = System.currentTimeMillis()
+        if (result.text == auditLastCode && now - auditLastCodeAtMs < AUDIT_REPEAT_DEBOUNCE_MS) {
+            // Camera van dang thay lai dung ma vua quet (chua kip doi cho) -
+            // bo qua de 1 lan gio ma khong bi tinh thanh nhieu ban ghi
+            detectorView.postDelayed({ decoding = true }, AUDIT_SCAN_RESUME_DELAY_MS)
+            return
+        }
+        auditLastCode = result.text
+        auditLastCodeAtMs = now
         val outcome = session.recordScan(result.text, result.format.name)
         if (prefs.vibrate) getVibrator().vibrate()
         if (prefs.beep && !isSilent()) {
@@ -879,9 +895,6 @@ class ActivityCamera : BaseActivity() {
             }
         }
         updateAuditBadge()
-        if (prefs.ignoreConsecutiveDuplicates) {
-            ignoreNext = result.text
-        }
         detectorView.postDelayed({ decoding = true }, AUDIT_SCAN_RESUME_DELAY_MS)
     }
 
@@ -921,6 +934,11 @@ class ActivityCamera : BaseActivity() {
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
                 auditSession = AuditSession(codes)
+                auditLastCode = null
+                // [FIX VIP-02] Neu da co 1 lan quet thuong truoc do trong cung phien
+                // camera, `decoding` co the dang bi khoa false - phai bat lai o day,
+                // neu khong audit mode se khong bao gio quet duoc gi ca
+                decoding = true
                 updateAuditBadge()
                 invalidateOptionsMenu()
             }
@@ -995,6 +1013,11 @@ class ActivityCamera : BaseActivity() {
 
         // [FEAT VIP-02] Tiep tuc quet gan nhu ngay lap tuc sau moi lan dem trong audit mode
         private const val AUDIT_SCAN_RESUME_DELAY_MS = 300L
+
+        // [FIX VIP-02] Chi chan quet lai dung 1 ma trong khoang ngan nay (chong rung
+        // tay/nhieu frame), qua khoang nay van tinh la lan quet moi (kem theo DUPLICATE
+        // neu da tung quet truoc do trong phien)
+        private const val AUDIT_REPEAT_DEBOUNCE_MS = 1200L
 
         // [FIX VIP-02] Khoi phuc audit session sau khi Activity bi tao lai (vd xoay man hinh)
         private const val AUDIT_EXPECTED_CODES = "audit_expected_codes"
