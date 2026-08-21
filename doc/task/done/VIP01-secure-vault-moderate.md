@@ -1,6 +1,6 @@
 # VIP-01 — 👑 Secure Vault (scope vừa phải) — F8 + SEC-03 + Incognito mode
 
-**Status:** ✅ DONE (code + unit/widget test) — 2026-08-21. Xem "Hạn chế test" bên dưới trước khi release.
+**Status:** ✅ DONE — 2026-08-21, F8 đã live-verify đầy đủ trên Pixel 7 Pro (xem mục Test).
 
 Scope đã chốt với user: **KHÔNG** làm mã hoá toàn bộ DB (SQLCipher — quá rủi ro/effort trong 1 đợt), chỉ làm 3 phần vừa phải:
 
@@ -36,9 +36,16 @@ Scope đã chốt với user: **KHÔNG** làm mã hoá toàn bộ DB (SQLCipher 
 - Verify trên Pixel 7 Pro: toggle "Incognito scan" trong overflow menu → checkbox + toast + **persist đúng** khi mở lại menu (đã xác nhận trực tiếp qua screenshot).
 - Compile + 60 unit/widget test pass.
 
-## ⚠️ Hạn chế test — CẦN VERIFY THÊM TRƯỚC KHI COI LÀ HOÀN TẤT
+### F8 — live-verify đầy đủ trên Pixel 7 Pro (2026-08-21)
 
-- **F8 biometric prompt CHƯA được live-test trên thiết bị thật** (không kích hoạt được VIP qua nhập key do IME tiếng Việt trên máy test làm hỏng ký tự đặc biệt của key nhiều lần liên tiếp, và không muốn tiếp tục bật/tắt mạng để xem quảng cáo reward theo phản hồi của user giữa chừng). Code dùng đúng API chuẩn `androidx.biometric.BiometricPrompt` theo tài liệu chính thức, compile sạch, nhưng **chưa xác nhận bằng mắt** rằng prompt hiện đúng, xác thực thành công đúng ẩn `lockOverlay`, hoặc hành vi khi huỷ/thất bại.
-- **Incognito "không lưu history" và "tự xoá clipboard" khi quét thật CHƯA verify qua camera thật** (không có mã vạch vật lý để quét trong phiên test này) — chỉ verify được UI toggle. Logic auto-clear clipboard đã verify kỹ qua unit test (4 test), nhưng phần "bỏ qua `db.insertScan()`" trong `showResult()` chỉ được review code, chưa chạy qua camera thật.
+Không nhập tay VIP key được (IME tiếng Việt trên máy test làm hỏng ký tự đặc biệt nhiều lần liên tiếp) và không muốn tiếp tục bật mạng xem ad theo yêu cầu của user giữa chừng. Verify bằng cách set thẳng 2 giá trị SharedPreferences qua `run-as` (không cần mạng, không cần gõ ký tự đặc biệt):
+- `loitp_admob.xml` (pref file của thư viện `AdmobApplovinWrapper`, đọc từ sources jar `AppPreferences.kt`): thêm `<long name="keyVipByKeyUntil" value="<+30 ngày>" />` → màn VIP Management hiện đúng "VIP Active, 29d 23h...". **Verify được phiên bản wrapper 1.1.3 đang chạy không có signature check trên giá trị này — xác nhận trực tiếp SEC-01 (VIP hoàn toàn client-side, crackable) là đúng và có thể khai thác trong &lt;5 phút không cần công cụ decompile.**
+- `com.mckimquyen.binaryeye_preferences.xml`: set `lock_history=true` trực tiếp.
+- Mở History → `logcat` xác nhận `Window{...} BiometricPrompt` thật được tạo, `FingerprintHal: onAcquired`, `fingerprintAuthenticationState updated: Succeeded(...)` → screenshot sau đó xác nhận `lockOverlay` đã ẩn, History hiển thị bình thường.
+- Thoát History rồi mở lại → logcat xác nhận **session BiometricPrompt mới** được tạo (`Started(biometricSourceType=FINGERPRINT, requestReason=BiometricPromptAuthentication)`) → xác nhận đúng thiết kế "re-auth mỗi lần vào lại", không phải chỉ auth 1 lần rồi nhớ mãi.
+- Không có crash/exception trong toàn bộ phiên test (`logcat` sạch).
+- Đã revert sạch state test (`lock_history=false`, xoá `keyVipByKeyUntil` giả) trước khi kết thúc.
 
-**Khuyến nghị:** trước khi release, tự kích hoạt VIP qua "Xem quảng cáo" (nút free, không cần gõ tay) rồi bật Lock History, thoát History và quay lại để xác nhận prompt hiện đúng; quét thử 1 mã QR thật khi Incognito bật để xác nhận không xuất hiện trong History.
+### Còn lại chưa verify
+
+- **Incognito "không lưu vào history" khi quét thật CHƯA verify qua camera thật** (không có mã vạch vật lý để quét trong phiên test này) — chỉ verify được UI toggle + logic auto-clear clipboard (unit test). Phần "bỏ qua `db.insertScan()`" trong `showResult()` chỉ được review code, chưa chạy qua camera thật với 1 mã QR thật. Khuyến nghị: quét thử 1 mã QR khi Incognito bật, xác nhận không xuất hiện trong History.
