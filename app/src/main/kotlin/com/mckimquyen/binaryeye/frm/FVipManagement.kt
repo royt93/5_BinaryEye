@@ -1,5 +1,6 @@
 package com.mckimquyen.binaryeye.frm
 
+import com.mckimquyen.binaryeye.BuildConfig
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Color
@@ -86,9 +87,9 @@ class FVipManagement : Fragment() {
     private var pendingVipReward = false
     private var hasPlayedEntrance = false
 
-    private val VIP_SECRET  = "OWZBMHE3ZU4hMjdjTHgwNEAyMTk5M1kydTBJNyNRMA=="
-    private val KEY_3_DAYS  = "eQ7@93L0f!2Y2707xN04021993u0I#2aK"
-    private val KEY_30_DAYS = "9fA0q7eN!27cLx04@21993Y2u0I7#Q0"
+    private val VIP_SECRET  = BuildConfig.VIP_KEY_SECRET
+    private val KEY_3_DAYS  = BuildConfig.VIP_REDEEM_CODE_3_DAY
+    private val KEY_30_DAYS = BuildConfig.VIP_REDEEM_CODE_30_DAY
 
     // Metadata cho progress (SDK chỉ lưu expiry, ko có start time)
     private val META_PREF = "vip_meta"

@@ -6,8 +6,29 @@ def localPropsFile = rootProject.file("local.properties")
 if (localPropsFile.exists()) {
     localProps.load(new FileInputStream(localPropsFile))
 }
-def ksExternalPath = localProps.getProperty("KS_EXTERNAL_PATH",
-        "${System.getProperty("user.home")}/AndroidStudioProjects/@mckimquyen/myKeyStore/com.mckimquyen.binaryeye/keystore.jks")
+def ksExternalDir = localProps.getProperty("KS_EXTERNAL_DIR",
+        "${System.getProperty("user.home")}/AndroidStudioProjects/@mckimquyen/myKeyStore/com.mckimquyen.binaryeye")
+def externalPropsFile = new File(ksExternalDir, "keystore.properties")
+if (!externalPropsFile.exists()) {
+    throw new GradleException(
+        "Missing ${externalPropsFile} — clone github.com/royt93/myKeyStore next to this project, " +
+        "or set KS_EXTERNAL_DIR in local.properties to point at your clone of it."
+    )
+}
+def externalProps = new Properties()
+externalProps.load(new FileInputStream(externalPropsFile))
+
+def REQUIRED_EXTERNAL_KEYS = [
+        "storeFile", "storePassword", "keyAlias", "keyPassword", "vipKeySecret",
+        "vipRedeemCode3Day", "vipRedeemCode30Day",
+        "applovinSdkKey", "applovinBannerId", "applovinInterstitialId", "applovinAppOpenId", "applovinRewardedId",
+        "admobBannerIdRelease", "admobInterstitialIdRelease", "admobAppOpenIdRelease"
+]
+def missingExternalKeys = REQUIRED_EXTERNAL_KEYS.findAll { !externalProps.getProperty(it) }
+if (!missingExternalKeys.isEmpty()) {
+    throw new GradleException("Missing key(s) in ${externalPropsFile}: ${missingExternalKeys.join(', ')}")
+}
+def externalKeystoreFile = new File(ksExternalDir, externalProps.getProperty("storeFile"))
 
 android {
     namespace 'com.mckimquyen.binaryeye'
@@ -22,11 +43,14 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${localProps.getProperty('APPLOVIN_SDK_KEY', '')}\""
-        buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${localProps.getProperty('APPLOVIN_BANNER_ID', '')}\""
-        buildConfigField "String", "APPLOVIN_INTERSTITIAL_ID","\"${localProps.getProperty('APPLOVIN_INTERSTITIAL_ID', '')}\""
-        buildConfigField "String", "APPLOVIN_APP_OPEN_ID",    "\"${localProps.getProperty('APPLOVIN_APP_OPEN_ID', '')}\""
-        buildConfigField "String", "APPLOVIN_REWARDED_ID",    "\"${localProps.getProperty('APPLOVIN_REWARDED_ID', '')}\""
+        buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${externalProps.getProperty('applovinSdkKey')}\""
+        buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${externalProps.getProperty('applovinBannerId')}\""
+        buildConfigField "String", "APPLOVIN_INTERSTITIAL_ID","\"${externalProps.getProperty('applovinInterstitialId')}\""
+        buildConfigField "String", "APPLOVIN_APP_OPEN_ID",    "\"${externalProps.getProperty('applovinAppOpenId')}\""
+        buildConfigField "String", "APPLOVIN_REWARDED_ID",    "\"${externalProps.getProperty('applovinRewardedId')}\""
+        buildConfigField "String", "VIP_KEY_SECRET",          "\"${externalProps.getProperty('vipKeySecret')}\""
+        buildConfigField "String", "VIP_REDEEM_CODE_3_DAY",   "\"${externalProps.getProperty('vipRedeemCode3Day')}\""
+        buildConfigField "String", "VIP_REDEEM_CODE_30_DAY",  "\"${externalProps.getProperty('vipRedeemCode30Day')}\""
     }
 
     sourceSets {
@@ -57,18 +81,18 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(ksExternalPath)
-            storePassword localProps.getProperty("KS_PW")
-            keyAlias localProps.getProperty("KS_ALIAS")
-            keyPassword localProps.getProperty("KS_PW")
+            storeFile externalKeystoreFile
+            storePassword externalProps.getProperty("storePassword")
+            keyAlias externalProps.getProperty("keyAlias")
+            keyPassword externalProps.getProperty("keyPassword")
         }
     }
 
     buildTypes {
         release {
-            buildConfigField "String", "ADMOB_BANNER_ID",       "\"${ADMOB_BANNER_ID_RELEASE}\""
-            buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"${ADMOB_INTERSTITIAL_ID_RELEASE}\""
-            buildConfigField "String", "ADMOB_APP_OPEN_ID",     "\"${ADMOB_APP_OPEN_ID_RELEASE}\""
+            buildConfigField "String", "ADMOB_BANNER_ID",       "\"${externalProps.getProperty('admobBannerIdRelease')}\""
+            buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"${externalProps.getProperty('admobInterstitialIdRelease')}\""
+            buildConfigField "String", "ADMOB_APP_OPEN_ID",     "\"${externalProps.getProperty('admobAppOpenIdRelease')}\""
             buildConfigField "Boolean", "IS_ENABLE_ADMOB", "false"
 
             debuggable false

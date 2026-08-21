@@ -42,7 +42,7 @@ class RApp : Application() {
             applovinAppOpenId = BuildConfig.APPLOVIN_APP_OPEN_ID,
             applovinRewardedId = BuildConfig.APPLOVIN_REWARDED_ID,
             // Sử dụng Secret Key 30 ngày làm gốc
-            vipKeySecret = "OWZBMHE3ZU4hMjdjTHgwNEAyMTk5M1kydTBJNyNRMA==",
+            vipKeySecret = BuildConfig.VIP_KEY_SECRET,
             safety = if (BuildConfig.DEBUG) com.roy.sdkadbmob.AdSafetyLimits.TEST else com.roy.sdkadbmob.AdSafetyLimits()
         )
 
