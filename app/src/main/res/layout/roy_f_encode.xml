@@ -178,9 +178,47 @@
                 style="@style/Widget.AppCompat.SeekBar.Discrete"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:max="7"
                 android:progress="4" />
+
+            <!-- [FEAT E3] Preset chip cho size, dong bo 2 chieu voi sizeBar -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/sizePresetGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sizePreset128"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/size_preset_128" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sizePreset256"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/size_preset_256" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sizePreset512"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/size_preset_512" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/sizePreset1024"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/size_preset_1024" />
+
+            </com.google.android.material.chip.ChipGroup>
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="match_parent"

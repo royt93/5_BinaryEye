@@ -1,6 +1,6 @@
 # BUG-02 — 🔴 P1 — Crash 100% trên Android 7.0/7.1 khi mở màn Encode
 
-**Status:** 📋 TODO — Sprint 0
+**Status:** ✅ DONE — 2026-08-21, build+test pass
 **Nguồn:** agy — đã tự verify
 
 ## Hiện trạng (đã verify)

@@ -57,25 +57,6 @@ class Db {
 		""".trimMargin(), filter.toWhereArgs()
     )
 
-    private fun getWhereClause(
-        query: String?,
-        prefix: String = "WHERE",
-    ) = if (query?.isNotEmpty() == true) {
-        """$prefix $SCANS_CONTENT LIKE ?
-			OR $SCANS_NAME LIKE ?"""
-    } else {
-        ""
-    }
-
-    private fun getWhereArguments(
-        query: String?,
-    ) = if (query?.isNotEmpty() == true) {
-        val instr = "%$query%"
-        arrayOf(instr, instr)
-    } else {
-        null
-    }
-
     fun getScan(id: Long): Scan? = db.rawQuery(
         """SELECT
 			$SCANS_ID,
@@ -188,8 +169,10 @@ class Db {
         db.delete(SCANS, "$SCANS_ID = ?", arrayOf("$id"))
     }
 
-    fun removeScans(query: String? = null) {
-        db.delete(SCANS, getWhereClause(query, ""), getWhereArguments(query))
+    // [FIX BUG-01] Nhan ScanFilter thay vi chi query text, tranh xoa nham
+    // toan bo history khi dang filter theo date/format ma khong co text search
+    fun removeScans(filter: ScanFilter) {
+        db.delete(SCANS, filter.toWhereClause().removePrefix("WHERE "), filter.toWhereArgs())
     }
 
     fun renameScan(id: Long, name: String) {

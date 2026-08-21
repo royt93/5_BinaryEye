@@ -1,6 +1,6 @@
 # BUG-06 — 🟠 P1 — 3 ngôn ngữ lớn fallback về tiếng Anh
 
-**Status:** 📋 TODO — Sprint 0
+**Status:** ✅ DONE — 2026-08-21, build+test pass
 **Nguồn:** agy — đã tự verify toàn bộ chuỗi bằng chứng
 
 ## Hiện trạng (đã verify)

@@ -63,7 +63,7 @@ data class Scan(
         result = 31 * result + (raw?.contentHashCode() ?: 0)
         result = 31 * result + format.hashCode()
         result = 31 * result + (errorCorrectionLevel?.hashCode() ?: 0)
-        result = 31 * result + version.hashCode()
+        result = 31 * result + (version?.hashCode() ?: 0) // [FIX BUG-03] NPE khi version null
         result = 31 * result + sequenceSize
         result = 31 * result + sequenceIndex
         result = 31 * result + sequenceId.hashCode()

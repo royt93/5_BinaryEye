@@ -42,6 +42,7 @@ class Pref {
         private const val INDEX_OF_LAST_SELECTED_EC_LEVEL = "index_of_last_selected_ec_level"
         private const val FREE_ROTATION = "free_rotation"
         private const val EXPAND_ESCAPE_SEQUENCES = "expand_escape_sequences"
+        private const val LAST_FOREGROUND_MS = "last_foreground_ms"
     }
 
     lateinit var preferences: SharedPreferences
@@ -242,6 +243,12 @@ class Pref {
             apply(EXPAND_ESCAPE_SEQUENCES, value)
             field = value
         }
+    // [FEAT E8] Moc thoi gian foreground gan nhat, dung de skip splash ad neu vua mo gan day
+    var lastForegroundMs: Long = 0L
+        set(value) {
+            apply(LAST_FOREGROUND_MS, value)
+            field = value
+        }
 
     fun init(context: Context) {
         // [FIX MED-1] PreferenceManager.getDefaultSharedPreferences deprecated tu API 29
@@ -350,6 +357,7 @@ class Pref {
             HAS_SHOWN_LANGUAGE_DIALOG,
             hasShownLanguageDialog
         )
+        lastForegroundMs = preferences.getLong(LAST_FOREGROUND_MS, lastForegroundMs)
     }
 
     fun beepTone() = when (beepToneName) {
@@ -377,6 +385,10 @@ class Pref {
 
     private fun apply(label: String, value: Int) {
         preferences.edit().putInt(label, value).apply()
+    }
+
+    private fun apply(label: String, value: Long) {
+        preferences.edit().putLong(label, value).apply()
     }
 
     private fun commit(label: String, value: Boolean) {

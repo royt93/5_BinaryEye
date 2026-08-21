@@ -1,6 +1,6 @@
 # E3 — 🟡 Custom QR Size Preset Chips
 
-**Status:** 📋 TODO — Sprint 0 (đã verify: phần lõi đã có sẵn, chỉ thiếu preset UI)
+**Status:** ✅ DONE — 2026-08-21, build+test pass (đã verify: phần lõi đã có sẵn, chỉ thiếu preset UI)
 
 ## Hiện trạng (đã verify bởi agent nội bộ)
 

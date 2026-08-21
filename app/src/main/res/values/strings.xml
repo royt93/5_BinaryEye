@@ -42,6 +42,10 @@
     <string name="format">Format</string>
     <string name="size">Size in pixels</string>
     <string name="width_by_height">%1$d×%2$d</string>
+    <string name="size_preset_128">128px</string>
+    <string name="size_preset_256">256px</string>
+    <string name="size_preset_512">512px</string>
+    <string name="size_preset_1024">1024px</string>
     <string name="inputContentHere">Input content here</string>
     <string name="unescape">Expand escape sequences</string>
     <string name="encode">ENCODE</string>

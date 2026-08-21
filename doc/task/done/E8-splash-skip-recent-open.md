@@ -1,6 +1,6 @@
 # E8 — 🟡 Splash Skip Nếu Mở Gần Đây
 
-**Status:** 📋 TODO — Sprint 0 (verify: chưa làm — 0 kết quả grep `LAST_FOREGROUND`)
+**Status:** ✅ DONE — 2026-08-21, build+test pass (verify: chưa làm — 0 kết quả grep `LAST_FOREGROUND`)
 
 ## Mục tiêu
 

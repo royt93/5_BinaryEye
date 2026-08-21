@@ -569,8 +569,9 @@ class ActivityCamera : BaseActivity() {
                             height = frameRoi.height(),
                             rotation = frameMetrics.orientation,
                             options = readerOptions
-                        )?.let { results ->
-                            val result = results.first()
+                            // [FIX BUG-04] firstOrNull thay vi first() - danh sach
+                            // rong se nem NoSuchElementException
+                        )?.firstOrNull()?.let { result ->
                             if (result.text != ignoreNext) {
                                 postResult(result)
                                 decoding = false

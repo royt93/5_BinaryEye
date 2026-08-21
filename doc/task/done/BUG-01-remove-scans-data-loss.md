@@ -1,6 +1,6 @@
 # BUG-01 — 🔴 P0 — Xóa nhầm toàn bộ lịch sử khi đang filter
 
-**Status:** 📋 TODO — Sprint 0
+**Status:** ✅ DONE — 2026-08-21, build+test pass
 **Nguồn:** codex + agy + claude (3/3 độc lập) + tự verify
 
 ## Hiện trạng (đã verify)

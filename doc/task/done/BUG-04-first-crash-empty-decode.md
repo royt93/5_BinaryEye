@@ -1,6 +1,6 @@
 # BUG-04 — 🔴 P1 — Crash khi decoder trả danh sách rỗng
 
-**Status:** 📋 TODO — Sprint 0
+**Status:** ✅ DONE — 2026-08-21, build+test pass
 **Nguồn:** codex + claude (2/2 độc lập)
 
 ## Hiện trạng

@@ -36,7 +36,10 @@ fun Activity.hasBluetoothPermission() = if (Build.VERSION.SDK_INT >= Build.VERSI
         Manifest.permission.BLUETOOTH_CONNECT, PERMISSION_BLUETOOTH
     )
 } else {
-    false
+    // [FIX BUG-05] Truoc Android 12, Bluetooth la install-time permission,
+    // luon duoc cap san - tra false o day khien tinh nang Bluetooth khong
+    // bao gio hoat dong tren API 24-30
+    true
 }
 
 private fun Activity.hasPermission(

@@ -451,7 +451,7 @@ class FHistory : Fragment() {
                 }
             )
             .setPositiveButton(android.R.string.ok) { _, _ ->
-                db.removeScans(scanFilter.query)
+                db.removeScans(scanFilter)
                 updateAndClearFilter()
             }
             .setNegativeButton(android.R.string.cancel) { _, _ ->

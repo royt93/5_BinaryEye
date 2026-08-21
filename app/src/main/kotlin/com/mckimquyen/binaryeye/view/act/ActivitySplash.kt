@@ -9,6 +9,7 @@ import android.widget.TextView
 import com.mckimquyen.binaryeye.BaseActivity
 import com.mckimquyen.binaryeye.BuildConfig
 import com.mckimquyen.binaryeye.R
+import com.mckimquyen.binaryeye.prefs
 import com.roy.sdkadbmob.awaitSplashComplete
 import kotlinx.coroutines.launch
 
@@ -22,11 +23,16 @@ class ActivitySplash : BaseActivity() {
 
         applySplashAnimations()
 
+        // [FEAT E8] Neu app vua duoc mo trong 30 phut gan day (cold start lai
+        // do he thong kill), bo qua App Open ad de vao Main nhanh hon
+        val recentlyForegrounded =
+            System.currentTimeMillis() - prefs.lastForegroundMs < RECENT_FOREGROUND_WINDOW_MS
+
         com.roy.sdkadbmob.AdManager.requestConsentInfoUpdate(
             activity = this,
             tagForUnderAgeOfConsent = false
         ) { canRequestAds ->
-            if (canRequestAds) {
+            if (canRequestAds && !recentlyForegrounded) {
                 runSplashAdFlow()
             } else {
                 goToMain()
@@ -66,10 +72,15 @@ class ActivitySplash : BaseActivity() {
     }
 
     private fun goToMain() {
+        prefs.lastForegroundMs = System.currentTimeMillis()
         val intent = Intent(this@ActivitySplash, ActivityCamera::class.java)
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         handler.postDelayed(finishRunnable, 300)
+    }
+
+    private companion object {
+        const val RECENT_FOREGROUND_WINDOW_MS = 30 * 60_000L
     }
 }
 

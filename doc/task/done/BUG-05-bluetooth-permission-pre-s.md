@@ -1,6 +1,6 @@
 # BUG-05 — 🟠 P1 — Bluetooth vô hiệu hóa sai trên Android 7-11
 
-**Status:** 📋 TODO — Sprint 0
+**Status:** ✅ DONE — 2026-08-21, build+test pass
 **Nguồn:** agy — đã tự verify
 
 ## Hiện trạng (đã verify)

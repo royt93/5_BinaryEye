@@ -15,6 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.mckimquyen.binaryeye.R
@@ -37,6 +38,7 @@ class FEncode : Fragment() {
     private lateinit var colorsSpinner: Spinner
     private lateinit var sizeView: TextView
     private lateinit var sizeBarView: SeekBar
+    private lateinit var sizePresetGroup: com.google.android.material.chip.ChipGroup
     private lateinit var contentView: EditText
     private lateinit var unescapeCheckBox: CheckBox
 
@@ -165,6 +167,7 @@ class FEncode : Fragment() {
 
         sizeView = view.findViewById(R.id.sizeDisplay)
         sizeBarView = view.findViewById(R.id.sizeBar)
+        sizePresetGroup = view.findViewById(R.id.sizePresetGroup)
         initSizeBar()
 
         contentView = view.findViewById(R.id.content)
@@ -282,17 +285,46 @@ class FEncode : Fragment() {
 
                 override fun onStopTrackingTouch(seekBar: SeekBar) {}
             })
+
+        // [FEAT E3] Preset chip 128/256/512/1024 - set thang progress tuong ung
+        mapOf(
+            R.id.sizePreset128 to 0,
+            R.id.sizePreset256 to 1,
+            R.id.sizePreset512 to 3,
+            R.id.sizePreset1024 to 7,
+        ).forEach { (chipId, power) ->
+            sizePresetGroup.findViewById<View>(chipId).setOnClickListener {
+                sizeBarView.progress = power
+            }
+        }
     }
 
     private fun updateSize(power: Int) {
         val size = getSize(power)
         sizeView.text = getString(R.string.width_by_height, size, size)
+
+        // [FEAT E3] Dong bo nguoc: highlight dung chip preset neu progress khop,
+        // bo highlight neu la gia tri custom keo tay
+        val presetChipId = when (power) {
+            0 -> R.id.sizePreset128
+            1 -> R.id.sizePreset256
+            3 -> R.id.sizePreset512
+            7 -> R.id.sizePreset1024
+            else -> null
+        }
+        if (presetChipId != null) {
+            sizePresetGroup.check(presetChipId)
+        } else {
+            sizePresetGroup.clearCheck()
+        }
     }
 
 
     private fun updateSwatches() {
-        swatchFg.background = colorCircle(fgColor, needsBorder = Color.alpha(fgColor) > 200 && Color.luminance(fgColor) > 0.9f)
-        swatchBg.background = colorCircle(bgColor, needsBorder = Color.alpha(bgColor) > 200 && Color.luminance(bgColor) > 0.9f)
+        // [FIX BUG-02] Color.luminance() chi co tu API 26, minSdk la 24 -> dung
+        // ColorUtils.calculateLuminance() cua androidx.core de tranh crash tren API 24/25
+        swatchFg.background = colorCircle(fgColor, needsBorder = Color.alpha(fgColor) > 200 && ColorUtils.calculateLuminance(fgColor) > 0.9)
+        swatchBg.background = colorCircle(bgColor, needsBorder = Color.alpha(bgColor) > 200 && ColorUtils.calculateLuminance(bgColor) > 0.9)
     }
 
     private fun colorCircle(color: Int, needsBorder: Boolean = false) = GradientDrawable().apply {

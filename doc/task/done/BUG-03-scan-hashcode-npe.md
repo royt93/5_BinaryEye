@@ -1,6 +1,6 @@
 # BUG-03 — 🔴 P1 — NPE trong Scan.hashCode()
 
-**Status:** 📋 TODO — Sprint 0
+**Status:** ✅ DONE — 2026-08-21, build+test pass
 **Nguồn:** agy — đã tự verify
 
 ## Hiện trạng (đã verify)

@@ -154,7 +154,8 @@ class ActivityPick : BaseActivity() {
             )
         }
         scope.launch {
-            cropped.decode()?.first()?.let {
+            // [FIX BUG-04] firstOrNull thay vi first() - danh sach rong se nem NoSuchElementException
+            cropped.decode()?.firstOrNull()?.let {
                 withContext(Dispatchers.Main) {
                     if (isFinishing) {
                         return@withContext
