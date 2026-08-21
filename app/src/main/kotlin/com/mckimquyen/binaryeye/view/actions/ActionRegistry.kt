@@ -10,11 +10,17 @@ import com.mckimquyen.binaryeye.view.actions.vtype.vcard.VCardAction
 import com.mckimquyen.binaryeye.view.actions.vtype.vevent.VEventAction
 import com.mckimquyen.binaryeye.view.actions.web.WebAction
 import com.mckimquyen.binaryeye.view.actions.wifi.WifiAction
+import com.roy.sdkadbmob.SafeLogger
+
+private const val TAG = "ActionRegistry"
 
 object ActionRegistry {
     val DEFAULT_ACTION: IAction = OpenOrSearchAction
 
-    private val REGISTRY: Set<IAction> = setOf(
+    // [FIX SEC-06] List thay vi Set - thu tu la invariant bat buoc (WebAction
+    // phai cuoi), truoc day chi dung nho hanh vi ngam cua setOf()=LinkedHashSet,
+    // khong duoc compiler dam bao
+    internal val REGISTRY: List<IAction> = listOf(
         MailAction,
         MatMsgAction,
         OtpauthAction,
@@ -28,7 +34,9 @@ object ActionRegistry {
         WebAction
     )
 
-    fun getAction(data: ByteArray): IAction = REGISTRY.find {
-        it.canExecuteOn(data)
-    } ?: DEFAULT_ACTION
+    fun getAction(data: ByteArray): IAction {
+        val action = REGISTRY.find { it.canExecuteOn(data) } ?: DEFAULT_ACTION
+        SafeLogger.d(TAG, "getAction resolved to ${action::class.simpleName}")
+        return action
+    }
 }

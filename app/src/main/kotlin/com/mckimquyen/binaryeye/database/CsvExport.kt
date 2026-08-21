@@ -3,8 +3,11 @@ package com.mckimquyen.binaryeye.database
 import android.content.Context
 import android.database.Cursor
 import com.mckimquyen.binaryeye.view.io.writeExternalFile
+import com.roy.sdkadbmob.SafeLogger
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
+
+private const val TAG = "CsvExport"
 
 fun Context.exportCsv(
 	name: String,
@@ -92,6 +95,20 @@ private fun Cursor.toCsvRecord(
 
 private fun String.quoteAndEscape() = "\"${
     this
+        .escapeFormulaInjection()
         .replace("\n", " ")
         .replace("\"", "\"\"")
 }\""
+
+// [FIX SEC-05] Noi dung scan (vd tu QR doc hai) co the bat dau bang =/+/-/@
+// khien Excel/Sheets dien giai thanh cong thuc khi mo file CSV - them tien
+// to nhay don de ep hien thi nhu text thuan
+internal fun String.escapeFormulaInjection(): String {
+    if (isEmpty() || first() !in FORMULA_INJECTION_PREFIXES) {
+        return this
+    }
+    SafeLogger.w(TAG, "CSV formula injection prefix sanitized")
+    return "'$this"
+}
+
+private val FORMULA_INJECTION_PREFIXES = charArrayOf('=', '+', '-', '@')
