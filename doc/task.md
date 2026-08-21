@@ -1,5 +1,7 @@
 # Task & Feature Roadmap — BinaryEye / Cat Scanner
 
+> ⚠️ **SUPERSEDED 2026-08-21** — nguồn ưu tiên chính nay là **`doc/task/BACKLOG.md`** (audit lại toàn bộ 14 item dưới đây bằng code thật + 3 AI review độc lập, phát hiện 17 bug mới trong đó có 1 P0 mất dữ liệu). File này giữ lại vì phần "Implementation Plans" chi tiết bên dưới vẫn còn giá trị tham chiếu kỹ thuật cho từng item — nhưng **trạng thái/priority ở file này đã lỗi thời**, xem BACKLOG.md trước khi bắt tay code.
+>
 > Cập nhật: 2026-06-27
 > Status: ✅ Done | 🟡 In progress | 📋 Picked (chọn làm tiếp) | ⏸️ Deferred | 💭 Ideas
 >
