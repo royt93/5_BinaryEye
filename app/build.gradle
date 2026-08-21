@@ -3,14 +3,14 @@ apply plugin: 'kotlin-android'
 
 android {
     namespace 'com.mckimquyen.binaryeye'
-    compileSdkVersion 36
+    compileSdkVersion 37
     defaultConfig {
         applicationId "com.mckimquyen.binaryeye"
         minSdkVersion 24
         //noinspection EditedTargetSdkVersion
-        targetSdkVersion 36
-        versionCode 20270627
-        versionName '2026.06.27'
+        targetSdkVersion 37
+        versionCode 20270822
+        versionName '2026.08.22'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
