@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localProps.load(new FileInputStream(localPropsFile))
+}
+def ksExternalPath = localProps.getProperty("KS_EXTERNAL_PATH",
+        "${System.getProperty("user.home")}/AndroidStudioProjects/@mckimquyen/myKeyStore/com.mckimquyen.binaryeye/keystore.jks")
+
 android {
     namespace 'com.mckimquyen.binaryeye'
     compileSdkVersion 37
@@ -14,11 +22,11 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${APPLOVIN_SDK_KEY}\""
-        buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${APPLOVIN_BANNER_ID}\""
-        buildConfigField "String", "APPLOVIN_INTERSTITIAL_ID","\"${APPLOVIN_INTERSTITIAL_ID}\""
-        buildConfigField "String", "APPLOVIN_APP_OPEN_ID",    "\"${APPLOVIN_APP_OPEN_ID}\""
-        buildConfigField "String", "APPLOVIN_REWARDED_ID",    "\"${APPLOVIN_REWARDED_ID}\""
+        buildConfigField "String", "APPLOVIN_SDK_KEY",        "\"${localProps.getProperty('APPLOVIN_SDK_KEY', '')}\""
+        buildConfigField "String", "APPLOVIN_BANNER_ID",      "\"${localProps.getProperty('APPLOVIN_BANNER_ID', '')}\""
+        buildConfigField "String", "APPLOVIN_INTERSTITIAL_ID","\"${localProps.getProperty('APPLOVIN_INTERSTITIAL_ID', '')}\""
+        buildConfigField "String", "APPLOVIN_APP_OPEN_ID",    "\"${localProps.getProperty('APPLOVIN_APP_OPEN_ID', '')}\""
+        buildConfigField "String", "APPLOVIN_REWARDED_ID",    "\"${localProps.getProperty('APPLOVIN_REWARDED_ID', '')}\""
     }
 
     sourceSets {
@@ -49,10 +57,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("keystore.jks")
-            storePassword KS_PW
-            keyAlias KS_ALIAS
-            keyPassword KS_PW
+            storeFile file(ksExternalPath)
+            storePassword localProps.getProperty("KS_PW")
+            keyAlias localProps.getProperty("KS_ALIAS")
+            keyPassword localProps.getProperty("KS_PW")
         }
     }
 
