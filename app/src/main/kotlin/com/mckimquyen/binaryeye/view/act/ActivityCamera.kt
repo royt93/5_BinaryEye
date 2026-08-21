@@ -52,6 +52,7 @@ import com.mckimquyen.binaryeye.ext.shareApp
 import com.mckimquyen.binaryeye.frm.FLanguageDialog
 import com.mckimquyen.binaryeye.prefs
 import com.mckimquyen.binaryeye.view.actions.ActionRegistry
+import com.mckimquyen.binaryeye.view.audit.AuditSession
 import com.mckimquyen.binaryeye.view.bluetooth.sendBluetoothAsync
 import com.mckimquyen.binaryeye.view.content.copyToClipboard
 import com.mckimquyen.binaryeye.view.content.execShareIntent
@@ -63,9 +64,17 @@ import com.mckimquyen.binaryeye.view.graphics.mapPosition
 import com.mckimquyen.binaryeye.view.graphics.setFrameRoi
 import com.mckimquyen.binaryeye.view.graphics.setFrameToView
 import com.mckimquyen.binaryeye.view.initSystemBars
+import com.mckimquyen.binaryeye.view.io.askForFileName
+import com.mckimquyen.binaryeye.view.io.toSaveResult
+import com.mckimquyen.binaryeye.view.io.writeExternalFile
+import com.mckimquyen.binaryeye.view.media.beepConfirm
+import com.mckimquyen.binaryeye.view.media.beepDuplicate
+import com.mckimquyen.binaryeye.view.media.beepError
 import com.mckimquyen.binaryeye.view.media.releaseToneGenerators
 import com.mckimquyen.binaryeye.view.net.sendAsync
 import com.mckimquyen.binaryeye.view.net.urlEncode
+import com.mckimquyen.binaryeye.view.os.getVibrator
+import com.mckimquyen.binaryeye.view.os.vibrate
 import com.mckimquyen.binaryeye.view.scanFeedback
 import com.mckimquyen.binaryeye.view.setPaddingFromWindowInsets
 import com.mckimquyen.binaryeye.view.widget.DetectorView
@@ -108,6 +117,10 @@ class ActivityCamera : BaseActivity() {
     private val doubleBackHandler = Handler(Looper.getMainLooper())
 
     private var adView: android.view.View? = null
+
+    // [FEAT VIP-02] Batch audit session - null = khong dang audit
+    private var auditSession: AuditSession? = null
+    private lateinit var auditBadge: Chip
 
     // [FEAT E1] Torch auto-on khi toi
     private var userToggledTorch = false
@@ -195,6 +208,8 @@ class ActivityCamera : BaseActivity() {
         detectorView = findViewById(R.id.detectorView)
         zoomBar = findViewById(R.id.zoom)
         flashFab = findViewById(R.id.flash)
+        auditBadge = findViewById(R.id.auditBadge)
+        auditBadge.setOnClickListener { showAuditSummarySheet() }
 
         initCameraView()
         initZoomBar()
@@ -357,6 +372,7 @@ class ActivityCamera : BaseActivity() {
         menuInflater.inflate(R.menu.menu_a_camera, menu)
         menu.findItem(R.id.bulkMode).isChecked = bulkMode
         menu.findItem(R.id.incognitoMode).isChecked = prefs.incognitoMode
+        menu.findItem(R.id.auditMode).isChecked = auditSession != null
         return true
     }
 
@@ -427,6 +443,18 @@ class ActivityCamera : BaseActivity() {
                         R.string.incognito_mode_off
                     }
                 )
+                true
+            }
+
+            // [FEAT VIP-02] Batch audit - VIP-exclusive, hoi expected-list truoc khi bat
+            R.id.auditMode -> {
+                if (auditSession != null) {
+                    confirmEndAuditSession()
+                } else if (!AdManager.isVipByKeyActive()) {
+                    toast(R.string.audit_mode_vip_only)
+                } else {
+                    showAuditStartDialog()
+                }
                 true
             }
 
@@ -767,6 +795,12 @@ class ActivityCamera : BaseActivity() {
                     position = result.position, coords = detectorView.coordinates
                 )
             )
+            // [FEAT VIP-02] Audit mode chan hoan toan luong action-dispatch/history
+            // binh thuong - chi dem + phat tone rieng, tiep tuc quet ngay
+            if (auditSession != null) {
+                handleAuditScan(result)
+                return@post
+            }
             scanFeedback()
             val returnUri = returnUrlTemplate?.let {
                 try {
@@ -812,6 +846,124 @@ class ActivityCamera : BaseActivity() {
         }
     }
 
+    // [FEAT VIP-02] Batch audit - dem so lan quet, doi chieu expected-list,
+    // tone rieng theo tung outcome, KHONG luu history/khong dispatch action
+    private fun handleAuditScan(result: Result) {
+        val session = auditSession ?: return
+        val outcome = session.recordScan(result.text, result.format.name)
+        if (prefs.vibrate) getVibrator().vibrate()
+        when (outcome) {
+            AuditSession.Outcome.NEW_EXPECTED -> beepConfirm()
+            AuditSession.Outcome.NEW_UNEXPECTED -> beepError()
+            AuditSession.Outcome.DUPLICATE -> beepDuplicate()
+        }
+        updateAuditBadge()
+        if (prefs.ignoreConsecutiveDuplicates) {
+            ignoreNext = result.text
+        }
+        detectorView.postDelayed({ decoding = true }, AUDIT_SCAN_RESUME_DELAY_MS)
+    }
+
+    private fun updateAuditBadge() {
+        val session = auditSession
+        if (session == null) {
+            auditBadge.visibility = View.GONE
+            return
+        }
+        auditBadge.visibility = View.VISIBLE
+        auditBadge.text = getString(
+            R.string.audit_badge_format, session.totalScans, session.unexpectedCount
+        )
+    }
+
+    @Suppress("InflateParams")
+    private fun showAuditStartDialog() {
+        val input = android.widget.EditText(this).apply {
+            hint = getString(R.string.audit_start_dialog_hint)
+            minLines = 4
+            gravity = android.view.Gravity.TOP or android.view.Gravity.START
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
+        val pad = (16 * resources.displayMetrics.density).toInt()
+        val container = android.widget.FrameLayout(this).apply {
+            setPadding(pad, pad / 2, pad, 0)
+            addView(input)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.audit_start_dialog_title)
+            .setMessage(R.string.audit_start_dialog_message)
+            .setView(container)
+            .setPositiveButton(R.string.audit_start) { _, _ ->
+                val codes = input.text.toString()
+                    .split("\n")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                auditSession = AuditSession(codes)
+                updateAuditBadge()
+                invalidateOptionsMenu()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    @Suppress("InflateParams")
+    private fun showAuditSummarySheet() {
+        val session = auditSession ?: return
+        val sheetView = layoutInflater.inflate(R.layout.roy_bottom_sheet_audit_summary, null)
+        val sheet = BottomSheetDialog(this)
+        sheet.setContentView(sheetView)
+
+        val statsText = buildString {
+            append(getString(R.string.audit_badge_format, session.totalScans, session.unexpectedCount))
+            val missing = session.missingCodes.size
+            if (session.hasExpectedList && missing > 0) {
+                append(" · ")
+                append(getString(R.string.audit_missing_summary, missing))
+            }
+        }
+        sheetView.findViewById<TextView>(R.id.tvAuditStats).text = statsText
+
+        val rowsText = session.rows().joinToString("\n") { row ->
+            "${row.status.padEnd(11)} ${row.count}x  ${row.content}"
+        }
+        sheetView.findViewById<TextView>(R.id.tvAuditRows).text = rowsText.ifEmpty { "—" }
+
+        sheetView.findViewById<MaterialButton>(R.id.btnAuditExport).setOnClickListener {
+            exportAuditReport()
+        }
+        sheetView.findViewById<MaterialButton>(R.id.btnAuditEnd).setOnClickListener {
+            sheet.dismiss()
+            confirmEndAuditSession()
+        }
+        sheet.show()
+    }
+
+    private fun exportAuditReport() {
+        val session = auditSession ?: return
+        lifecycleScope.launch {
+            val name = askForFileName(".csv") ?: return@launch
+            val ok = writeExternalFile(name, "text/csv") { out ->
+                out.write(session.toCsv().toByteArray())
+            }
+            toast(ok.toSaveResult())
+        }
+    }
+
+    private fun confirmEndAuditSession() {
+        AlertDialog.Builder(this)
+            .setMessage(R.string.audit_end_session_confirm)
+            .setPositiveButton(R.string.audit_end_session) { _, _ -> endAuditSession() }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun endAuditSession() {
+        auditSession = null
+        updateAuditBadge()
+        invalidateOptionsMenu()
+    }
+
     companion object {
         private const val PICK_FILE_RESULT_CODE = 1
         private const val ZOOM_MAX = "zoom_max"
@@ -819,6 +971,9 @@ class ActivityCamera : BaseActivity() {
         private const val FRONT_FACING = "front_facing"
         private const val BULK_MODE = "bulk_mode"
         private const val RESTRICT_FORMAT = "restrict_format"
+
+        // [FEAT VIP-02] Tiep tuc quet gan nhu ngay lap tuc sau moi lan dem trong audit mode
+        private const val AUDIT_SCAN_RESUME_DELAY_MS = 300L
     }
 
 }

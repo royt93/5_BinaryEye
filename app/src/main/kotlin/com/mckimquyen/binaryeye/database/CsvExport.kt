@@ -93,7 +93,7 @@ private fun Cursor.toCsvRecord(
     return "$row\n".toByteArray()
 }
 
-private fun String.quoteAndEscape() = "\"${
+internal fun String.quoteAndEscape() = "\"${
     this
         .escapeFormulaInjection()
         .replace("\n", " ")
