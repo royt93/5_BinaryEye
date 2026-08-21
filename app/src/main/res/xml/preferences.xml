@@ -41,6 +41,12 @@
             android:widgetLayout="@layout/switch_preference_compat" />
         <androidx.preference.SwitchPreferenceCompat
             android:defaultValue="false"
+            android:key="auto_torch"
+            android:summary="@string/auto_torch_summary"
+            android:title="@string/auto_torch"
+            android:widgetLayout="@layout/switch_preference_compat" />
+        <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="false"
             android:key="bulk_mode"
             android:summary="@string/bulk_mode_summary"
             android:title="@string/bulk_mode"

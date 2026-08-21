@@ -490,6 +490,27 @@ class FHistory : Fragment() {
                         resume(options[which])
                     }
                 } ?: return@useVisibility
+                // [FEAT E5] Neu dang co filter active va export CSV/JSON (khong
+                // ap dung cho "db" - luon la ban sao toan bo file), hoi user
+                // muon export dung phan da loc hay toan bo lich su
+                val exportFilter = if (delimiter != "db" && !scanFilter.isDefault) {
+                    val filteredCount = db.getScansDetailed(scanFilter)?.use { it.count } ?: 0
+                    val exportAll = alertDialog<Boolean>(ac) { resume ->
+                        setTitle(R.string.export_filter_prompt_title)
+                        setMessage(
+                            ac.getString(R.string.export_filter_prompt_message, filteredCount)
+                        )
+                        setPositiveButton(R.string.export_filter_prompt_filtered) { _, _ ->
+                            resume(false)
+                        }
+                        setNegativeButton(R.string.export_filter_prompt_all) { _, _ ->
+                            resume(true)
+                        }
+                    } ?: false
+                    if (exportAll) ScanFilter() else scanFilter
+                } else {
+                    scanFilter
+                }
                 val name = withContext(Dispatchers.Main) {
                     ac.askForFileName(
                         when (delimiter) {
@@ -501,7 +522,7 @@ class FHistory : Fragment() {
                 } ?: return@useVisibility
                 val message = when (delimiter) {
                     "db" -> ac.exportDatabase(name)
-                    else -> db.getScansDetailed(scanFilter)?.use {
+                    else -> db.getScansDetailed(exportFilter)?.use {
                         when (delimiter) {
                             "json" -> ac.exportJson(name, it)
                             else -> ac.exportCsv(name, it, delimiter)

@@ -43,6 +43,7 @@ class Pref {
         private const val FREE_ROTATION = "free_rotation"
         private const val EXPAND_ESCAPE_SEQUENCES = "expand_escape_sequences"
         private const val LAST_FOREGROUND_MS = "last_foreground_ms"
+        private const val AUTO_TORCH = "auto_torch"
     }
 
     lateinit var preferences: SharedPreferences
@@ -103,6 +104,12 @@ class Pref {
     var tryHarder = false
         set(value) {
             apply(TRY_HARDER, value)
+            field = value
+        }
+    // [FEAT E1] Tu dong bat torch khi anh sang thap
+    var autoTorch = false
+        set(value) {
+            apply(AUTO_TORCH, value)
             field = value
         }
     var bulkMode = false
@@ -277,6 +284,7 @@ class Pref {
         zoomBySwiping = preferences.getBoolean(ZOOM_BY_SWIPING, zoomBySwiping)
         autoRotate = preferences.getBoolean(AUTO_ROTATE, autoRotate)
         tryHarder = preferences.getBoolean(TRY_HARDER, tryHarder)
+        autoTorch = preferences.getBoolean(AUTO_TORCH, autoTorch)
         bulkMode = preferences.getBoolean(BULK_MODE, bulkMode)
         bulkModeDelay = preferences.getString(
             BULK_MODE_DELAY,

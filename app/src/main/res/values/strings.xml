@@ -81,6 +81,8 @@
     <string name="auto_rotate_summary">Automatically rotate the camera frame to recognize vertical 1D barcodes. Depending on the device, this may affect performance.</string>
     <string name="try_harder">Optimize reader for accuracy</string>
     <string name="try_harder_summary">Enable this option for very hard to read codes. Will affect performance.</string>
+    <string name="auto_torch">Auto-torch in low light</string>
+    <string name="auto_torch_summary">Automatically turn on the flashlight when it\'s too dark to scan.</string>
     <string name="show_toast_in_bulk_mode">Show data in continuous mode</string>
     <string name="show_toast_in_bulk_mode_summary">Briefly show the scanned data when scanning continuously.</string>
     <string name="vibrate">Vibrate on detection</string>
@@ -171,6 +173,10 @@
     <string name="search_scan">Search scan</string>
     <string name="export_to_file">Export to file</string>
     <string name="exportAs">Export as?</string>
+    <string name="export_filter_prompt_title">Export filtered or all?</string>
+    <string name="export_filter_prompt_message">A filter is active. Export only the %1$d matching scan(s), or all scans?</string>
+    <string name="export_filter_prompt_filtered">Filtered</string>
+    <string name="export_filter_prompt_all">All</string>
     <string name="export_csv_comma">CSV file with commas</string>
     <string name="export_csv_semicolon">CSV file with semicolons</string>
     <string name="export_json">JSON file</string>
@@ -243,6 +249,12 @@
     <string name="filter_today">Today</string>
     <string name="filter_this_week">This Week</string>
     <string name="filter_this_month">This Month</string>
+
+    <!-- E2: History date group headers -->
+    <string name="history_group_today">Today</string>
+    <string name="history_group_yesterday">Yesterday</string>
+    <string name="history_group_this_week">This Week</string>
+    <string name="history_group_older">Older</string>
     <string name="filter_format_all">All Formats</string>
     <string name="filter_format_qr">QR Code</string>
     <string name="filter_format_1d">1D Barcode</string>

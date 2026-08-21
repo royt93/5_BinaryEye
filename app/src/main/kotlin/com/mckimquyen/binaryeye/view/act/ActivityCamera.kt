@@ -2,11 +2,16 @@ package com.mckimquyen.binaryeye.view.act
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.hardware.Camera
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -103,6 +108,43 @@ class ActivityCamera : BaseActivity() {
     private val doubleBackHandler = Handler(Looper.getMainLooper())
 
     private var adView: android.view.View? = null
+
+    // [FEAT E1] Torch auto-on khi toi
+    private var userToggledTorch = false
+    private var lowLightSinceMs = 0L
+    private val lightSensorListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            if (userToggledTorch) return
+            val result = AutoTorch.evaluate(
+                lux = event.values[0],
+                nowMs = System.currentTimeMillis(),
+                lowLightSinceMs = lowLightSinceMs
+            )
+            lowLightSinceMs = result.lowLightSinceMs
+            result.torchOn?.let { setTorch(it) }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    }
+
+    private fun registerAutoTorch() {
+        if (!prefs.autoTorch) return
+        userToggledTorch = false
+        lowLightSinceMs = 0L
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        val lightSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_LIGHT)
+        if (lightSensor != null) {
+            sensorManager.registerListener(
+                lightSensorListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL
+            )
+        }
+    }
+
+    private fun unregisterAutoTorch() {
+        if (!prefs.autoTorch) return
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        sensorManager?.unregisterListener(lightSensorListener)
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -220,6 +262,7 @@ class ActivityCamera : BaseActivity() {
         rateAppInApp(BuildConfig.DEBUG)
         // Show language selection dialog on first launch only
         showLanguageDialogIfNeeded()
+        registerAutoTorch()
     }
 
     private fun showLanguageDialogIfNeeded() {
@@ -270,6 +313,7 @@ class ActivityCamera : BaseActivity() {
 
     override fun onPause() {
         super.onPause()
+        unregisterAutoTorch()
         closeCamera()
     }
 
@@ -675,15 +719,24 @@ class ActivityCamera : BaseActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
+    // [FEAT E1] User bam tay luon override auto-torch cho tao phien camera nay
     private fun toggleTorchMode() {
+        userToggledTorch = true
+        val isOn = cameraView.camera?.parameters?.flashMode == Camera.Parameters.FLASH_MODE_TORCH
+        setTorch(!isOn)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun setTorch(on: Boolean) {
         val camera = cameraView.camera ?: return
         val parameters = camera.parameters ?: return
-        parameters.flashMode = if (parameters.flashMode != Camera.Parameters.FLASH_MODE_OFF) {
-            Camera.Parameters.FLASH_MODE_OFF
-        } else {
+        val targetMode = if (on) {
             Camera.Parameters.FLASH_MODE_TORCH
+        } else {
+            Camera.Parameters.FLASH_MODE_OFF
         }
+        if (parameters.flashMode == targetMode) return
+        parameters.flashMode = targetMode
         try {
             camera.parameters = parameters
         } catch (e: RuntimeException) {

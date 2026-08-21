@@ -15,6 +15,17 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
+private const val VIEW_TYPE_ITEM = 0
+private const val VIEW_TYPE_HEADER = 1
+
+// [FEAT E2] Vi tri trong ListView khong con khop 1-1 voi vi tri cursor sau khi
+// chen header - moi entry la 1 dong that (Cursor) hoac 1 header ngay (khong co
+// cursor backing).
+private sealed class Row {
+    data class Item(val cursorPosition: Int) : Row()
+    data class Header(val group: DateGroup) : Row()
+}
+
 class ScansAdapter(context: Context, cursor: Cursor) :
     CursorAdapter(context, cursor, false) {
     private val idIndex = cursor.getColumnIndex(Db.SCANS_ID)
@@ -24,6 +35,25 @@ class ScansAdapter(context: Context, cursor: Cursor) :
     private val formatIndex = cursor.getColumnIndex(Db.SCANS_FORMAT)
     private val selections = mutableMapOf<Long, Int>()
     private val selectedColor = ContextCompat.getColor(context, R.color.selectedRow)
+
+    // [FEAT E2] Tinh 1 lan khi tao adapter (FHistory luon tao adapter moi cho
+    // moi lan cursor thay doi, khong goi lai changeCursor voi cursor khac null)
+    private val rows: List<Row> = buildRows(cursor, System.currentTimeMillis())
+
+    private fun buildRows(cursor: Cursor, nowMs: Long): List<Row> = buildList {
+        if (!cursor.moveToFirst()) return@buildList
+        var lastGroup: DateGroup? = null
+        var cursorPosition = 0
+        do {
+            val group = classifyDateGroup(cursor.getString(timeIndex), nowMs)
+            if (group != lastGroup) {
+                add(Row.Header(group))
+                lastGroup = group
+            }
+            add(Row.Item(cursorPosition))
+            cursorPosition++
+        } while (cursor.moveToNext())
+    }
 
     fun select(
         view: View,
@@ -78,11 +108,70 @@ class ScansAdapter(context: Context, cursor: Cursor) :
         position: Int,
     ) = (getItem(position) as Cursor?)?.getString(contentIndex)
 
+    // [FEAT E2] Header khong the/khong nen bam duoc (click mo detail,
+    // long-click chon nhieu) - bao ListView bo qua dispatch cho cac vi tri nay.
+    override fun areAllItemsEnabled(): Boolean = false
+
+    override fun isEnabled(position: Int): Boolean = rows.getOrNull(position) is Row.Item
+
+    override fun getCount(): Int = rows.size
+
+    override fun getViewTypeCount(): Int = 2
+
+    override fun getItemViewType(position: Int): Int = when (rows.getOrNull(position)) {
+        is Row.Header -> VIEW_TYPE_HEADER
+        else -> VIEW_TYPE_ITEM
+    }
+
+    override fun getItem(position: Int): Any? = when (val row = rows.getOrNull(position)) {
+        is Row.Item -> cursor?.takeIf { it.moveToPosition(row.cursorPosition) }
+        else -> null
+    }
+
+    override fun getItemId(position: Int): Long = when (val row = rows.getOrNull(position)) {
+        is Row.Item -> {
+            cursor?.moveToPosition(row.cursorPosition)
+            cursor?.getLong(idIndex) ?: -1L
+        }
+        // Header khong co _id that - dung gia tri am on dinh theo position de
+        // khong bao gio trung voi id thuc (luon >= 0) tu DB.
+        else -> -(position + 1).toLong()
+    }
+
+    override fun getView(
+        position: Int,
+        convertView: View?,
+        parent: ViewGroup,
+    ): View = when (val row = rows.getOrNull(position)) {
+        is Row.Header -> bindHeaderView(row.group, convertView, parent)
+        is Row.Item -> {
+            val c = cursor
+            checkNotNull(c) { "cursor is null" }
+            c.moveToPosition(row.cursorPosition)
+            val view = convertView ?: newView(parent.context, c, parent)
+            bindView(view, parent.context, c)
+            view
+        }
+        null -> checkNotNull(convertView) { "invalid position $position with no convertView" }
+    }
+
+    private fun bindHeaderView(
+        group: DateGroup,
+        convertView: View?,
+        parent: ViewGroup,
+    ): View {
+        val view = convertView ?: LayoutInflater.from(parent.context).inflate(
+            R.layout.roy_v_row_scan_header, parent, false
+        )
+        (view as? TextView)?.setText(group.labelResId)
+        return view
+    }
+
     override fun newView(
         context: Context,
         cursor: Cursor,
         parent: ViewGroup,
-    ): View? = LayoutInflater.from(parent.context).inflate(
+    ): View = LayoutInflater.from(parent.context).inflate(
         R.layout.roy_v_row_scan, parent, false
     )
 

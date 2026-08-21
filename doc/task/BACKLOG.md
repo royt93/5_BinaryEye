@@ -88,11 +88,11 @@ Gộp với `M1-M6` cũ trong `doc/task.md` (IAP), bổ sung phát hiện mới:
 
 | ID | Feature | Trạng thái thực tế (2026-08-21) | Đồng thuận AI review | Khuyến nghị |
 |----|---------|-----------------------------------|----------------------|-------------|
-| E1 | Torch auto-on (light sensor) | 📋 Chưa làm (verify: 0 kết quả `TYPE_LIGHT`) | ✅✅✅ đồng ý làm, nhớ thêm debounce/hysteresis chống nhấp nháy | Giữ nguyên priority 🔴 High |
-| E2 | History date group header | 📋 Chưa làm | ✅✅ đồng ý nhưng **đổi cách làm**: 1 nguồn khuyên vá `CursorAdapter` (rủi ro thấp), 1 nguồn khuyên migrate hẳn sang `RecyclerView` (đúng chuẩn hơn nhưng tốn hơn, đụng ActionMode/selection hiện tại) | Quyết định cách làm trước khi bắt tay — xem Q2 AskUserQuestion |
+| ✅ E1 | Torch auto-on (light sensor) | ✅ **DONE 2026-08-21** — `Sensor.TYPE_LIGHT` + debounce 1.5s + hysteresis (10/50 lux), pref `auto_torch` | ✅✅✅ đồng ý làm, nhớ thêm debounce/hysteresis chống nhấp nháy | Đã xong |
+| ✅ E2 | History date group header | ✅ **DONE 2026-08-21** — theo Hướng A (vá `CursorAdapter`, không migrate RecyclerView), verify trên máy thật | ✅✅ đồng ý nhưng **đổi cách làm**: 1 nguồn khuyên vá `CursorAdapter` (rủi ro thấp), 1 nguồn khuyên migrate hẳn sang `RecyclerView` (đúng chuẩn hơn nhưng tốn hơn, đụng ActionMode/selection hiện tại) | Đã chọn Hướng A (rủi ro thấp hơn) |
 | ✅ E3 | Custom QR size preset chip | ✅ **DONE 2026-08-21** — 4 chip 128/256/512/1024 đồng bộ 2 chiều với SeekBar | ✅ đồng ý, effort nhỏ | Đã xong |
 | E4 | Confetti nâng cấp (konfetti lib) | ✅ **Coi như xong** — đã tự viết custom particle system thay thế, không cần thêm dependency | ✅✅ **2 nguồn khuyên KHÔNG làm** (không cần lib ngoài, ưu tiên bug thật hơn) — nhưng phát hiện B1 (leak nhẹ khi destroy sớm) cần vá | 🎯 **CHỐT: Đóng E4**, mở BUG (B1) thay thế |
-| E5 | CSV export theo filter | 🟡 Phần lõi đã xong (`scanFilter` đã được dùng khi export), thiếu prompt "filtered vs all" | ✅ đồng ý, ưu tiên kèm BUG-10 (fix delimiter) | Gộp chung 1 PR với BUG-10 |
+| ✅ E5 | CSV export theo filter | ✅ **DONE 2026-08-21** — dialog "Export filtered (N) or all?" khi filter active, verify trên máy thật (chọn ALL export đủ 5/5, chọn FILTERED chỉ 2/2) | ✅ đồng ý, ưu tiên kèm BUG-10 (fix delimiter) | Đã xong |
 | E7 | Camera zoom memory | ✅ **Đã xong hẳn** — doc cũ liệt kê sai | ✅✅✅ xác nhận đã có | Đóng E7, chỉ cần thêm test |
 | ✅ E8 | Splash skip nếu mở gần đây | ✅ **DONE 2026-08-21** — ngưỡng 30 phút, `Pref.lastForegroundMs` | ✅✅ đồng ý (tăng retention) nhưng cân nhắc giảm doanh thu App Open ad | Đã xong — theo dõi số liệu App Open ad sau release để tune lại ngưỡng nếu cần |
 
