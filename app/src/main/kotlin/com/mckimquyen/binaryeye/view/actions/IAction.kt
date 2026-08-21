@@ -12,6 +12,12 @@ interface IAction {
 
     fun canExecuteOn(data: ByteArray): Boolean
     suspend fun execute(context: Context, data: ByteArray)
+
+    // [FEAT FEAT-NEW-01] Text hien thi trong bottom sheet ket qua, thay cho
+    // raw scan content khi action muon tach/dinh dang lai du lieu cho de doc
+    // (vd VietQrAction tach Ngan hang/So tai khoan/So tien tu blob EMVCo).
+    // Mac dinh null = giu nguyen hanh vi cu (hien scan.content tho).
+    fun displayText(context: Context, data: ByteArray): String? = null
 }
 
 abstract class IntentAction : IAction {

@@ -1162,8 +1162,12 @@ private fun Activity.showScanBottomSheet(scan: Scan, finishOnDismiss: Boolean = 
     }
 
     sheetView.findViewById<Chip>(R.id.chipFormat).text = prettifyFormatName(scan.format)
-    sheetView.findViewById<android.widget.TextView>(R.id.tvScanContent).text =
-        if (isBinary) getString(R.string.binary_data) else scan.content
+    sheetView.findViewById<android.widget.TextView>(R.id.tvScanContent).text = when {
+        isBinary -> getString(R.string.binary_data)
+        // [FEAT FEAT-NEW-01] Uu tien text da duoc action tach/dinh dang lai
+        // (vd VietQR: Ngan hang/So tai khoan/So tien) thay vi raw blob
+        else -> action?.displayText(this, data) ?: scan.content
+    }
 
     val btnPrimary = sheetView.findViewById<MaterialButton>(R.id.btnPrimaryAction)
     if (action != null) {

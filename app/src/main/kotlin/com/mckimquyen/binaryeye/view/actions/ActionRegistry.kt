@@ -6,6 +6,7 @@ import com.mckimquyen.binaryeye.view.actions.otpauth.OtpauthAction
 import com.mckimquyen.binaryeye.view.actions.search.OpenOrSearchAction
 import com.mckimquyen.binaryeye.view.actions.sms.SmsAction
 import com.mckimquyen.binaryeye.view.actions.tel.TelAction
+import com.mckimquyen.binaryeye.view.actions.vietqr.VietQrAction
 import com.mckimquyen.binaryeye.view.actions.vtype.vcard.VCardAction
 import com.mckimquyen.binaryeye.view.actions.vtype.vevent.VEventAction
 import com.mckimquyen.binaryeye.view.actions.web.WebAction
@@ -26,6 +27,7 @@ object ActionRegistry {
         OtpauthAction,
         SmsAction,
         TelAction,
+        VietQrAction,
         VCardAction,
         VEventAction,
         WifiAction,

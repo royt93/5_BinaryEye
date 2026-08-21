@@ -116,6 +116,15 @@
     <string name="audit_debounce_1_2s">1.2 seconds (recommended)</string>
     <string name="audit_debounce_1_8s">1.8 seconds</string>
     <string name="audit_debounce_3s">3 seconds (careful)</string>
+
+    <!-- FEAT-NEW-01: VietQR / EMVCo Banking QR Parser -->
+    <string name="vietqr_copy_account">Copy account number</string>
+    <string name="vietqr_copied_toast">Copied account number %1$s</string>
+    <string name="vietqr_no_account">No account number found in this QR</string>
+    <string name="vietqr_bank_label">Bank</string>
+    <string name="vietqr_account_label">Account number</string>
+    <string name="vietqr_amount_label">Amount</string>
+    <string name="vietqr_message_label">Message</string>
     <string name="show_toast_in_bulk_mode">Show data in continuous mode</string>
     <string name="show_toast_in_bulk_mode_summary">Briefly show the scanned data when scanning continuously.</string>
     <string name="vibrate">Vibrate on detection</string>
