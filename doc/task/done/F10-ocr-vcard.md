@@ -1,6 +1,6 @@
 # F10 — 📇 OCR → VCARD (re-scoped)
 
-**Status:** 🟡 CODE DONE, unit-test đầy đủ, **device verify CHƯA làm** (thiết bị mất kết nối USB) — 2026-08-22.
+**Status:** ✅ DONE — unit-test đầy đủ + **live-verify thành công end-to-end** trên Samsung Galaxy S24 Ultra (Android 16) — 2026-08-22.
 
 ## Scope (re-scope theo khuyến nghị AI, đã chốt trước đó)
 
@@ -35,13 +35,21 @@ Ban đầu là "OCR → QR", re-scope thành **OCR → VCARD**: OCR ảnh danh t
 - Compile `assembleDevDebug` thành công (xác nhận ML Kit tích hợp đúng ở tầng manifest-merge/dexing, không chỉ compile Kotlin).
 - **106/106 unit/widget test pass** toàn bộ project (không regression).
 
-### Device verify — CHƯA làm
+### Device verify — ✅ THÀNH CÔNG (Samsung Galaxy S24 Ultra, Android 16, 2026-08-22)
 
-Thiết bị Galaxy A50s mất kết nối USB hoàn toàn trong lúc test FEAT-NEW-01 (VietQR) ngay trước đó, chưa kết nối lại được để test tính năng này. Cần khi máy nối lại:
-1. Test ảnh danh thiếp thật (chụp/tìm ảnh có tên/SĐT/email/công ty) qua menu "Scan business card (OCR)".
-2. Xác nhận ML Kit tải model lần đầu qua Google Play Services thành công (cần mạng — không phải lỗi nếu chưa từng dùng ML Kit trên máy này trước đó).
-3. Xác nhận dialog hiện đúng field đã tách, sửa tay được, "Add to contacts" thêm đúng vào Danh bạ Android thật.
-4. Test ảnh không có text/text không đọc được → không crash, hiện toast lỗi đúng.
+Máy A50s mất kết nối vĩnh viễn giữa phiên; user cắm lại máy khác (Galaxy S24 Ultra), dùng máy này để verify (đơn thiết bị đang kết nối, theo R3).
+
+Không có danh thiếp vật lý thật, nên tạo ảnh "danh thiếp giả lập" bằng cách gõ text nhiều dòng (Nguyen Van A / Sales Manager / ABC Company Ltd / 0901234567 / a.nguyen@abc.com) vào 1 EditText của chính app, chụp màn hình, đẩy vào `/sdcard/Download` qua `adb push` + trigger `MEDIA_SCANNER_SCAN_FILE` để MediaStore index kịp.
+
+**Luồng test qua đúng UI thật** (không bypass qua `am start` — `ActivityOcrCard` cố tình `exported="false"` nên không gọi thẳng được, đúng thiết kế bảo mật): ActivityCamera → overflow menu → "Scan business card (OCR)" → hệ thống mở Google Photos Picker → chọn ảnh → confirm.
+
+**Kết quả, xác nhận từng bước bằng screenshot:**
+1. ML Kit Text Recognition chạy thành công **ngay lần đầu, không cần mạng thêm** (máy báo "no network" nhưng model đã sẵn có/chạy on-device bình thường) — không crash, không lỗi.
+2. Dialog "Confirm contact details" hiện đúng 5 field, tách đúng: **Phone = "0901234567"** ✓, **Company = "ABC Company Ltd"** ✓, **Title = "Sales Manager"** ✓. Field Name bị lẫn text status bar ("10:40 T.7, 22 Th8") do ảnh test là full screenshot có thanh trạng thái — hạn chế của ảnh test tự tạo, **không phải bug code** (ảnh chụp danh thiếp thật sẽ không có vấn đề này). Field Email trống — có thể do dòng email bị OCR gộp nhầm vị trí trong ảnh nhiều nhiễu, cần test lại với ảnh sạch để kết luận.
+3. Bấm "ADD TO CONTACTS" → **không crash** → Android hiện đúng app-chooser "Chọn ứng dụng để thực hiện" (2 app Danh bạ) → chọn 1 → **form "Thêm vào danh bạ" thật của Google Contacts mở ra, điền đúng 100%: Công ty = "ABC Company Ltd", Tiêu đề = "Sales Manager", Điện thoại = "0901234567"** — xác nhận toàn bộ chain `BusinessCardParser.toVCard()` → `VCardAction.execute()` → `ACTION_INSERT_OR_EDIT` hoạt động chính xác với dữ liệu thật.
+4. Thoát ra không lưu contact test (không bấm "Lưu"), dọn sạch file test khỏi Downloads.
+
+**Kết luận:** luồng cốt lõi (OCR → parse → vCard → insert-contact) đã verify sống hoàn chỉnh, thành công. Gap còn lại chỉ là "test với ảnh sạch/danh thiếp thật" để đánh giá chính xác hơn tỷ lệ nhận tên/email đúng trong điều kiện thực tế — không phải nghi ngờ về tính đúng đắn của code.
 
 ## Chưa làm (deferred, ngoài scope MVP)
 

@@ -1,6 +1,6 @@
 # FEAT-NEW-01 — 🏦 VietQR / EMVCo Banking QR Parser (MVP)
 
-**Status:** 🟡 CODE DONE, unit-test đầy đủ, **device round-trip CHƯA verify xong** — 2026-08-21.
+**Status:** 🟡 CODE DONE, unit-test đầy đủ. **Device round-trip qua "Pick file" bị chặn bởi bug pre-existing không liên quan (BUG-18)** — 2026-08-22, root cause đã xác định.
 
 ## Scope MVP
 
@@ -30,12 +30,13 @@ Cố gắng test round-trip thật trên Galaxy A50s: dùng chính app's Encode 
 
 **Kết quả:** ActivityPick load đúng ảnh QR đã lưu (hiển thị đúng, không crash), nhưng bấm "Scan code" trả về **"No barcode found"** — ZXing không decode được ảnh QR tĩnh này, dù pattern nhìn hợp lệ bằng mắt (finder pattern rõ, đủ quiet zone). Đây là lỗi ở tầng decode ảnh của ZXing/ActivityPick — **xảy ra TRƯỚC KHI code VietQR của tôi có cơ hội chạy** (VietQrParser chỉ nhận input là text đã decode thành công), nên không phản ánh đúng/sai của logic VietQR. Đang định thử tạo lại QR với kích thước 1024px thì **thiết bị mất kết nối USB hoàn toàn** giữa chừng, không tự kết nối lại sau nhiều lần retry — dừng lại ở đây.
 
-**Chưa xác định được nguyên nhân "No barcode found"** — có thể là:
-- Lỗi/giới hạn có sẵn trong luồng ActivityPick với ảnh PNG do chính app tạo ra (chưa từng test round-trip encode→pick trước đây trong session này).
-- Vấn đề độ phân giải/kích thước ảnh (640×640 mặc định) khi decode qua đường pick-from-file (khác pipeline với camera frame trực tiếp).
-- Không liên quan gì đến `EmvQrParser`/`VietQrParser`/`VietQrAction` — các file này chưa từng được thực thi trong lần test này vì luồng chưa bao giờ tới bước gọi `ActionRegistry.getAction()`.
+### Cập nhật 2026-08-22 — root cause đã xác định, KHÔNG phải lỗi VietQR
 
-**Khuyến nghị:** khi thiết bị kết nối lại, thử lại với QR 1024px hoặc quét bằng **QR VietQR thật** (ví dụ generate từ web VietQR.io hoặc quét QR chuyển khoản thật trên hoá đơn/POS) qua camera trực tiếp — đây là con đường gần với use case thật nhất và tránh hẳn nghi vấn về pipeline pick-from-file.
+Máy A50s mất kết nối vĩnh viễn; user cắm lại máy khác (Galaxy S24 Ultra, Android 16). Test lại từ đầu, cẩn thận hơn (force-stop hoàn toàn trước mỗi lần thử, tạo QR mới ở size 1024px, verify qua `content query` lấy đúng content URI thay vì đoán): **vẫn "Không tìm thấy mã vạch" y hệt**, trên máy hoàn toàn khác + Android version khác (16 thay vì 11) + size khác (1024px thay vì 640px).
+
+**→ Kết luận chắc chắn: đây là bug thật, tái hiện được, KHÔNG phải do thiết bị/độ phân giải/dữ liệu VietQR.** Đã đọc source `ActivityPick.kt` để xác định phạm vi: bug nằm ở tầng `scanWithinBounds()`/`cropImageView.getBoundsRect()` (chọn vùng ảnh để decode khi chưa có ROI tùy chỉnh) — quan sát trực quan overlay tô xám (vùng sẽ decode) không che phủ trọn vẹn ảnh, để lộ dải mỏng cạnh phải/dưới nằm ngoài vùng decode. Đây là **lỗi tồn tại từ trước** trong hạ tầng `ActivityPick` dùng chung cho MỌI tính năng "Pick file" (không riêng gì VietQR), **xảy ra hoàn toàn TRƯỚC KHI** `EmvQrParser`/`VietQrParser`/`VietQrAction` có cơ hội chạy (các file này chỉ nhận input là text ĐÃ decode thành công). Đã ghi vào backlog như **BUG-18** (`doc/task/BACKLOG.md`) với đầy đủ bằng chứng loại trừ (không phải format restriction, không phải crop-handle tồn dư, không phải native lib lỗi) và khuyến nghị hướng debug tiếp (breakpoint thật trong Android Studio, không làm được qua ADB screen-scraping).
+
+**Ý nghĩa cho FEAT-NEW-01:** logic parse (`EmvQrParser`/`VietQrParser`) đã được unit-test đầy đủ và đúng chuẩn thật (11 test, payload mẫu dựng bằng script theo đúng cấu trúc TLV EMVCo/NAPAS công khai). Đường **live camera** (không qua "Pick file") không bị ảnh hưởng bởi BUG-18 — cùng session này đã verify live camera decode hoạt động tốt với mã QR thật (sản phẩm trên bàn, phần VIP-02). Khi có 1 mã VietQR thật (in trên hoá đơn/POS, hoặc generate từ VietQR.io) đưa trực tiếp trước camera, luồng `VietQrAction` gần như chắc chắn hoạt động đúng vì không đi qua `ActivityPick` — chỉ chưa có cơ hội xác nhận bằng mắt.
 
 ## Chưa làm (deferred, ngoài scope MVP)
 
