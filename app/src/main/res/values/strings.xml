@@ -312,6 +312,17 @@
     <string name="filter_format_qr">QR Code</string>
     <string name="filter_format_1d">1D Barcode</string>
     <string name="filter_format_2d">2D Other</string>
+
+    <!-- F3: Scan tags -->
+    <string name="filter_tag_all">All Tags</string>
+    <string name="manage_tags">Manage tags</string>
+    <string name="manage_tags_requires_single_selection">Select exactly 1 scan to manage tags</string>
+    <string name="tag_preset_work">Work</string>
+    <string name="tag_preset_personal">Personal</string>
+    <string name="tag_preset_shopping">Shopping</string>
+    <string name="tag_preset_travel">Travel</string>
+    <string name="tag_custom_hint">Custom tags, comma separated</string>
+    <string name="tag_custom_vip_hint">Custom tags — VIP exclusive</string>
     <!-- BUG-6: Double-back to exit i18n -->
     <string name="press_back_again_to_exit">Press BACK again to exit</string>
     <!-- Language selection dialog -->

@@ -133,4 +133,28 @@ class ScanFilterTest {
     private fun assertArrayEquals2(expected: Array<String>, actual: Array<String>?) {
         assertEquals(expected.toList(), actual?.toList())
     }
+
+    @Test
+    fun tag_buildsWrappedLikeClauseWithOneArg() {
+        val f = ScanFilter(tag = "Work")
+        assertEquals("WHERE (',' || tags || ',') LIKE ?", f.toWhereClause())
+        assertArrayEquals2(arrayOf("%,Work,%"), f.toWhereArgs())
+        assertFalse(f.isDefault)
+    }
+
+    @Test
+    fun blankTag_isTreatedAsNoTag() {
+        assertTrue(ScanFilter(tag = "").isDefault)
+        assertEquals("", ScanFilter(tag = "").toWhereClause())
+    }
+
+    @Test
+    fun queryAndTag_argsOrderedQueryThenTag() {
+        val f = ScanFilter(query = "q", tag = "Work")
+        assertEquals(
+            "WHERE (content LIKE ? OR name LIKE ?) AND (',' || tags || ',') LIKE ?",
+            f.toWhereClause()
+        )
+        assertArrayEquals2(arrayOf("%q%", "%q%", "%,Work,%"), f.toWhereArgs())
+    }
 }

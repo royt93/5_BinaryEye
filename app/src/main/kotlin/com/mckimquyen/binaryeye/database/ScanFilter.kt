@@ -4,9 +4,15 @@ data class ScanFilter(
     val query: String? = null,
     val formatGroup: FormatGroup = FormatGroup.ALL,
     val dateRange: DateRange = DateRange.ALL,
+    // [FEAT F3] 1 tag duy nhat de loc (vd "Work") - scan phai co dung tag nay
+    // trong CSV cua no de match, khong phai substring.
+    val tag: String? = null,
 ) {
     val isDefault: Boolean
-        get() = query.isNullOrEmpty() && formatGroup == FormatGroup.ALL && dateRange == DateRange.ALL
+        get() = query.isNullOrEmpty() &&
+            formatGroup == FormatGroup.ALL &&
+            dateRange == DateRange.ALL &&
+            tag.isNullOrEmpty()
 
     enum class FormatGroup { ALL, QR, BARCODE_1D, OTHER_2D }
     enum class DateRange { ALL, TODAY, WEEK, MONTH }
@@ -43,13 +49,25 @@ data class ScanFilter(
                 parts += "${Db.SCANS_DATETIME} >= datetime('now','-30 days','localtime')"
             DateRange.ALL -> {}
         }
+        // [FEAT F3] Bao boc CSV bang dau phay o 2 dau (',tag1,tag2,') roi LIKE
+        // '%,tag,%' de match dung 1 tag, tranh "Work" match nham "Workshop".
+        if (!tag.isNullOrEmpty()) {
+            parts += "(',' || ${Db.SCANS_TAGS} || ',') LIKE ?"
+        }
         return if (parts.isEmpty()) "" else "WHERE ${parts.joinToString(" AND ")}"
     }
 
-    /** Bind arguments matching the '?' placeholders in [toWhereClause]. */
+    /** Bind arguments matching the '?' placeholders in [toWhereClause], in order. */
     fun toWhereArgs(): Array<String>? {
-        if (query.isNullOrEmpty()) return null
-        val like = "%$query%"
-        return arrayOf(like, like)
+        val args = mutableListOf<String>()
+        if (!query.isNullOrEmpty()) {
+            val like = "%$query%"
+            args += like
+            args += like
+        }
+        if (!tag.isNullOrEmpty()) {
+            args += "%,$tag,%"
+        }
+        return if (args.isEmpty()) null else args.toTypedArray()
     }
 }

@@ -22,6 +22,7 @@ data class Scan(
     val addOn: String? = null,
     val price: String? = null,
     val issueNumber: String? = null,
+    val tags: String? = null, // [FEAT F3] CSV tag do user gan, vd "Work,Personal"
     val dateTime: String = getDateTime(),
     var id: Long = 0L,
 ) : Parcelable {
@@ -51,7 +52,8 @@ data class Scan(
                 country == other.country &&
                 addOn == other.addOn &&
                 price == other.price &&
-                issueNumber == other.issueNumber
+                issueNumber == other.issueNumber &&
+                tags == other.tags
     }
 
     // Needs to be overwritten manually, as ByteArray is an array and
@@ -71,6 +73,7 @@ data class Scan(
         result = 31 * result + (addOn?.hashCode() ?: 0)
         result = 31 * result + (price?.hashCode() ?: 0)
         result = 31 * result + (issueNumber?.hashCode() ?: 0)
+        result = 31 * result + (tags?.hashCode() ?: 0)
         return result
     }
 
@@ -87,6 +90,7 @@ data class Scan(
         addOn = parcel.readString(),
         price = parcel.readString(),
         issueNumber = parcel.readString(),
+        tags = parcel.readString(),
         dateTime = parcel.readString() ?: "",
         id = parcel.readLong()
     )
@@ -105,6 +109,7 @@ data class Scan(
             writeString(addOn)
             writeString(price)
             writeString(issueNumber)
+            writeString(tags)
             writeString(dateTime)
             writeLong(id)
         }

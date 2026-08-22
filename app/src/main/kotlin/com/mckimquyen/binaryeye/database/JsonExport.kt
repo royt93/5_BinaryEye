@@ -33,7 +33,8 @@ fun Cursor.exportJson(): String? {
         Db.SCANS_GTIN_COUNTRY,
         Db.SCANS_GTIN_ADD_ON,
         Db.SCANS_GTIN_PRICE,
-        Db.SCANS_GTIN_ISSUE_NUMBER
+        Db.SCANS_GTIN_ISSUE_NUMBER,
+        Db.SCANS_TAGS
     )
     val indices = columns.map {
         Pair(getColumnIndex(it), it)

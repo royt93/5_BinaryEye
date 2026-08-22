@@ -32,6 +32,7 @@
 | ✅ | Export CSV / JSON / Database |
 | ✅ | Delete scan(s) |
 | ✅ | **F1** — Filter chips: theo ngày (All/Today/Week/Month) + nhóm format (QR/1D/2D) — `ScanFilter`, `Db.buildWhereClause` |
+| ✅ | **F3** — Scan Tags: gán 4 preset (Work/Personal/Shopping/Travel) + tag tuỳ chỉnh (VIP), filter chip theo tag — `Db` (DB v7→v8), `TagUtils`, `FHistory.manageTags` |
 
 ## Encode / Generate
 

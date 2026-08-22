@@ -1,0 +1,42 @@
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <CheckBox
+        android:id="@+id/tagWork"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tag_preset_work" />
+
+    <CheckBox
+        android:id="@+id/tagPersonal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tag_preset_personal" />
+
+    <CheckBox
+        android:id="@+id/tagShopping"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tag_preset_shopping" />
+
+    <CheckBox
+        android:id="@+id/tagTravel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/tag_preset_travel" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/tagCustom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/tag_custom_hint"
+        android:imeOptions="actionDone"
+        android:importantForAutofill="no"
+        android:inputType="textShortMessage|textAutoCorrect"
+        android:maxLength="256"
+        android:maxLines="1" />
+</androidx.appcompat.widget.LinearLayoutCompat>

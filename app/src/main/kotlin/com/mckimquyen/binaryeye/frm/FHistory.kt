@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.view.*
 import android.widget.AbsListView
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
@@ -29,6 +30,8 @@ import com.mckimquyen.binaryeye.database.ScanFilter
 import com.mckimquyen.binaryeye.database.exportCsv
 import com.mckimquyen.binaryeye.database.exportDatabase
 import com.mckimquyen.binaryeye.database.exportJson
+import com.mckimquyen.binaryeye.database.joinTags
+import com.mckimquyen.binaryeye.database.parseTags
 import com.mckimquyen.binaryeye.db
 import com.mckimquyen.binaryeye.ext.app.addFragment
 import com.mckimquyen.binaryeye.ext.app.alertDialog
@@ -54,6 +57,15 @@ private const val SEARCH_DEBOUNCE_MS = 300L
 private const val HISTORY_PAGE_SIZE = 100
 private const val LOAD_MORE_THRESHOLD = 15
 
+// [FEAT F3] Key luu trong DB/dung de filter - CO DINH, khong localize, khac
+// voi nhan hien thi tren Chip/CheckBox (lay tu string resource) de doi ngon
+// ngu khong lam vo tag da gan cho scan cu.
+private const val TAG_KEY_WORK = "Work"
+private const val TAG_KEY_PERSONAL = "Personal"
+private const val TAG_KEY_SHOPPING = "Shopping"
+private const val TAG_KEY_TRAVEL = "Travel"
+private val TAG_PRESET_KEYS = setOf(TAG_KEY_WORK, TAG_KEY_PERSONAL, TAG_KEY_SHOPPING, TAG_KEY_TRAVEL)
+
 class FHistory : Fragment() {
     private lateinit var useHistorySwitch: SwitchCompat
     private lateinit var listView: ListView
@@ -62,6 +74,7 @@ class FHistory : Fragment() {
 
     private lateinit var chipGroupDate: ChipGroup
     private lateinit var chipGroupFormat: ChipGroup
+    private lateinit var chipGroupTag: ChipGroup
 
     // [FEAT F8] Lock History (VIP-exclusive)
     private lateinit var lockOverlay: View
@@ -134,6 +147,17 @@ class FHistory : Fragment() {
                         if (it.isNotEmpty()) {
                             ac.askToRemoveScans(it)
                         }
+                    }
+                    closeActionMode()
+                    true
+                }
+
+                R.id.manageTags -> {
+                    val selectedIds = scansAdapter?.getSelectedIds() ?: emptyList()
+                    if (selectedIds.size == 1) {
+                        manageTags(selectedIds[0])
+                    } else {
+                        ac.toast(R.string.manage_tags_requires_single_selection)
                     }
                     closeActionMode()
                     true
@@ -266,6 +290,7 @@ class FHistory : Fragment() {
 
         chipGroupDate = view.findViewById(R.id.chipGroupDate)
         chipGroupFormat = view.findViewById(R.id.chipGroupFormat)
+        chipGroupTag = view.findViewById(R.id.chipGroupTag)
         setupFilterChips()
 
         update()
@@ -407,6 +432,7 @@ class FHistory : Fragment() {
         scanFilter = ScanFilter()
         chipGroupDate.check(R.id.chipDateAll)
         chipGroupFormat.check(R.id.chipFormatAll)
+        chipGroupTag.check(R.id.chipTagAll)
         update()
     }
 
@@ -430,6 +456,17 @@ class FHistory : Fragment() {
                 else                -> ScanFilter.FormatGroup.ALL
             }
             scanFilter = scanFilter.copy(formatGroup = formatGroup)
+            update()
+        }
+        chipGroupTag.setOnCheckedStateChangeListener { _, checkedIds ->
+            val tag = when (checkedIds.firstOrNull()) {
+                R.id.chipTagWork     -> TAG_KEY_WORK
+                R.id.chipTagPersonal -> TAG_KEY_PERSONAL
+                R.id.chipTagShopping -> TAG_KEY_SHOPPING
+                R.id.chipTagTravel   -> TAG_KEY_TRAVEL
+                else                 -> null
+            }
+            scanFilter = scanFilter.copy(tag = tag)
             update()
         }
     }
@@ -560,6 +597,67 @@ class FHistory : Fragment() {
             }
             .setNegativeButton(android.R.string.cancel) { _, _ -> }
             .show()
+    }
+
+    // [FEAT F3] Chi ho tro 1 scan/lan (giong showScanAsQr) - don gian hoa vi
+    // khong can hop nhat tag hien co cua nhieu scan khac nhau.
+    @SuppressLint("InflateParams")
+    private fun manageTags(id: Long) {
+        scope.launch {
+            val existingTags = parseTags(db.getScan(id)?.tags)
+            withContext(Dispatchers.Main) {
+                val ac = activity ?: return@withContext
+                val view = LayoutInflater.from(ac).inflate(R.layout.roy_dlg_manage_tags, null)
+                val workBox = view.findViewById<CheckBox>(R.id.tagWork).apply {
+                    isChecked = TAG_KEY_WORK in existingTags
+                }
+                val personalBox = view.findViewById<CheckBox>(R.id.tagPersonal).apply {
+                    isChecked = TAG_KEY_PERSONAL in existingTags
+                }
+                val shoppingBox = view.findViewById<CheckBox>(R.id.tagShopping).apply {
+                    isChecked = TAG_KEY_SHOPPING in existingTags
+                }
+                val travelBox = view.findViewById<CheckBox>(R.id.tagTravel).apply {
+                    isChecked = TAG_KEY_TRAVEL in existingTags
+                }
+                // [FEAT F3] Tag tuy chon la VIP-exclusive - free user chi duoc
+                // chon trong 4 preset o tren, khong tao tag rieng
+                val isVip = com.roy.sdkadbmob.AdManager.isVipByKeyActive()
+                val existingCustomTags = existingTags.filterNot { it in TAG_PRESET_KEYS }
+                val customView = view.findViewById<EditText>(R.id.tagCustom)
+                customView.setText(existingCustomTags.joinToString(", "))
+                if (!isVip) {
+                    customView.isEnabled = false
+                    customView.hint = ac.getString(R.string.tag_custom_vip_hint)
+                }
+                AlertDialog.Builder(ac)
+                    .setTitle(R.string.manage_tags)
+                    .setView(view)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        val selectedPresets = mutableListOf<String>().apply {
+                            if (workBox.isChecked) add(TAG_KEY_WORK)
+                            if (personalBox.isChecked) add(TAG_KEY_PERSONAL)
+                            if (shoppingBox.isChecked) add(TAG_KEY_SHOPPING)
+                            if (travelBox.isChecked) add(TAG_KEY_TRAVEL)
+                        }
+                        // [FIX] Non-VIP khong duoc SUA custom tag (field disabled) nhung
+                        // khong duoc XOA custom tag da co tu truoc (vd luc con VIP) -
+                        // giu nguyen existingCustomTags thay vi emptyList().
+                        val customTags = if (isVip) {
+                            parseTags(customView.text.toString())
+                        } else {
+                            existingCustomTags
+                        }
+                        val tagsCsv = joinTags(selectedPresets + customTags)
+                        scope.launch {
+                            db.setTags(id, tagsCsv)
+                            withContext(Dispatchers.Main) { update() }
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> }
+                    .show()
+            }
+        }
     }
 
     private fun Context.askToRemoveScans(ids: List<Long>) {

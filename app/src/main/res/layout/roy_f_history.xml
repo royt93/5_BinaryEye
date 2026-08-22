@@ -112,6 +112,60 @@
 
             </com.google.android.material.chip.ChipGroup>
 
+            <!-- Separator -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@color/separator" />
+
+            <!-- F3: Tag group -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupTag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTagAll"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_tag_all"
+                    android:checked="true" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTagWork"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tag_preset_work" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTagPersonal"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tag_preset_personal" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTagShopping"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tag_preset_shopping" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipTagTravel"
+                    style="@style/Widget.MaterialComponents.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tag_preset_travel" />
+
+            </com.google.android.material.chip.ChipGroup>
+
         </LinearLayout>
     </HorizontalScrollView>
 

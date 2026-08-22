@@ -16,6 +16,11 @@
         android:title="@string/edit_scan"
         material:showAsAction="ifRoom" />
     <item
+        android:id="@+id/manageTags"
+        android:icon="@drawable/ic_label"
+        android:title="@string/manage_tags"
+        material:showAsAction="ifRoom" />
+    <item
         android:id="@+id/removeScan"
         android:icon="@drawable/ic_action_remove"
         android:title="@string/remove_scan"

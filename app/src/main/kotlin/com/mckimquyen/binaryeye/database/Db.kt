@@ -63,7 +63,8 @@ class Db {
 			$SCANS_GTIN_COUNTRY,
 			$SCANS_GTIN_ADD_ON,
 			$SCANS_GTIN_PRICE,
-			$SCANS_GTIN_ISSUE_NUMBER
+			$SCANS_GTIN_ISSUE_NUMBER,
+			$SCANS_TAGS
 			FROM $SCANS
 			${filter.toWhereClause()}
 			ORDER BY $SCANS_DATETIME DESC
@@ -86,7 +87,8 @@ class Db {
 			$SCANS_GTIN_COUNTRY,
 			$SCANS_GTIN_ADD_ON,
 			$SCANS_GTIN_PRICE,
-			$SCANS_GTIN_ISSUE_NUMBER
+			$SCANS_GTIN_ISSUE_NUMBER,
+			$SCANS_TAGS
 			FROM $SCANS
 			WHERE $SCANS_ID = ?
 		""".trimMargin(), arrayOf("$id")
@@ -105,6 +107,7 @@ class Db {
                 it.getString(SCANS_GTIN_ADD_ON),
                 it.getString(SCANS_GTIN_PRICE),
                 it.getString(SCANS_GTIN_ISSUE_NUMBER),
+                it.getString(SCANS_TAGS),
                 it.getString(SCANS_DATETIME),
                 it.getLong(SCANS_ID)
             )
@@ -137,6 +140,7 @@ class Db {
             scan.addOn?.let { put(SCANS_GTIN_ADD_ON, it) }
             scan.price?.let { put(SCANS_GTIN_PRICE, it) }
             scan.issueNumber?.let { put(SCANS_GTIN_ISSUE_NUMBER, it) }
+            scan.tags?.let { put(SCANS_TAGS, it) }
             if (prefs.ignoreConsecutiveDuplicates) {
                 val id = getIdOfLastScan(
                     get(SCANS_CONTENT) as String,
@@ -194,6 +198,14 @@ class Db {
         db.update(SCANS, cv, "$SCANS_ID = ?", arrayOf("$id"))
     }
 
+    // [FEAT F3] Ghi tags dang CSV (vd "Work,Personal") cho 1 scan - rong/null
+    // xoa het tag hien co.
+    fun setTags(id: Long, tags: String?) {
+        val cv = ContentValues()
+        cv.put(SCANS_TAGS, tags)
+        db.update(SCANS, cv, "$SCANS_ID = ?", arrayOf("$id"))
+    }
+
     // [FEAT FEAT-NEW-04] True neu `serial` da tung duoc ghi nhan (INSERT OR
     // IGNORE - lan dau tien tung thay) TRUOC thoi diem `beforeMs`, tuc la o
     // 1 phien audit KHAC, khong phai phien dang chay hien tai.
@@ -222,7 +234,7 @@ class Db {
     }
 
     private class OpenHelper(context: Context) :
-        SQLiteOpenHelper(context, FILE_NAME, null, 7) {
+        SQLiteOpenHelper(context, FILE_NAME, null, 8) {
         override fun onCreate(db: SQLiteDatabase) {
             db.createScans()
             db.createAuditSerials()
@@ -250,6 +262,9 @@ class Db {
             }
             if (oldVersion < 7) {
                 db.createAuditSerials()
+            }
+            if (oldVersion < 8) {
+                db.addTagsColumn()
             }
         }
 
@@ -291,6 +306,8 @@ class Db {
         const val SCANS_GTIN_ADD_ON = "gtin_add_on"
         const val SCANS_GTIN_PRICE = "gtin_price"
         const val SCANS_GTIN_ISSUE_NUMBER = "gtin_issue_number"
+        // [FEAT F3] CSV cac tag gan cho scan (vd "Work,Personal") - null/rong = khong tag
+        const val SCANS_TAGS = "tags"
 
         // [FEAT FEAT-NEW-04] Serial (GS1 AI 21) da tung xuat hien trong bat ky
         // phien Batch Audit nao - ton tai xuyen suot moi phien, KHONG bi xoa khi
@@ -332,7 +349,8 @@ class Db {
 					$SCANS_GTIN_COUNTRY TEXT,
 					$SCANS_GTIN_ADD_ON TEXT,
 					$SCANS_GTIN_PRICE TEXT,
-					$SCANS_GTIN_ISSUE_NUMBER TEXT
+					$SCANS_GTIN_ISSUE_NUMBER TEXT,
+					$SCANS_TAGS TEXT
 				)""".trimMargin()
             )
         }
@@ -376,6 +394,11 @@ class Db {
         private fun SQLiteDatabase.migrateToVersionString() {
             execSQL("ALTER TABLE $SCANS ADD $SCANS_VERSION TEXT")
             execSQL("UPDATE $SCANS SET $SCANS_VERSION = $SCANS_VERSION_NUMBER")
+        }
+
+        // [FEAT F3] Cot tags moi (v7 -> v8) - cac scan cu mac dinh khong tag
+        private fun SQLiteDatabase.addTagsColumn() {
+            execSQL("ALTER TABLE $SCANS ADD COLUMN $SCANS_TAGS TEXT".trimMargin())
         }
     }
 }
