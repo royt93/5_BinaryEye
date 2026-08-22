@@ -125,12 +125,26 @@ class ActivityPick : BaseActivity() {
     }
 
     private fun scanWithinBounds(bitmap: Bitmap) {
-        val viewRoi = if (detectorView.roi.width() < 1) {
-            cropImageView.getBoundsRect()
+        val mappedRect = cropImageView.mappedRect
+        // [FIX BUG-18] `detectorView.roi` KHONG BAO GIO rong/width<1 trong
+        // thuc te - DetectorView.onLayout() tu dong dat 1 vi tri crop "goi y"
+        // (80% tu tam) va set handleActive=true ngay khi anh vua load xong,
+        // truoc ca khi user tung cham vao man hinh. Vi vay phai kiem tra
+        // `hasUserAdjustedRoi` (user THAT SU cham vao crop handle) thay vi
+        // chi check `roi.width() < 1` - neu khong, moi lan quet mac dinh deu
+        // bi gioi han trong vung goi y nho hon toan bo anh, cat mat mep
+        // barcode (dac biet barcode chiem gan het khung nhu QR tu generate)
+        // va lam ZxingCpp khong doc duoc du lieu du anh hop le 100%.
+        val viewRoi = if (!detectorView.hasUserAdjustedRoi || detectorView.roi.width() < 1) {
+            Rect(
+                mappedRect.left.roundToInt(),
+                mappedRect.top.roundToInt(),
+                mappedRect.right.roundToInt(),
+                mappedRect.bottom.roundToInt()
+            )
         } else {
             detectorView.roi
         }
-        val mappedRect = cropImageView.mappedRect
         val cropped = bitmap.crop(
             getNormalizedRoi(mappedRect, viewRoi),
             cropImageView.imageRotation,

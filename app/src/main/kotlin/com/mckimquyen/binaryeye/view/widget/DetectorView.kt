@@ -26,6 +26,17 @@ class DetectorView : View {
     var onRoiChange: (() -> Unit)? = null
     var onRoiChanged: (() -> Unit)? = null
 
+    // [FIX BUG-18] True chi khi USER THAT SU cham vao crop handle (drag hoac
+    // tap). `onLayout()` tu dong dat `handleActive = true` voi 1 vi tri goi y
+    // (80% tu tam) ngay khi anh vua load xong - `roi` vi vay KHONG BAO GIO
+    // rong/width<1 trong thuc te, lam scanWithinBounds() trong ActivityPick
+    // luon dung vung crop goi y (nho hon toan bo anh) thay vi toan bo anh,
+    // cat mat mep barcode (dac biet barcode chiem gan het khung nhu QR tu
+    // generate). Co flag rieng nay de phan biet "chua ai dong vao" voi
+    // "user da chu dong chinh crop".
+    var hasUserAdjustedRoi = false
+        private set
+
     private val currentOrientation = resources.configuration.orientation
     private val invalidateRunnable: Runnable = Runnable {
         coordinatesLast = 0
@@ -194,6 +205,11 @@ class DetectorView : View {
 
             MotionEvent.ACTION_UP -> {
                 if (handleGrabbed) {
+                    // [FIX BUG-18] Danh dau la user chu dong TRUOC khi
+                    // snap()/reset() co the dua handleActive ve false lai -
+                    // day la tin hieu "user da tung cham vao crop handle",
+                    // khac voi vi tri goi y do onLayout() tu dat.
+                    hasUserAdjustedRoi = true
                     if (!handleActive) {
                         setHandleToDefaultRoi()
                     } else {

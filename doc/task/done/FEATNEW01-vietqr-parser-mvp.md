@@ -1,6 +1,6 @@
 # FEAT-NEW-01 — 🏦 VietQR / EMVCo Banking QR Parser (MVP)
 
-**Status:** 🟡 CODE DONE, unit-test đầy đủ. **Device round-trip qua "Pick file" bị chặn bởi bug pre-existing không liên quan (BUG-18)** — 2026-08-22, root cause đã xác định.
+**Status:** ✅ DONE — unit-test đầy đủ + **live-verify thành công end-to-end** trên Samsung Galaxy S24 Ultra (Android 16), sau khi fix BUG-18 (bug pre-existing ở `ActivityPick`, không phải lỗi VietQR) — 2026-08-22.
 
 ## Scope MVP
 
@@ -36,7 +36,31 @@ Máy A50s mất kết nối vĩnh viễn; user cắm lại máy khác (Galaxy S2
 
 **→ Kết luận chắc chắn: đây là bug thật, tái hiện được, KHÔNG phải do thiết bị/độ phân giải/dữ liệu VietQR.** Đã đọc source `ActivityPick.kt` để xác định phạm vi: bug nằm ở tầng `scanWithinBounds()`/`cropImageView.getBoundsRect()` (chọn vùng ảnh để decode khi chưa có ROI tùy chỉnh) — quan sát trực quan overlay tô xám (vùng sẽ decode) không che phủ trọn vẹn ảnh, để lộ dải mỏng cạnh phải/dưới nằm ngoài vùng decode. Đây là **lỗi tồn tại từ trước** trong hạ tầng `ActivityPick` dùng chung cho MỌI tính năng "Pick file" (không riêng gì VietQR), **xảy ra hoàn toàn TRƯỚC KHI** `EmvQrParser`/`VietQrParser`/`VietQrAction` có cơ hội chạy (các file này chỉ nhận input là text ĐÃ decode thành công). Đã ghi vào backlog như **BUG-18** (`doc/task/BACKLOG.md`) với đầy đủ bằng chứng loại trừ (không phải format restriction, không phải crop-handle tồn dư, không phải native lib lỗi) và khuyến nghị hướng debug tiếp (breakpoint thật trong Android Studio, không làm được qua ADB screen-scraping).
 
-**Ý nghĩa cho FEAT-NEW-01:** logic parse (`EmvQrParser`/`VietQrParser`) đã được unit-test đầy đủ và đúng chuẩn thật (11 test, payload mẫu dựng bằng script theo đúng cấu trúc TLV EMVCo/NAPAS công khai). Đường **live camera** (không qua "Pick file") không bị ảnh hưởng bởi BUG-18 — cùng session này đã verify live camera decode hoạt động tốt với mã QR thật (sản phẩm trên bàn, phần VIP-02). Khi có 1 mã VietQR thật (in trên hoá đơn/POS, hoặc generate từ VietQR.io) đưa trực tiếp trước camera, luồng `VietQrAction` gần như chắc chắn hoạt động đúng vì không đi qua `ActivityPick` — chỉ chưa có cơ hội xác nhận bằng mắt.
+**Ý nghĩa cho FEAT-NEW-01 (lúc đó):** logic parse (`EmvQrParser`/`VietQrParser`) đã được unit-test đầy đủ và đúng chuẩn thật (11 test, payload mẫu dựng bằng script theo đúng cấu trúc TLV EMVCo/NAPAS công khai). Đường **live camera** (không qua "Pick file") không bị ảnh hưởng bởi BUG-18.
+
+### Cập nhật 2026-08-22 (tiếp) — root cause đầy đủ + FIX + live-verify thành công
+
+Đào sâu thêm bằng debug log trực tiếp (`Log.i` tạm trong `scanWithinBounds()`, gỡ sau khi xong) thay vì suy đoán qua screenshot: root cause thật **không phải** `cropImageView.getBoundsRect()` như nghi vấn ban đầu, mà là:
+
+> `DetectorView.onLayout()` **tự động** gọi `setHandleToDefaultRoi()` (đặt 1 vùng crop "gợi ý" 80% từ tâm) và set `handleActive = true` **ngay khi ảnh vừa load xong** — trước cả khi user chạm màn hình. Vì vậy `detectorView.roi` KHÔNG BAO GIỜ rỗng/width<1 trong thực tế, khiến `scanWithinBounds()` luôn dùng vùng crop gợi ý (nhỏ hơn ảnh thật ~20%) để decode thay vì toàn bộ ảnh — cắt mất mép barcode, đặc biệt nghiêm trọng với QR tự generate (chiếm gần hết khung, không có margin dư).
+
+**Fix** (`view/widget/DetectorView.kt` + `view/act/ActivityPick.kt`): thêm `DetectorView.hasUserAdjustedRoi` — chỉ `true` khi user THẬT SỰ chạm/nhả tay khỏi crop handle (`onTouchEvent` ACTION_UP), không bị set bởi vị trí "gợi ý" tự động của `onLayout()`. `ActivityPick.scanWithinBounds()` dùng cờ này: mặc định quét **toàn bộ ảnh** (`mappedRect`) cho tới khi user chủ động kéo chỉnh crop, lúc đó mới dùng `detectorView.roi` như trước.
+
+**Live-verify trên Galaxy S24 Ultra (build đã fix):**
+1. QR đơn giản "hello world test" qua Pick file → **decode đúng 100%** (trước fix: "Không tìm thấy mã vạch" với cùng ảnh, cùng máy).
+2. QR VietQR mẫu (149 ký tự, dày đặc) qua Pick file → **decode đúng**, sheet kết quả hiện đúng `VietQrAction.displayText()`:
+   ```
+   Bank: Vietcombank
+   Account number: 0123456789
+   Amount: 500000 VND
+   Message: Thanh toan don hang
+   ```
+3. Bấm nút "COPY ACCOUNT NUMBER" (icon bank riêng, đúng label) → toast **"Copied account number 0123456789"** đúng 100%.
+4. Không crash trong toàn bộ phiên. 106/106 unit test pass sau fix.
+
+Đã ghi BUG-18 trong `doc/task/BACKLOG.md` là ✅ FIXED với đầy đủ diễn giải root cause + evidence. Đã gỡ hết debug log tạm trước khi commit.
+
+**Kết luận:** FEAT-NEW-01 verify hoàn tất end-to-end, không còn gap nào mở.
 
 ## Chưa làm (deferred, ngoài scope MVP)
 
