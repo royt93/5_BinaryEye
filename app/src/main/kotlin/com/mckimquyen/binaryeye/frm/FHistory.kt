@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.*
+import android.widget.AbsListView
 import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
@@ -48,6 +49,11 @@ import kotlinx.coroutines.*
 
 private const val SEARCH_DEBOUNCE_MS = 300L
 
+// [FEAT-NEW-05] Phan trang History - tranh load het toan bo scan 1 lan khi
+// lich su lon, anh huong hieu nang thuc te.
+private const val HISTORY_PAGE_SIZE = 100
+private const val LOAD_MORE_THRESHOLD = 15
+
 class FHistory : Fragment() {
     private lateinit var useHistorySwitch: SwitchCompat
     private lateinit var listView: ListView
@@ -64,6 +70,11 @@ class FHistory : Fragment() {
     private val parentJob = Job()
     private val scope = CoroutineScope(Dispatchers.IO + parentJob)
     private var searchJob: Job? = null
+
+    // [FEAT-NEW-05] Phan trang History
+    private var loadedCount = HISTORY_PAGE_SIZE
+    private var hasMorePages = true
+    private var isLoadingMore = false
     private val actionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(
             mode: ActionMode,
@@ -212,7 +223,31 @@ class FHistory : Fragment() {
             }
             true
         }
-        listView.setOnScrollListener(systemBarListViewScrollListener)
+        // [FEAT-NEW-05] Kem theo systemBarListViewScrollListener (cosmetic,
+        // co san) - setOnScrollListener chi nhan 1 listener nen phai goi ca 2
+        // thu cong thay vi thay the.
+        listView.setOnScrollListener(object : AbsListView.OnScrollListener {
+            override fun onScroll(
+                view: AbsListView,
+                firstVisibleItem: Int,
+                visibleItemCount: Int,
+                totalItemCount: Int,
+            ) {
+                systemBarListViewScrollListener.onScroll(
+                    view, firstVisibleItem, visibleItemCount, totalItemCount
+                )
+                if (HistoryPaging.shouldLoadMore(
+                        firstVisibleItem, visibleItemCount, totalItemCount, LOAD_MORE_THRESHOLD
+                    )
+                ) {
+                    loadMore()
+                }
+            }
+
+            override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
+                systemBarListViewScrollListener.onScrollStateChanged(view, scrollState)
+            }
+        })
 
         fab = view.findViewById(R.id.share)
         fab.setOnClickListener { v ->
@@ -399,14 +434,21 @@ class FHistory : Fragment() {
         }
     }
 
-    private fun update(query: String? = null) {
+    // [FEAT-NEW-05] resetPaging=false danh cho loadMore() - giu nguyen so
+    // dong da tai (da duoc tang truoc do), khong quay ve trang dau.
+    private fun update(query: String? = null, resetPaging: Boolean = true) {
         if (query != null) scanFilter = scanFilter.copy(query = query)
+        if (resetPaging) {
+            loadedCount = HISTORY_PAGE_SIZE
+            hasMorePages = true
+        }
+        val requestedLimit = loadedCount
         // [FIX BUG-12] Huy job tim kiem truoc do de tranh race - ket qua cu
         // co the ve sau va de len ket qua moi neu khong huy
         searchJob?.cancel()
         searchJob = scope.launch {
             delay(SEARCH_DEBOUNCE_MS)
-            val cursor = db.getScans(scanFilter)
+            val cursor = db.getScans(scanFilter, limit = requestedLimit)
             withContext(Dispatchers.Main) {
                 // [FIX BUG-11] Dong cursor truoc khi return neu fragment da
                 // detach - truoc day cursor mo o background thread bi ro ri
@@ -415,6 +457,8 @@ class FHistory : Fragment() {
                     return@withContext
                 }
                 val hasScans = cursor != null && cursor.count > 0
+                hasMorePages = HistoryPaging.hasMorePages(cursor?.count ?: 0, requestedLimit)
+                isLoadingMore = false
                 if (scanFilter.isDefault) {
                     if (!hasScans) {
                         listView.emptyView = useHistorySwitch
@@ -428,16 +472,34 @@ class FHistory : Fragment() {
                     View.GONE
                 }
                 cursor?.let { cursor ->
+                    // [FEAT-NEW-05] Khi load them trang (khong reset), giu
+                    // nguyen vi tri cuon hien tai thay vi restore vi tri cu
+                    // tu listViewState (chi cap nhat luc onPause, co the cu)
+                    val keepPosition = listView.firstVisiblePosition
+                    val keepTop = listView.getChildAt(0)?.top ?: 0
                     // Close previous cursor.
                     scansAdapter?.also { it.changeCursor(null) }
                     scansAdapter = ScansAdapter(ac, cursor)
                     listView.adapter = scansAdapter
-                    listViewState?.also {
-                        listView.onRestoreInstanceState(it)
+                    if (resetPaging) {
+                        listViewState?.also {
+                            listView.onRestoreInstanceState(it)
+                        }
+                    } else {
+                        listView.setSelectionFromTop(keepPosition, keepTop)
                     }
                 }
             }
         }
+    }
+
+    // [FEAT-NEW-05] Goi khi cuon gan den cuoi danh sach - tai them 1 trang
+    // nua thay vi da load het tu dau.
+    private fun loadMore() {
+        if (isLoadingMore || !hasMorePages) return
+        isLoadingMore = true
+        loadedCount += HISTORY_PAGE_SIZE
+        update(resetPaging = false)
     }
 
     private fun enableMenuItems(enabled: Boolean) {

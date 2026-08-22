@@ -29,7 +29,11 @@ class Db {
             db.execSQL("PRAGMA wal_checkpoint(FULL)")
         }
     }
-    fun getScans(filter: ScanFilter = ScanFilter()): Cursor? = db.rawQuery(
+    // [FEAT-NEW-05] `limit` tuy chon cho phan trang man hinh History - null
+    // = lay het (giu nguyen hanh vi cu cho moi call site khac ngoai FHistory,
+    // vd export). Limit la Int noi bo (khong phai input tu user) nen interpolate
+    // truc tiep vao SQL an toan, giong quy uoc `LIMIT 1` co san o getIdOfLastScan().
+    fun getScans(filter: ScanFilter = ScanFilter(), limit: Int? = null): Cursor? = db.rawQuery(
         """SELECT
 			$SCANS_ID,
 			$SCANS_DATETIME,
@@ -39,6 +43,7 @@ class Db {
 			FROM $SCANS
 			${filter.toWhereClause()}
 			ORDER BY $SCANS_DATETIME DESC
+			${if (limit != null) "LIMIT $limit" else ""}
 		""".trimMargin(), filter.toWhereArgs()
     )
 
