@@ -61,7 +61,7 @@ android {
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 37
         versionCode 20270822
-        versionName '2026.08.22'
+        versionName '2027.08.22'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
