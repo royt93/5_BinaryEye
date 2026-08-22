@@ -203,6 +203,15 @@ class ActivityCamera : BaseActivity() {
                     startActivity(pick)
                 }
             }
+
+            // [FEAT F10] Chuyen anh vua chon sang ActivityOcrCard thay vi ActivityPick
+            PICK_OCR_RESULT_CODE -> {
+                if (resultCode == RESULT_OK && resultData != null) {
+                    val ocr = Intent(this, ActivityOcrCard::class.java)
+                    ocr.data = resultData.data
+                    startActivity(ocr)
+                }
+            }
         }
     }
 
@@ -445,6 +454,18 @@ class ActivityCamera : BaseActivity() {
                             type = "image/*"
                         }, getString(R.string.pick_file)
                     ), PICK_FILE_RESULT_CODE
+                )
+                true
+            }
+
+            // [FEAT F10] OCR anh danh thiep co san -> VCARD
+            R.id.ocrCard -> {
+                startActivityForResult(
+                    Intent.createChooser(
+                        Intent(Intent.ACTION_GET_CONTENT).apply {
+                            type = "image/*"
+                        }, getString(R.string.ocr_business_card)
+                    ), PICK_OCR_RESULT_CODE
                 )
                 true
             }
@@ -1039,6 +1060,7 @@ class ActivityCamera : BaseActivity() {
 
     companion object {
         private const val PICK_FILE_RESULT_CODE = 1
+        private const val PICK_OCR_RESULT_CODE = 2
         private const val ZOOM_MAX = "zoom_max"
         private const val ZOOM_LEVEL = "zoom_level"
         private const val FRONT_FACING = "front_facing"

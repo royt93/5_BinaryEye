@@ -116,6 +116,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".view.act.ActivityOcrCard"
+            android:exported="false"
+            android:label="@string/ocr_business_card" />
+        <activity
             android:name=".view.act.ActivityMain"
             android:exported="true"
             android:windowSoftInputMode="adjustResize" />

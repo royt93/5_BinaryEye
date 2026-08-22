@@ -23,6 +23,11 @@
         android:title="@string/pick_file"
         material:showAsAction="always" />
     <item
+        android:id="@+id/ocrCard"
+        android:icon="@drawable/ic_action_vcard"
+        android:title="@string/ocr_business_card"
+        material:showAsAction="ifRoom" />
+    <item
         android:id="@+id/switchCamera"
         android:icon="@drawable/ic_action_switch_camera"
         android:title="@string/switch_camera"

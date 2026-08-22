@@ -125,6 +125,17 @@
     <string name="vietqr_account_label">Account number</string>
     <string name="vietqr_amount_label">Amount</string>
     <string name="vietqr_message_label">Message</string>
+
+    <!-- F10: OCR -> VCARD -->
+    <string name="ocr_business_card">Scan business card (OCR)</string>
+    <string name="ocr_failed">Could not read text from this image</string>
+    <string name="ocr_card_dialog_title">Confirm contact details</string>
+    <string name="ocr_card_add_to_contacts">Add to contacts</string>
+    <string name="ocr_card_name_hint">Name</string>
+    <string name="ocr_card_phone_hint">Phone number</string>
+    <string name="ocr_card_email_hint">Email</string>
+    <string name="ocr_card_company_hint">Company</string>
+    <string name="ocr_card_title_hint">Job title</string>
     <string name="show_toast_in_bulk_mode">Show data in continuous mode</string>
     <string name="show_toast_in_bulk_mode_summary">Briefly show the scanned data when scanning continuously.</string>
     <string name="vibrate">Vibrate on detection</string>

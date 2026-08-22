@@ -173,6 +173,8 @@ dependencies {
     implementation "com.google.android.play:review:2.0.2"
     implementation "com.google.android.play:review-ktx:2.0.2"
     implementation 'com.airbnb.android:lottie:6.1.0'
+    // [FEAT F10] OCR -> VCARD - nhan dien van ban tren anh danh thiep, on-device
+    implementation 'com.google.mlkit:text-recognition:16.0.1'
 
     // Unit (JVM)
     testImplementation 'junit:junit:4.13.2'
