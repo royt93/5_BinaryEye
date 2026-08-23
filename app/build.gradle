@@ -61,7 +61,7 @@ android {
         minSdkVersion 24
         //noinspection EditedTargetSdkVersion
         targetSdkVersion 37
-        versionCode 20270823
+        versionCode 202700823//chú ý dư số 0
         versionName '2027.08.23'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
