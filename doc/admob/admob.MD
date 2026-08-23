@@ -3,7 +3,7 @@ package name: com.mckimquyen.binaryeye
 admob app id: ca-app-pub-3004713799155145~6517489616
 banner: cung cấp sau
 inter: cung cấp sau
-ad open app: cung cấp sau
+ad open app: ca-app-pub-3004713799155145/6959458263
 native: cung cấp sau
 rewarded: cung cấp sau
 
