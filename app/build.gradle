@@ -21,7 +21,8 @@ def ALWAYS_REQUIRED_EXTERNAL_KEYS = [
 ]
 def RELEASE_ONLY_EXTERNAL_KEYS = [
         "storeFile", "storePassword", "keyAlias", "keyPassword",
-        "admobBannerIdRelease", "admobInterstitialIdRelease", "admobAppOpenIdRelease"
+        "admobAppIdRelease", "admobBannerIdRelease", "admobInterstitialIdRelease",
+        "admobAppOpenIdRelease", "admobRewardedIdRelease"
 ]
 def isReleaseTaskRequested = gradle.startParameter.taskNames.any {
     def n = it.toLowerCase()
@@ -115,7 +116,9 @@ android {
             buildConfigField "String", "ADMOB_BANNER_ID",       "\"${externalProps.getProperty('admobBannerIdRelease')}\""
             buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"${externalProps.getProperty('admobInterstitialIdRelease')}\""
             buildConfigField "String", "ADMOB_APP_OPEN_ID",     "\"${externalProps.getProperty('admobAppOpenIdRelease')}\""
-            buildConfigField "Boolean", "IS_ENABLE_ADMOB", "false"
+            buildConfigField "String", "ADMOB_REWARDED_ID",     "\"${externalProps.getProperty('admobRewardedIdRelease')}\""
+            buildConfigField "Boolean", "IS_ENABLE_ADMOB", "true"
+            manifestPlaceholders["admobAppId"] = externalProps.getProperty('admobAppIdRelease')
 
             debuggable false
             minifyEnabled true
@@ -126,7 +129,9 @@ android {
             buildConfigField "String", "ADMOB_BANNER_ID",       "\"${ADMOB_BANNER_ID_DEBUG}\""
             buildConfigField "String", "ADMOB_INTERSTITIAL_ID", "\"${ADMOB_INTERSTITIAL_ID_DEBUG}\""
             buildConfigField "String", "ADMOB_APP_OPEN_ID",     "\"${ADMOB_APP_OPEN_ID_DEBUG}\""
-            buildConfigField "Boolean", "IS_ENABLE_ADMOB", "false"
+            buildConfigField "String", "ADMOB_REWARDED_ID",     "\"${ADMOB_REWARDED_ID_DEBUG}\""
+            buildConfigField "Boolean", "IS_ENABLE_ADMOB", "true"
+            manifestPlaceholders["admobAppId"] = ADMOB_APP_ID_DEBUG
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -168,7 +173,7 @@ dependencies {
     // [FEAT F8] Biometric lock cho History (VIP-exclusive)
     api 'androidx.biometric:biometric:1.1.0'
 
-    implementation "com.github.royt93:AdmobApplovinWrapper:1.1.3"
+    implementation "com.github.royt93:AdmobApplovinWrapper:1.6.21"
 
     implementation "com.google.android.play:review:2.0.2"
     implementation "com.google.android.play:review-ktx:2.0.2"

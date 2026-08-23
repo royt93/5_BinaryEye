@@ -1,4 +1,5 @@
 <resources>
+    <string name="ad_attribution_label">Ad Networks (AdMob / AppLovin MAX)</string>
     <string name="cameraError">Can\'t access camera, please try again</string>
     <string name="scan_code">Scan code</string>
     <string name="compose_barcode">Compose barcode</string>

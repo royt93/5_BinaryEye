@@ -44,6 +44,11 @@
             <data android:scheme="http" />
         </intent>
     </queries>
+
+    <attribution
+        android:tag="ads"
+        android:label="@string/ad_attribution_label" />
+
     <application
         android:name=".RApp"
         android:allowBackup="true"
@@ -58,10 +63,10 @@
         android:usesCleartextTraffic="true"
         tools:ignore="RtlEnabled,UnusedAttribute">
 
-        <!-- Khai báo AdMob App ID -->
+        <!-- AdMob App ID — tách debug (Google test)/release (thật) qua manifestPlaceholders, xem app/build.gradle -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3612191981543807~7384215700" /> <!-- Sample AdMob App ID -->
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".view.act.ActivitySplash"

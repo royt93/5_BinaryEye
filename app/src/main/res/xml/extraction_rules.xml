@@ -2,17 +2,11 @@
     <!-- [FIX SEC-03] Lich su scan co the chua noi dung nhay cam (mat khau WiFi,
     the tin dung...) - khong dua vao cloud backup / chuyen thiet bi (API 12+). -->
     <cloud-backup>
-        <include
-            domain="root"
-            path="." />
         <exclude
             domain="database"
             path="." />
     </cloud-backup>
     <device-transfer>
-        <include
-            domain="root"
-            path="." />
         <exclude
             domain="database"
             path="." />

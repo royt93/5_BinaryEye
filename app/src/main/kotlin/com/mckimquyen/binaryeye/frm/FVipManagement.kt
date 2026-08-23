@@ -95,6 +95,9 @@ class FVipManagement : Fragment() {
     private val META_PREF = "vip_meta"
     private val KEY_VIP_STARTED_AT = "vip_started_at"
     private val KEY_VIP_DURATION_MS = "vip_duration_ms"
+    // Dedup reward theo AdManager.rewardTransactionId — SDK báo 1 lần earn qua nhiều kênh,
+    // chỉ cộng thưởng đúng 1 lần dù có thêm listener khác đọc cùng sự kiện sau này.
+    private val KEY_LAST_REWARD_TX = "vip_last_reward_tx"
 
     private fun vipMeta() = requireContext().getSharedPreferences(META_PREF, Context.MODE_PRIVATE)
     private fun saveVipMeta(days: Int) {
@@ -519,8 +522,8 @@ class FVipManagement : Fragment() {
     }
 
     // ── Watch Ad Row ───────────────────────────────────────────────────
-    // FIX: SDK skip showRewarded khi isVIPMember=true → fallback sang showInterstitial
-    // nên set click listener ở đây, không đặt trong onAdLoaded
+    // rowWatchAd.visibility = GONE khi isVipByKeyActive() (xem refreshStatus()) — SDK tự skip
+    // showRewarded cho VIP member, nên khi đã VIP, row này không hiển thị, không cần fallback nào.
 
     private fun setupWatchAdRow() {
         SafeLogger.d(TAG, "setupWatchAdRow — isVip=${AdManager.isVipByKeyActive()}")
@@ -528,44 +531,38 @@ class FVipManagement : Fragment() {
         rowWatchAd.alpha = 0.6f
 
         rowWatchAd.setOnClickListener {
-            SafeLogger.d(TAG, "rowWatchAd clicked — isVip=${AdManager.isVipByKeyActive()}")
+            SafeLogger.d(TAG, "rowWatchAd clicked")
             rowWatchAd.isClickable = false
             tvWatchAdStatus.text = getString(R.string.vip_plan_watch_sub_opening)
 
-            if (AdManager.isVipByKeyActive()) {
-                SafeLogger.d(TAG, "rowWatchAd — VIP active, fallback to interstitial")
-                AdManager.showInterstitial(requireActivity()) { shown ->
-                    SafeLogger.d(TAG, "rowWatchAd — interstitial shown=$shown")
-                    if (isAdded) {
-                        if (shown) {
-                            val ok = AdManager.activateVipByKey(requireContext(), VIP_SECRET, 3)
-                            SafeLogger.d(TAG, "rowWatchAd — fallback activate ok=$ok")
-                            if (ok) {
-                                saveVipMeta(3)
-                                refreshStatus(celebration = true)
-                                showBottomSheetDialog(
-                                    getString(R.string.vip_sheet_extra_3_title),
-                                    getString(R.string.vip_sheet_extra_3_msg),
-                                    true,
-                                    getString(R.string.vip_btn_ok),
-                                    null,
-                                    {},
-                                )
-                            }
+            AdManager.showRewarded(requireActivity()) { earned ->
+                SafeLogger.d(TAG, "rowWatchAd — showRewarded callback earned=$earned")
+                if (!isAdded) return@showRewarded
+                if (earned) {
+                    // Kênh DUY NHẤT cấp thưởng — rewardedListener chỉ dùng cho UI/analytics (xem dưới).
+                    val txId = AdManager.rewardTransactionId
+                    val lastTx = vipMeta().getString(KEY_LAST_REWARD_TX, null)
+                    if (txId != null && txId != lastTx) {
+                        vipMeta().edit().putString(KEY_LAST_REWARD_TX, txId).apply()
+                        val ok = AdManager.grantVipDays(requireContext(), 3)
+                        SafeLogger.d(TAG, "rowWatchAd — grantVipDays ok=$ok txId=$txId")
+                        if (ok) {
+                            saveVipMeta(3)
+                            pendingVipReward = true
+                        } else {
+                            // grantVipDays fail (vd overflow) — không để nút kẹt "Đang mở…" mãi.
+                            tvWatchAdStatus.text = getString(R.string.vip_plan_watch_sub_retry)
+                            rowWatchAd.isClickable = true
                         }
-                        rowWatchAd.isClickable = true
-                        tvWatchAdStatus.text = getString(R.string.vip_plan_watch_sub_ready)
-                    }
-                }
-            } else {
-                SafeLogger.d(TAG, "rowWatchAd — showRewarded")
-                AdManager.showRewarded(requireActivity()) { earned ->
-                    SafeLogger.d(TAG, "rowWatchAd — showRewarded callback earned=$earned")
-                    if (!isAdded) return@showRewarded
-                    if (!earned) {
+                    } else {
+                        // Dedup reject (txId null/trùng) — cũng không để nút kẹt "Đang mở…" mãi.
+                        SafeLogger.w(TAG, "rowWatchAd — reward tx trùng/thiếu, bỏ qua dedup (txId=$txId)")
                         tvWatchAdStatus.text = getString(R.string.vip_plan_watch_sub_retry)
                         rowWatchAd.isClickable = true
                     }
+                } else {
+                    tvWatchAdStatus.text = getString(R.string.vip_plan_watch_sub_retry)
+                    rowWatchAd.isClickable = true
                 }
             }
         }
@@ -637,13 +634,9 @@ class FVipManagement : Fragment() {
             }
 
             override fun onUserEarnedReward(type: String, amount: Int) {
+                // UI/analytics only — cấp thưởng thật xảy ra ở callback showRewarded() (setupWatchAdRow),
+                // dedup qua rewardTransactionId. Không gọi grantVipDays ở đây, tránh double-grant.
                 SafeLogger.d(TAG, "rewardedListener.onUserEarnedReward type=$type amount=$amount")
-                val f = weakSelf.get() ?: return
-                if (!f.isAdded) return
-                val ok = AdManager.activateVipByKey(f.requireContext(), f.VIP_SECRET, 3)
-                SafeLogger.d(TAG, "onUserEarnedReward — activateVipByKey ok=$ok")
-                if (ok) f.saveVipMeta(3)
-                f.pendingVipReward = ok
             }
         }
     }
